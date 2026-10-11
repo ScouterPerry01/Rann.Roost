@@ -17,6 +17,7 @@ L’écran Bienvenue est le premier que vous voyez. Il présente le nom de l’a
 - **Créer un nouveau ménage** : ouvre l’écran [Créer un ménage](basics#create-screen), pour commencer de nouveaux comptes.
 - **Ouvrir un ménage existant** : ouvre un sélecteur de dossier. Choisissez le dossier du ménage lui-même (son nom se termine par .hfm, comme Famille Tremblay.hfm). L’écran [Déverrouiller le ménage](basics#unlock-screen) s’ouvre ensuite pour lui.
 - **Restaurer une sauvegarde…** : ramène un ménage à partir d’un fichier de sauvegarde (.hfmbak), par exemple après une panne de disque ou pour passer à un nouvel ordinateur. Voir [Restaurer une sauvegarde](basics#restore).
+- **Ouvrir un ménage exemple** : ouvre un ménage fictif pour essayer l’application. Voir [Essayer un ménage exemple](basics#samples).
 - **À propos et confidentialité** : présente la page [À propos](about) (version, mises à jour, confidentialité, licence, soutien) avant qu’un ménage soit ouvert. **Retour** ramène à Bienvenue.
 - **Ménages récents** : les cinq derniers ménages ouverts sur cet ordinateur, du plus récent au plus ancien. Cliquez sur l’un d’eux pour aller directement à son écran de déverrouillage. Un ménage dont le dossier a été déplacé, renommé ou supprimé n’y paraît plus ; utilisez **Ouvrir un ménage existant** pour le retrouver.
 
@@ -33,6 +34,21 @@ L’écran Bienvenue est le premier que vous voyez. Il présente le nom de l’a
 5. L’écran de déverrouillage s’ouvre pour le ménage restauré. Connectez-vous avec le nom d’utilisateur et le mot de passe en usage au moment de la sauvegarde, ou réinitialisez le mot de passe avec votre clé de récupération.
 
 Si la sauvegarde ne peut pas être restaurée, un message sous le bouton en donne la raison. Voir [Sauvegardes](backups) pour faire des sauvegardes, et [Confidentialité, données et sécurité](privacy-data#new-computer) pour passer à un nouvel ordinateur.
+
+### Essayer un ménage exemple {#samples}
+
+@index: ménage exemple; démo; essayer l’application
+
+Un ménage exemple est fictif et rempli de plusieurs mois d’activité : vous voyez chaque écran à l’œuvre avant d’entrer vos propres chiffres, ou vous montrez l’application à quelqu’un.
+
+1. Dans Bienvenue, cliquez sur **Ouvrir un ménage exemple**.
+2. Choisissez l’un des trois : **Alex et Sam** (un couple avec un enfant, un chien, un duplex loué et un travail autonome), **Une famille de cinq** (deux parents qui travaillent, trois jeunes enfants, une hypothèque, un chalet hérité et de gros placements) ou **Une personne qui débute** (une jeune personne locataire qui apprend à faire un budget et commence à investir).
+3. Choisissez la langue avec **English** ou **Français**, et la **Province ou territoire** où il vit : ses impôts, prestations, services publics et lieux sont ceux de cette province ou de ce territoire.
+4. Cliquez sur **Ouvrir l’exemple**. Sa préparation prend un moment ; l’écran l’indique pendant ce temps.
+
+![Choisir un ménage exemple](images/sample-household.png)
+
+Une bannière en haut de chaque écran rappelle qu’il s’agit d’un exemple. Rien de ce que vous y changez n’est gardé : quand vous le verrouillez ou fermez l’application, l’exemple est supprimé et Bienvenue revient. Il n’apparaît jamais dans les ménages récents et n’est jamais sauvegardé. Ses noms, entreprises et montants sont inventés ; ses impôts viennent des taux et règles de l’application.
 
 ### Créer un ménage {#create-screen}
 

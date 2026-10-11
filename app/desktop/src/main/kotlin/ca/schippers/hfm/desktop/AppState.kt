@@ -1,3 +1,12 @@
+// File path and name: app/desktop/src/main/kotlin/ca/schippers/hfm/desktop/AppState.kt
+// Modified On Timestamp: 2026-10-11 @ 13:05 EDT
+// Created On Timestamp: 2026-10-01 @ 15:53 EDT
+// File Description: The desktop app's UI state: the screen shown, the open household (real or a
+//   sample), and the per-computer settings.
+// Uses: HouseholdStore, BooksModel, Updater, WalkMeState, java.util.prefs.
+// Used By: Main.kt, App.kt and every screen.
+// Purpose: Hold at most one unlocked household and what the app remembers on this computer.
+
 package ca.schippers.hfm.desktop
 
 import androidx.compose.runtime.getValue
@@ -27,6 +36,9 @@ sealed interface Screen {
 
     /** HLP-03: the Walk-Me guides, before a household is open. */
     data object Guides : Screen
+
+    /** Choosing a sample household to try, with its language and province or territory. */
+    data object Samples : Screen
     data class Unlock(val dir: Path) : Screen
     data class Reset(val dir: Path) : Screen
     data class ShowRecoveryKey(val session: HouseholdSession, val key: RecoveryKey) : Screen
@@ -183,12 +195,41 @@ class AppState(
         }
     }
 
-    /** Locks the household: closes the session, wiping its keys from memory (SEC-02). */
+    /** The folder of the sample household open now, deleted when it is locked or closed; null for a real household. */
+    var sampleDir: Path? by mutableStateOf(null)
+        private set
+
+    /** Opens a sample household made in a temporary folder; it is never added to the recent households. */
+    fun openedSample(session: HouseholdSession) {
+        sampleDir = session.dir
+        screen = try {
+            Screen.Main(BooksModel(session, this))
+        } catch (e: Exception) {
+            session.close()
+            discardSample()
+            throw e
+        }
+    }
+
+    /** Deletes the sample household's temporary folder (the "hfm-demo…" folder it was made in). */
+    private fun discardSample() {
+        val dir = sampleDir ?: return
+        sampleDir = null
+        val root = dir.parent?.takeIf { it.fileName.toString().startsWith("hfm-demo") } ?: dir
+        runCatching { Files.walk(root).use { paths -> paths.sorted(Comparator.reverseOrder()).forEach(Files::deleteIfExists) } }
+    }
+
+    /** Locks the household: closes the session, wiping its keys from memory (SEC-02). A sample household is deleted. */
     fun lock() {
         when (val s = screen) {
             is Screen.Main -> {
                 s.model.session.close()
-                screen = Screen.Unlock(s.model.session.dir)
+                if (s.model.session.dir == sampleDir) {
+                    discardSample()
+                    screen = Screen.Welcome
+                } else {
+                    screen = Screen.Unlock(s.model.session.dir)
+                }
             }
             is Screen.ShowRecoveryKey -> {
                 s.session.close()

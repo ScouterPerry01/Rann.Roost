@@ -1,3 +1,12 @@
+// File path and name: app/desktop/src/main/kotlin/ca/schippers/hfm/desktop/App.kt
+// Modified On Timestamp: 2026-10-11 @ 13:05 EDT
+// Created On Timestamp: 2026-10-01 @ 15:53 EDT
+// File Description: The desktop window's content: the top bar, the screens before a household is open
+//   (welcome, create, unlock, samples, guides, about) and the main screen.
+// Uses: AppState, every screen composable.
+// Used By: Main.kt.
+// Purpose: Show the right screen for the app's state.
+
 package ca.schippers.hfm.desktop
 
 import androidx.compose.foundation.layout.width
@@ -141,6 +150,7 @@ private fun ScreenContent(state: AppState) {
                         TextButton(onClick = { state.screen = Screen.Welcome }) { Text(state.t("common.back")) }
                         WalkMeList(state)
                     }
+                    Screen.Samples -> SampleScreen(state)
                     Screen.Create -> CreateScreen(state)
                     is Screen.Unlock -> UnlockScreen(state, screen.dir)
                     is Screen.Reset -> ResetScreen(state, screen.dir)
@@ -182,6 +192,8 @@ private fun WelcomeScreen(state: AppState) {
         modifier = Modifier.fillMaxWidth(),
     ) { Text(state.t("welcome.open")) }
     RestoreButton(state)
+    // A made-up household to try the app on, thrown away when it is closed.
+    OutlinedButton(onClick = { state.screen = Screen.Samples }, modifier = Modifier.fillMaxWidth()) { Text(state.t("welcome.sample")) }
     // HLP-03: the guides, the first of which walks through creating a household.
     Text(state.t("welcome.walkme"), style = MaterialTheme.typography.bodyMedium)
     OutlinedButton(onClick = { state.screen = Screen.Guides }, modifier = Modifier.fillMaxWidth()) { Text(state.t("nav.walkme")) }

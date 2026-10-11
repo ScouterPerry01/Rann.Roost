@@ -1,3 +1,12 @@
+// File path and name: app/desktop/src/main/kotlin/ca/schippers/hfm/desktop/MainScreen.kt
+// Modified On Timestamp: 2026-10-11 @ 13:05 EDT
+// Created On Timestamp: 2026-10-01 @ 18:22 EDT
+// File Description: The open household's screen: banners (sample, update, reminders), the menu and the
+//   section shown, and the background work while it is open (rates, backups, phone sync).
+// Uses: BooksModel, AppState, every section screen.
+// Used By: App.kt.
+// Purpose: Frame the work on an open household.
+
 package ca.schippers.hfm.desktop
 
 import androidx.compose.foundation.clickable
@@ -60,10 +69,17 @@ fun MainScreen(model: BooksModel, app: AppState) {
     LaunchedEffect(model) { watchTransferFolder(model) }
     LaunchedEffect(model) { scheduledReports(model) }
     LaunchedEffect(model) {
+        // A sample household is thrown away: no backups of it.
+        if (app.sampleDir != null) return@LaunchedEffect
         ensureBackupDefaults(model)
         backupScheduler(model)
     }
     Column(Modifier.fillMaxSize()) {
+        if (app.sampleDir != null) {
+            Surface(color = MaterialTheme.colorScheme.secondaryContainer, modifier = Modifier.fillMaxWidth()) {
+                Text(model.t("sample.banner"), modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp))
+            }
+        }
         // DIST-05: a newer version, until the user looks at it under About.
         val update = app.updater.status as? UpdateStatus.Available
         if (update != null && model.section != Section.ABOUT) {

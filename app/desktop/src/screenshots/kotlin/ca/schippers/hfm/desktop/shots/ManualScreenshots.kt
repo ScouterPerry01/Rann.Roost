@@ -1,3 +1,12 @@
+// File path and name: app/desktop/src/screenshots/kotlin/ca/schippers/hfm/desktop/shots/ManualScreenshots.kt
+// Modified On Timestamp: 2026-10-11 @ 13:05 EDT
+// Created On Timestamp: 2026-10-05 @ 21:54 EDT
+// File Description: Draws the manual's and the Microsoft Store's pictures of the sample household
+//   offscreen, at a fixed size, in light and dark colours and in English and French.
+// Uses: Compose UI test, DemoHousehold, AppState, the app's screens.
+// Used By: ./gradlew :app:desktop:manualScreenshots and storeScreenshots.
+// Purpose: Keep the manual's and the Store's pictures in step with the app.
+
 @file:OptIn(androidx.compose.ui.test.ExperimentalTestApi::class)
 
 package ca.schippers.hfm.desktop.shots
@@ -349,6 +358,7 @@ private val SHOTS: List<Shot> = buildList {
     // The manual's own window, on the Bills chapter with its first picture.
     add(Shot("manual-window") { section(Section.BILLS); app.openManual("bills"); manualShown = true })
     add(Shot("welcome-screen") { app.screen = Screen.Welcome })
+    add(Shot("sample-household") { app.screen = Screen.Samples })
     add(Shot("create-household") { app.screen = Screen.Create })
 }
 

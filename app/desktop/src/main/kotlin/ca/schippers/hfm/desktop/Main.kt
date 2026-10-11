@@ -1,3 +1,12 @@
+// File path and name: app/desktop/src/main/kotlin/ca/schippers/hfm/desktop/Main.kt
+// Modified On Timestamp: 2026-10-11 @ 13:05 EDT
+// Created On Timestamp: 2026-10-01 @ 15:53 EDT
+// File Description: The desktop app's entry point: the window, the tray, auto-lock and demo mode
+//   (runDemo: a sample household in any province with -Pprovince).
+// Uses: AppState, App.kt, DemoHousehold, DemoPlace.
+// Used By: The packaged app and ./gradlew :app:desktop:run / runDemo.
+// Purpose: Start the app.
+
 package ca.schippers.hfm.desktop
 
 import androidx.compose.runtime.LaunchedEffect
@@ -39,7 +48,11 @@ private fun desktopApp() = application {
                 System.getProperty("hfm.demo.lang")?.let { tag ->
                     Language.entries.firstOrNull { it.tag == tag }?.let { app.switchLanguage(it, remember = false) }
                 }
-                val model = BooksModel(DemoHousehold.create(app.store, app.language), app)
+                // -Psample=family|single: another sample household than Alex and Sam's; -Pprovince=AB: in any province or
+                // territory (by default Quebec in French, Ontario in English).
+                val sample = SampleHousehold.entries.firstOrNull { it.name.equals(System.getProperty("hfm.demo.sample"), ignoreCase = true) } ?: SampleHousehold.COUPLE
+                val province = ca.schippers.hfm.calc.Province.of(System.getProperty("hfm.demo.province")) ?: DemoPlace.defaultFor(app.language)
+                val model = BooksModel(sample.create(app.store, app.language, province), app)
                 model.selectedAccountId = model.books.accounts.list().firstOrNull { it.account.name == System.getProperty("hfm.demo.account") }?.account?.id
                 System.getProperty("hfm.demo.section")?.let { name -> Section.entries.firstOrNull { it.name == name }?.let { model.section = it } }
                 System.getProperty("hfm.demo.report")?.let { name -> ReportKind.entries.firstOrNull { it.name == name }?.let { model.reportState.kind = it } }

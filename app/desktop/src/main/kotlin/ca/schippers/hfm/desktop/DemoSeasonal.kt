@@ -1,3 +1,12 @@
+// File path and name: app/desktop/src/main/kotlin/ca/schippers/hfm/desktop/DemoSeasonal.kt
+// Modified On Timestamp: 2026-10-11 @ 13:05 EDT
+// Created On Timestamp: 2026-10-06 @ 08:32 EDT
+// File Description: The sample household's pool, yard and cottage with their seasonal tasks, and an
+//   energy upgrade with the rebates of where it lives.
+// Uses: DemoPlace, core/books assets, seasonal checklist and project rebates.
+// Used By: DemoHousehold.
+// Purpose: Show the seasonal checklist and energy rebates on realistic data.
+
 package ca.schippers.hfm.desktop
 
 import ca.schippers.hfm.books.Asset
@@ -20,10 +29,12 @@ import java.math.BigDecimal
 /**
  * SEA-01 to SEA-05 in the sample household: a pool and a yard at the house, the cottage the
  * mortgage is for, their usual tasks with some of this season's already ticked, and an energy
- * upgrade with its rebates (Ontario's in English, Quebec's in French). [l] picks the French or
- * English text; [skip] are tasks left as they are (the furnace filter is overdue on purpose).
+ * upgrade with the rebates of where the household lives ([p]); [skip] are tasks left as they are
+ * (the furnace filter is overdue on purpose).
  */
-internal fun addSeasonalDemo(books: Books, group: String, house: Asset, skip: Set<String>, today: LocalDate, l: (String, String) -> String) {
+internal fun addSeasonalDemo(books: Books, group: String, house: Asset, skip: Set<String>, today: LocalDate, p: DemoPlace) {
+    val l = p::l
+    val q = p::q
     fun cad(s: String) = Money.parse(s, Currency.CAD)
     fun day(n: Int) = today.plus(DatePeriod(days = n))
     fun task(key: String) = ca.schippers.hfm.i18n.Messages.get(books.language, "assetTemplate.$key")
@@ -32,14 +43,14 @@ internal fun addSeasonalDemo(books: Books, group: String, house: Asset, skip: Se
     val pool = assets.save(
         Asset(
             "", group, AssetKind.POOL, l("Piscine hors terre", "Above-ground pool"), house.id, "Trevi", "Prestige 24", purchaseDate = LocalDate(2021, 6, 5),
-            seller = l("Club Piscine", "Pioneer Family Pools"), purchasePrice = cad("7900"), location = l("Cour arrière", "Backyard"),
+            seller = q("Club Piscine", p.t.poolStore), purchasePrice = cad("7900"), location = l("Cour arrière", "Backyard"),
         ),
     )
-    val yard = assets.save(Asset("", group, AssetKind.YARD, l("Terrain et potager", "Yard and vegetable garden"), house.id, location = l("Rue des Érables", "Maple Street")))
+    val yard = assets.save(Asset("", group, AssetKind.YARD, l("Terrain et potager", "Yard and vegetable garden"), house.id, location = q("Rue des Érables", l("Rue Maple", "Maple Street"))))
     val cottage = assets.save(
         Asset(
-            "", group, AssetKind.COTTAGE, l("Chalet (Lac-Édouard)", "Cottage (Bon Echo)"), purchaseDate = LocalDate(2019, 8, 15), purchasePrice = cad("265000"),
-            valueMethod = ValueMethod.MANUAL, value = cad("340000"), valueDate = day(-200), location = l("Lac-Édouard", "Cloyne"),
+            "", group, AssetKind.COTTAGE, p.cottage, purchaseDate = LocalDate(2019, 8, 15), purchasePrice = cad("265000"),
+            valueMethod = ValueMethod.MANUAL, value = cad("340000"), valueDate = day(-200), location = p.cottageTown,
         ),
     )
     for (a in listOf(pool, yard, cottage)) upkeep.addStarterTasks(a.id, today, ::task)
@@ -62,21 +73,28 @@ internal fun addSeasonalDemo(books: Books, group: String, house: Asset, skip: Se
     )
     books.homeProjects.addCost(attic, day(-240), l("Évaluation énergétique", "Pre-retrofit energy evaluation"), cad("450.00"))
     books.homeProjects.addCost(attic, day(-222), l("Isolation R-60 et étanchéité", "R-60 blown-in insulation and air sealing"), cad("4380.00"))
-    val p = books.homeProjects.list().first { it.id == attic.id }
+    val project = books.homeProjects.list().first { it.id == attic.id }
     val rebates = books.projectRebates
-    rebates.save(
-        p,
-        ProjectRebate(
-            "", p.id, l("Rénoclimat (Gouvernement du Québec)", "Home Renovation Savings Program (Enbridge Gas)"), RebateStatus.RECEIVED, l("RC-2025-118274", "HRSP-77102"),
-            cad("1850"), day(-215), day(-170), day(-150), cad("1850"),
-        ),
-    )
-    rebates.save(p, ProjectRebate("", p.id, l("Remise municipale (Ville de Québec)", "City of Ottawa Better Homes rebate"), RebateStatus.APPLIED, amount = cad("500"), applied = day(-140)))
+    // Each rebate only where the place has one: Quebec's and Ontario's are the manual's.
+    if (p.quebec || p.t.energyRebate != null) {
+        rebates.save(
+            project,
+            ProjectRebate(
+                "", project.id, q("Rénoclimat (Gouvernement du Québec)", p.t.energyRebate ?: ""), RebateStatus.RECEIVED, q("RC-2025-118274", p.t.energyRebateRef),
+                cad("1850"), day(-215), day(-170), day(-150), cad("1850"),
+            ),
+        )
+    }
+    if (p.quebec || p.t.cityRebate != null) {
+        rebates.save(project, ProjectRebate("", project.id, q(l("Remise municipale (Ville de Québec)", "Municipal rebate (Ville de Québec)"), p.t.cityRebate ?: ""), RebateStatus.APPLIED, amount = cad("500"), applied = day(-140)))
+    }
     val water = books.homeProjects.save(
         HomeProject(
             "", group, l("Chauffe-eau thermopompe", "Heat pump water heater"), ProjectStatus.PLANNED, Currency.CAD, house.id, budget = cad("3800"),
             energyKind = EnergyUpgrade.WATER_HEATER,
         ),
     )
-    rebates.save(water, ProjectRebate("", water.id, l("LogisVert (Hydro-Québec)", "Home Renovation Savings Program (IESO)"), RebateStatus.PLANNED, amount = cad("1000")))
+    if (p.quebec || p.t.waterHeaterRebate != null) {
+        rebates.save(water, ProjectRebate("", water.id, q("LogisVert (Hydro-Québec)", p.t.waterHeaterRebate ?: ""), RebateStatus.PLANNED, amount = cad("1000")))
+    }
 }

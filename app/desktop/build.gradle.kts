@@ -175,8 +175,9 @@ compose.desktop {
     }
 }
 
-// Opens a throw-away sample household (an Ontario family in English, a Quebec family in French):
-// ./gradlew :app:desktop:runDemo [-Plang=fr] [-Paccount="TD Visa"] [-Psection=CATEGORIES]
+// Opens a throw-away sample household: Alex and Sam (in Ontario in English, in Quebec in French),
+// or -Psample=family or single; in any province or territory with -Pprovince=AB:
+// ./gradlew :app:desktop:runDemo [-Plang=fr] [-Psample=family] [-Pprovince=NB] [-Paccount="TD Visa"] [-Psection=CATEGORIES]
 tasks.register<JavaExec>("runDemo") {
     group = "application"
     description = "Runs the desktop app with a temporary sample household"
@@ -184,6 +185,8 @@ tasks.register<JavaExec>("runDemo") {
     classpath = sourceSets["main"].runtimeClasspath
     systemProperty("hfm.demo", "true")
     providers.gradleProperty("lang").orNull?.let { systemProperty("hfm.demo.lang", it) }
+    providers.gradleProperty("province").orNull?.let { systemProperty("hfm.demo.province", it) }
+    providers.gradleProperty("sample").orNull?.let { systemProperty("hfm.demo.sample", it) }
     providers.gradleProperty("account").orNull?.let { systemProperty("hfm.demo.account", it) }
     providers.gradleProperty("section").orNull?.let { systemProperty("hfm.demo.section", it) }
     providers.gradleProperty("reconcile").orNull?.let { systemProperty("hfm.demo.reconcile", it) }
@@ -194,6 +197,17 @@ tasks.register<JavaExec>("runDemo") {
     providers.gradleProperty("update").orNull?.let { systemProperty("hfm.demo.update", it) }
     // A local stand-in for the AI service, for trying AI reading without a key or cost.
     providers.gradleProperty("aiUrl").orNull?.let { systemProperty("hfm.demo.aiUrl", it) }
+}
+
+// The sample households built in every province and territory and both languages (several
+// minutes, so not part of `test`): ./gradlew :app:desktop:sampleHouseholdsTest
+tasks.register<Test>("sampleHouseholdsTest") {
+    description = "Builds the sample households in every province and territory, in English and French"
+    group = "verification"
+    testClassesDirs = sourceSets["test"].output.classesDirs
+    classpath = sourceSets["test"].runtimeClasspath
+    useJUnitPlatform { includeTags("samples") }
+    outputs.upToDateWhen { false }
 }
 
 // The manual's pictures (docs/manual-format.md): the sample household's screens drawn offscreen,

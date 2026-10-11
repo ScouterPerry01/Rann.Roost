@@ -1,5 +1,15 @@
+// File path and name: app/desktop/src/main/kotlin/ca/schippers/hfm/desktop/DemoHousehold.kt
+// Modified On Timestamp: 2026-10-11 @ 13:05 EDT
+// Created On Timestamp: 2026-10-01 @ 18:22 EDT
+// File Description: The Alex & Sam sample household: a few months of made-up activity across
+//   every feature, built in a temporary folder.
+// Uses: DemoPlace (where it lives), DemoTrips, DemoSeasonal, core/books services.
+// Used By: Main.kt (demo mode), ManualScreenshots, PhoneHost, DemoHouseholdTest.
+// Purpose: Show and test the app on realistic data without touching a real household.
+
 package ca.schippers.hfm.desktop
 
+import ca.schippers.hfm.calc.Province
 import ca.schippers.hfm.books.Account
 import ca.schippers.hfm.sync.CalendarInstance
 import ca.schippers.hfm.sync.CalendarSnapshot
@@ -167,28 +177,44 @@ import java.nio.file.Files
 
 /**
  * A sample household with a few months of made-up activity, created in a temporary folder.
- * Started with `./gradlew :app:desktop:runDemo`; never touches real households. In English it is
- * a family in Ottawa, Ontario; in French a family in Quebec City, so each language's screenshots
- * show names, places and taxes that fit it.
+ * Started with `./gradlew :app:desktop:runDemo`; never touches real households. It lives in any
+ * province or territory ([DemoPlace]); unless told otherwise, a family in Ottawa, Ontario in
+ * English and in Quebec City in French, as the manual's and the Store's pictures show it.
  */
 object DemoHousehold {
     const val LOGIN = "demo"
     const val PASSWORD = "demo-password"
 
-    /** Whether the household being built is the English one (Ontario). */
-    private var english = false
+    /** Where the household being built lives, and the language of its text. */
+    private var p = DemoPlace(Province.ON, true)
 
-    /** The French (Quebec) or English (Ontario) version of a name. */
-    private fun l(fr: String, en: String) = if (english) en else fr
+    /** The French or English version of a text. */
+    private fun l(fr: String, en: String) = p.l(fr, en)
 
-    fun create(store: HouseholdStore, language: ca.schippers.hfm.i18n.Language = ca.schippers.hfm.i18n.Language.ENGLISH): HouseholdSession {
-        english = language == ca.schippers.hfm.i18n.Language.ENGLISH
+    /** The Quebec name, or the one used elsewhere in Canada. */
+    private fun q(qc: String, other: String) = p.q(qc, other)
+
+    // Names used in more than one place: the contacts are gathered from them by name.
+    private val advisorName: String get() = q("Marc Lavoie", "Daniel Wong")
+    private val doctorName: String get() = q(l("Dre Gagnon (GMF Limoilou)", "Dr. Gagnon (GMF Limoilou)"), l("Dre Patel (${p.t.neighbourhood} Family Health Team)", "Dr. Patel (${p.t.neighbourhood} Family Health Team)"))
+    private val pharmacyName: String get() = q("Pharmacie Jean Coutu", "Shoppers Drug Mart")
+    private val dentistName: String get() = q("Clinique dentaire Saint-Roch", "${p.t.street2} Dental")
+    private val vetName: String get() = q("Hôpital vétérinaire Charlesbourg", "Riverside Animal Hospital")
+    private val garageName: String get() = q("Garage Tremblay", "Main Street Auto")
+    private val plumberName: String get() = q("Plomberie Roy", p.t.plumber)
+
+    fun create(
+        store: HouseholdStore,
+        language: ca.schippers.hfm.i18n.Language = ca.schippers.hfm.i18n.Language.ENGLISH,
+        province: Province = DemoPlace.defaultFor(language),
+    ): HouseholdSession {
+        p = DemoPlace(province, language == ca.schippers.hfm.i18n.Language.ENGLISH)
         // The manual's pictures put it in a folder of their own (hfm.demo.dir), so no user name shows in its paths.
         val parent = System.getProperty("hfm.demo.dir")?.let { java.nio.file.Path.of(it) } ?: Files.createTempDirectory("hfm-demo")
         val dir = parent.resolve("Demo.hfm")
         val created = store.create(
             dir, l("Famille Démo", "Demo Family"), LOGIN, "Alex Demo", PASSWORD.toCharArray(),
-            locale = l("fr-CA", "en-CA"), province = l("QC", "ON"),
+            locale = l("fr-CA", "en-CA"), province = province.name,
             // As a household created in the app gets it: the shared group named in its language.
             sharedGroupName = ca.schippers.hfm.i18n.Messages.get(language, "group.sharedName"),
         )
@@ -198,6 +224,33 @@ object DemoHousehold {
         // so the Getting started guide is hidden rather than asking for that last step.
         books.putSetting(gettingStartedSetting(books.userId), "1")
         return created.session
+    }
+
+    /**
+     * Alex's pay stub (SAL-02), dated later by each pay. Quebec's and Ontario's figures are the
+     * ones the manual shows; elsewhere the provincial or territorial tax comes from the app's own
+     * tax rules, the federal tax, CPP and EI being those outside Quebec.
+     */
+    private fun alexPayStub(year: Int): PayStub {
+        fun cad(s: String) = Money.parse(s, Currency.CAD)
+        val gross = cad("4315.00")
+        val deductions = if (p.quebec) {
+            listOf(
+                PayDeduction(DeductionKind.INCOME_TAX, l("Impôt fédéral", "Federal tax"), cad("410.00")), PayDeduction(DeductionKind.INCOME_TAX, l("Impôt du Québec", "Quebec tax"), cad("380.00")),
+                PayDeduction(DeductionKind.CPP_QPP, l("RRQ", "QPP"), cad("255.00")), PayDeduction(DeductionKind.EI_QPIP, l("AE", "EI"), cad("55.00")), PayDeduction(DeductionKind.EI_QPIP, l("RQAP", "QPIP"), cad("17.00")),
+                PayDeduction(DeductionKind.UNION_DUES, l("Cotisation syndicale", "Union dues"), cad("38.00")), PayDeduction(DeductionKind.CHARITY, "Centraide", cad("10.00")),
+            )
+        } else {
+            val territory = p.province in setOf(Province.YT, Province.NT, Province.NU)
+            val provincial = if (p.province == Province.ON) cad("280.00") else Money.of(p.provincialTaxPerPay(gross.toBigDecimal(), year), Currency.CAD)
+            listOf(
+                PayDeduction(DeductionKind.INCOME_TAX, l("Impôt fédéral", "Federal tax"), cad("520.00")),
+                PayDeduction(DeductionKind.INCOME_TAX, l(if (territory) "Impôt territorial" else "Impôt provincial", "${p.provinceName} tax"), provincial),
+                PayDeduction(DeductionKind.CPP_QPP, l("RPC", "CPP"), cad("245.00")), PayDeduction(DeductionKind.EI_QPIP, l("AE", "EI"), cad("72.00")),
+                PayDeduction(DeductionKind.UNION_DUES, l("Cotisation syndicale", "Union dues"), cad("38.00")), PayDeduction(DeductionKind.CHARITY, l("Centraide", "United Way"), cad("10.00")),
+            )
+        }
+        return PayStub(l("Employeur inc.", "Employer Inc."), LocalDate(year, 1, 1), listOf(PayEarning(l("Salaire", "Regular pay"), gross)), deductions)
     }
 
     private fun fill(books: Books) {
@@ -210,14 +263,14 @@ object DemoHousehold {
         val alex = books.members.create("Alex", MemberKind.ADULT, LocalDate(1984, 5, 14))
         val sam = books.members.create("Sam", MemberKind.ADULT, LocalDate(1986, 11, 2))
         val lea = books.members.create(l("Léa", "Maya"), MemberKind.CHILD, LocalDate(2015, 6, 12))
-        val desjardins = books.institutions.create(Institution("", l("Desjardins", "TD Canada Trust"), institutionNumber = l("815", "004"), transitNumber = l("30123", "01234")))
-        val bank = books.institutions.create(Institution("", l("Banque Nationale", "Tangerine"), institutionNumber = l("006", "614")))
+        val desjardins = books.institutions.create(Institution("", q("Desjardins", "TD Canada Trust"), institutionNumber = q("815", "004"), transitNumber = q("30123", "01234")))
+        val bank = books.institutions.create(Institution("", q("Banque Nationale", "Tangerine"), institutionNumber = q("006", "614")))
 
         val chequing = books.accounts.create(
-            AccountDraft(group, l("Compte conjoint", "Joint chequing"), AccountType.CHEQUING, Currency.CAD, cad("2450.00"), start, desjardins.id, l("815-30123-0045678", "004-01234-5045678"), setOf(alex.id, sam.id)),
+            AccountDraft(group, l("Compte conjoint", "Joint chequing"), AccountType.CHEQUING, Currency.CAD, cad("2450.00"), start, desjardins.id, q("815-30123-0045678", "004-01234-5045678"), setOf(alex.id, sam.id)),
         )
         val savings = books.accounts.create(AccountDraft(group, l("Épargne", "Savings"), AccountType.HIGH_INTEREST_SAVINGS, Currency.CAD, cad("8000.00"), start, desjardins.id))
-        val visa = books.accounts.create(AccountDraft(group, l("Visa Desjardins", "TD Visa"), AccountType.CREDIT_CARD, Currency.CAD, cad("0"), start, desjardins.id, "4540123412341234"))
+        val visa = books.accounts.create(AccountDraft(group, q("Visa Desjardins", "TD Visa"), AccountType.CREDIT_CARD, Currency.CAD, cad("0"), start, desjardins.id, "4540123412341234"))
         books.creditCards.saveTerms(
             visa.id,
             CreditCardTerms(
@@ -250,34 +303,20 @@ object DemoHousehold {
         val rex = books.pets.save(
             Pet(
                 "", "Rex", Species.DOG, "Golden retriever", Sex.MALE, LocalDate(2021, 5, 3), neutered = true, colour = l("Doré", "Golden"), microchip = "985141000123456",
-                licenceNumber = "2026-04127", licenceMunicipality = l("Ville de Québec", "City of Ottawa"), licenceExpiry = today.plus(DatePeriod(days = 21)),
+                licenceNumber = "2026-04127", licenceMunicipality = p.municipality, licenceExpiry = today.plus(DatePeriod(days = 21)),
                 insurer = "Trupanion", policyNumber = "TP-88213", insuranceRenewal = today.plus(DatePeriod(months = 5)), ownerMemberId = lea.id,
             ),
         )
         val civic = books.vehicles.save(
             Vehicle(
-                "", group, "Civic", "Honda", "Civic", 2021, "EX", l("Gris", "Grey"), "2HGFE2F59MH512345", l("F42 KLM", "CKMR 482"), FuelType.GASOLINE, sam.id,
-                LocalDate(2023, 4, 12), cad("24500"), l("Honda de Sainte-Foy", "Ottawa Honda"), 38_200, Currency.CAD, today.plus(DatePeriod(months = 7)),
-                l("Desjardins Assurances", "Intact Insurance"), "AUT-5521873", today.plus(DatePeriod(days = 12)),
+                "", group, "Civic", "Honda", "Civic", 2021, "EX", l("Gris", "Grey"), "2HGFE2F59MH512345", q("F42 KLM", p.t.plate1), FuelType.GASOLINE, sam.id,
+                LocalDate(2023, 4, 12), cad("24500"), q("Honda de Sainte-Foy", p.t.honda), 38_200, Currency.CAD, today.plus(DatePeriod(months = 7)),
+                p.insurer, "AUT-5521873", today.plus(DatePeriod(days = 12)),
             ),
         )
         var odometer = 61_200
-        fun payStub(date: LocalDate) = PayStub(
-            l("Employeur inc.", "Employer Inc."), date, listOf(PayEarning(l("Salaire", "Regular pay"), cad("4315.00"))),
-            if (!english) {
-                listOf(
-                    PayDeduction(DeductionKind.INCOME_TAX, "Impôt fédéral", cad("410.00")), PayDeduction(DeductionKind.INCOME_TAX, "Impôt du Québec", cad("380.00")),
-                    PayDeduction(DeductionKind.CPP_QPP, "RRQ", cad("255.00")), PayDeduction(DeductionKind.EI_QPIP, "AE", cad("55.00")), PayDeduction(DeductionKind.EI_QPIP, "RQAP", cad("17.00")),
-                    PayDeduction(DeductionKind.UNION_DUES, "Cotisation syndicale", cad("38.00")), PayDeduction(DeductionKind.CHARITY, "Centraide", cad("10.00")),
-                )
-            } else {
-                listOf(
-                    PayDeduction(DeductionKind.INCOME_TAX, "Federal tax", cad("520.00")), PayDeduction(DeductionKind.INCOME_TAX, "Ontario tax", cad("280.00")),
-                    PayDeduction(DeductionKind.CPP_QPP, "CPP", cad("245.00")), PayDeduction(DeductionKind.EI_QPIP, "EI", cad("72.00")),
-                    PayDeduction(DeductionKind.UNION_DUES, "Union dues", cad("38.00")), PayDeduction(DeductionKind.CHARITY, "United Way", cad("10.00")),
-                )
-            },
-        )
+        val payStub = alexPayStub(today.year)
+        fun payStub(date: LocalDate) = payStub.copy(payDate = date)
 
         // Only past activity: anything that would fall after today is skipped.
         fun add(draft: TransactionDraft) { if (draft.date <= today) books.transactions.create(draft) }
@@ -289,11 +328,11 @@ object DemoHousehold {
             // SAL-02: Alex's pay, entered from the pay stub: gross pay less each deduction.
             for (day in listOf(1, 15)) add(books.payStubs.draft(chequing.id, payStub(on(day)), alex.id))
             // OTH-01: a monthly gift to the food bank.
-            add(TransactionDraft(chequing.id, on(20), cad("-25.00"), l("Moisson Québec", "Ottawa Food Bank"), listOf(SplitDraft(cat("gifts.charity"), cad("-25.00"))), memberId = sam.id))
+            add(TransactionDraft(chequing.id, on(20), cad("-25.00"), q("Moisson Québec", p.t.foodBank), listOf(SplitDraft(cat("gifts.charity"), cad("-25.00"))), memberId = sam.id))
             add(TransactionDraft(chequing.id, on(1), cad("-1450.00"), l("Propriétaire", "Landlord"), listOf(SplitDraft(cat("housing.rent"), cad("-1450.00")))))
-            add(TransactionDraft(chequing.id, on(12), cad("-132.48"), l("Hydro-Québec", "Hydro Ottawa"), listOf(SplitDraft(cat("utilities.electricity"), cad("-132.48")))))
-            add(TransactionDraft(chequing.id, on(18), cad("-95.00"), l("Vidéotron", "Rogers"), listOf(SplitDraft(cat("utilities.internet"), cad("-95.00")))))
-            add(TransactionDraft(visa.id, on(6), cad("-187.32"), l("IGA", "Loblaws"), listOf(SplitDraft(cat("food.groceries"), cad("-187.32")))))
+            add(TransactionDraft(chequing.id, on(12), cad("-132.48"), p.power, listOf(SplitDraft(cat("utilities.electricity"), cad("-132.48")))))
+            add(TransactionDraft(chequing.id, on(18), cad("-95.00"), q("Vidéotron", p.t.internet), listOf(SplitDraft(cat("utilities.internet"), cad("-95.00")))))
+            add(TransactionDraft(visa.id, on(6), cad("-187.32"), q("IGA", p.t.grocer), listOf(SplitDraft(cat("food.groceries"), cad("-187.32")))))
             add(
                 TransactionDraft(
                     visa.id, on(13), cad("-243.90"), "Costco",
@@ -301,7 +340,7 @@ object DemoHousehold {
                     cardHolderId = samCard.id,
                 ),
             )
-            add(TransactionDraft(visa.id, on(21), cad("-64.15"), l("Restaurant Chez Mimi", "Riverside Diner"), listOf(SplitDraft(cat("food.restaurants"), cad("-64.15")))))
+            add(TransactionDraft(visa.id, on(21), cad("-64.15"), q("Restaurant Chez Mimi", "Riverside Diner"), listOf(SplitDraft(cat("food.restaurants"), cad("-64.15")))))
             // VEH-07, VEH-08: fill-ups entered from the fuel log, with their payments.
             for ((day, litres, cost) in listOf(Triple(8, "41.8", "68.55"), Triple(24, "39.6", "64.95"))) {
                 odometer += 640
@@ -312,8 +351,11 @@ object DemoHousehold {
                     )
                 }
             }
-            add(TransactionDraft(visa.id, on(4), cad("-74.99"), l("Mondou", "Pet Valu"), listOf(SplitDraft(cat("pets.food"), cad("-74.99"))), memberId = rex.id))
-            add(TransactionDraft(chequing.id, on(1), cad("-56.50"), l("RTC", "OC Transpo"), listOf(SplitDraft(cat("transport.transit.pass"), cad("-56.50"))), memberId = lea.id, memo = l("Laissez-passer étudiant", "Student pass")))
+            add(TransactionDraft(visa.id, on(4), cad("-74.99"), q("Mondou", "Pet Valu"), listOf(SplitDraft(cat("pets.food"), cad("-74.99"))), memberId = rex.id))
+            // No city bus in Iqaluit: no pass there.
+            (if (p.quebec) "RTC" else p.t.transit)?.let { transit ->
+                add(TransactionDraft(chequing.id, on(1), cad("-56.50"), transit, listOf(SplitDraft(cat("transport.transit.pass"), cad("-56.50"))), memberId = lea.id, memo = l("Laissez-passer étudiant", "Student pass")))
+            }
             add(TransferDraft(chequing.id, visa.id, on(10), cad("566.57")))
             add(TransferDraft(chequing.id, savings.id, on(16), cad("500.00"), memo = l("Épargne mensuelle", "Monthly savings")))
             month = month.plus(DatePeriod(months = 1))
@@ -321,27 +363,30 @@ object DemoHousehold {
         // OTH-01: a gala dinner, of which the receipt counts only part, and a political contribution.
         if (LocalDate(today.year, 5, 9) <= today) {
             val gala = books.transactions.create(
-                TransactionDraft(visa.id, LocalDate(today.year, 5, 9), cad("-250.00"), l("Fondation du CHU de Québec", "CHEO Foundation"), listOf(SplitDraft(cat("gifts.charity"), cad("-250.00"))), memberId = alex.id),
+                TransactionDraft(visa.id, LocalDate(today.year, 5, 9), cad("-250.00"), q("Fondation du CHU de Québec", p.t.foundation), listOf(SplitDraft(cat("gifts.charity"), cad("-250.00"))), memberId = alex.id),
             )
-            books.donations.setReceipt(gala.id, DonationReceipt(l("Fondation du CHU de Québec", "CHEO Foundation"), null, "2026-0412", cad("150.00"), received = true))
+            books.donations.setReceipt(gala.id, DonationReceipt(q("Fondation du CHU de Québec", p.t.foundation), null, "2026-0412", cad("150.00"), received = true))
             add(TransactionDraft(chequing.id, LocalDate(today.year, 6, 2), cad("-100.00"), l("Association de circonscription", "Riding association"), listOf(SplitDraft(cat("gifts.political"), cad("-100.00"))), memberId = sam.id))
         }
         // EST-02: where Alex's papers are and who to call.
         books.estate.save(
             alex.id, group,
             EstatePlan(
-                willLocation = l("Chez la notaire, Me Gagnon (testament notarié)", "Lawyer's office, Ms. Patel (original); copy in the filing cabinet"),
+                // Quebec's civil law: a notarial will, a liquidator and a protection mandate; elsewhere a lawyer and an executor.
+                willLocation = if (p.quebec) l("Chez la notaire, Me Gagnon (testament notarié)", "At the notary's, Me Gagnon (notarial will)")
+                else l("Bureau de l’avocate, Me Patel (original); copie dans le classeur", "Lawyer's office, Ms. Patel (original); copy in the filing cabinet"),
                 willDate = "2023-04-18",
-                powerOfAttorneyLocation = l("Avec le testament, chez la notaire", "Filing cabinet, top drawer"),
-                mandateLocation = l("Mandat de protection, chez la notaire", "Power of attorney for personal care, filing cabinet"),
-                safeDepositBox = l("Desjardins Sainte-Foy, coffret 214", "TD Bank Sparks St., box 214"),
+                powerOfAttorneyLocation = if (p.quebec) l("Avec le testament, chez la notaire", "With the will, at the notary's") else l("Classeur, tiroir du haut", "Filing cabinet, top drawer"),
+                mandateLocation = if (p.quebec) l("Mandat de protection, chez la notaire", "Protection mandate, at the notary's")
+                else l("Procuration relative au soin de la personne, classeur", "Power of attorney for personal care, filing cabinet"),
+                safeDepositBox = q(l("Desjardins Sainte-Foy, coffret 214", "Desjardins Sainte-Foy, box 214"), l("TD ${p.t.bankStreet}, coffret 214", "TD Bank ${p.t.bankStreet}, box 214")),
                 safeDepositKeys = l("Tiroir du bureau, enveloppe bleue", "Desk drawer, blue envelope"),
                 digitalAccounts = l("Trousse d’urgence du gestionnaire de mots de passe, dans le coffret", "Password manager's emergency kit, in the safe deposit box"),
                 organDonor = true,
                 contacts = listOf(
-                    EstateContact(if (english) ContactRole.EXECUTOR else ContactRole.LIQUIDATOR, "Sam"),
-                    EstateContact(if (english) ContactRole.LAWYER else ContactRole.NOTARY, l("Me Isabelle Gagnon", "Priya Patel"), l("Gagnon notaires", "Patel Law"), l(l("418-555-0142", "613-555-0142"), "613-555-0142")),
-                    EstateContact(ContactRole.FINANCIAL_ADVISOR, l("Marc Lavoie", "Daniel Wong"), l("Desjardins", "TD Wealth"), l("418-555-0190", "613-555-0190")),
+                    EstateContact(if (p.quebec) ContactRole.LIQUIDATOR else ContactRole.EXECUTOR, "Sam"),
+                    EstateContact(if (p.quebec) ContactRole.NOTARY else ContactRole.LAWYER, q("Me Isabelle Gagnon", l("Me Priya Patel", "Priya Patel")), q("Gagnon notaires", "Patel Law"), p.phone("0142")),
+                    EstateContact(ContactRole.FINANCIAL_ADVISOR, advisorName, q("Desjardins", "TD Wealth"), p.phone("0190")),
                 ),
             ),
         )
@@ -384,7 +429,7 @@ object DemoHousehold {
         addExtras(books, group, chequing, visa, alex, sam, civic, today)
         addTrackers(books, group, chequing, alex, sam, lea, allowance, today)
         addBillStatements(books, chequing, today)
-        DemoTrips(books, english).add(group, visa, alex, sam, lea, civic, today)
+        DemoTrips(books, p).add(group, visa, alex, sam, lea, civic, today)
         addInvestments(books, group, alex, sam, desjardins, today)
         addPlans(books, group, chequing, savings, alex, sam, lea, desjardins, today)
         addCrypto(books, group, chequing, alex, today)
@@ -396,7 +441,12 @@ object DemoHousehold {
         books.users.setAccess(group, samUser, ca.schippers.hfm.domain.PermissionLevel.VIEW)
         // GOAL-01 to GOAL-04: three goals sharing the savings account.
         val goals = books.goals
-        goals.save(SavingsGoal("", savings.id, l("Voyage en Gaspésie", "Trip to Newfoundland"), cad("4000"), LocalDate(today.year + 1, 7, 1), cad("250"), Recurrence.MONTHLY, start.plus(DatePeriod(days = 15))))
+        val tripGoal = when {
+            p.quebec -> l("Voyage en Gaspésie", "Trip to the Gaspé")
+            p.province == Province.NL -> l("Voyage en Nouvelle-Écosse", "Trip to Nova Scotia")
+            else -> l("Voyage à Terre-Neuve", "Trip to Newfoundland")
+        }
+        goals.save(SavingsGoal("", savings.id, tripGoal, cad("4000"), LocalDate(today.year + 1, 7, 1), cad("250"), Recurrence.MONTHLY, start.plus(DatePeriod(days = 15))))
         val car = goals.save(SavingsGoal("", savings.id, l("Remplacement de l’auto", "Replacement car"), cad("15000"), LocalDate(today.year + 3, 6, 1), cad("200"), Recurrence(Frequency.SEMI_MONTHLY, secondDay = 0), LocalDate(start.year, start.month, 15)))
         goals.setAside(car.id, start, cad("3000"), l("Départ", "Starting amount"))
         val emergency = goals.save(SavingsGoal("", savings.id, l("Fonds d’urgence", "Emergency fund"), cad("6000")))
@@ -418,9 +468,9 @@ object DemoHousehold {
      */
     private fun addDocuments(books: Books, group: String, today: LocalDate) {
         val lastSixth = LocalDate(today.year, today.month, 6).let { if (it > today) it.minus(DatePeriod(months = 1)) else it }
-        val hydro = books.bills.list().first { it.name == l("Hydro-Québec", "Hydro Ottawa") }
+        val hydro = books.bills.list().first { it.name == p.power }
         val due = books.bills.occurrences(today, today.plus(DatePeriod(days = 40)), setOf(hydro.id)).first().dueDate
-        val documents = if (english) listOf(
+        val documents = if (!p.quebec && p.province != Province.ON) otherDocuments(lastSixth, due, today) else if (!p.quebec) listOf(
             "IMG_4127.jpg" to listOf(
                 "Loblaws", "1250 Main St W", "MILK 2% 4L          6.49", "WHOLE CHICKEN      17.98", "PRODUCE            42.37",
                 "GROCERY            51.90", "HOUSEHOLD        H 60.69", "SUBTOTAL          179.43", "H = HST 13%         7.89", "TOTAL             187.32",
@@ -467,6 +517,54 @@ object DemoHousehold {
         }
     }
 
+    /**
+     * The inbox's documents outside Quebec and Ontario, as the stores and utilities there print
+     * them: the grocery receipt (same total as the card purchase, the sales taxes of the province
+     * on its taxable part), the electricity bill, a gas bill (a water bill where homes are not
+     * heated with natural gas) and the Canadian Tire receipt.
+     */
+    private fun otherDocuments(lastSixth: LocalDate, due: LocalDate, today: LocalDate): List<Pair<String, List<String>>> {
+        fun money(v: BigDecimal) = v.setScale(2, RoundingMode.HALF_UP).toPlainString()
+        fun line(label: String, amount: String) = label + " ".repeat(maxOf(1, 24 - label.length - amount.length)) + amount
+        val rates = p.salesTaxes(lastSixth)
+        // Groceries are zero-rated; the household items carry the taxes, so the total stays 187.32.
+        val taxedTotal = BigDecimal("68.58")
+        val household = taxedTotal.divide(BigDecimal.ONE + rates.fold(BigDecimal.ZERO) { s, r -> s + r.rate }, 2, RoundingMode.HALF_UP)
+        val taxes = rates.map { it.label to (household * it.rate).setScale(2, RoundingMode.HALF_UP) }
+        val grocery = BigDecimal("51.90") + taxedTotal - household - taxes.fold(BigDecimal.ZERO) { s, t -> s + t.second }
+        val grocer = listOf(p.t.grocer, "1250 ${p.t.mainStreet}") +
+            listOf(line("MILK 2% 4L", "6.49"), line("WHOLE CHICKEN", "17.98"), line("PRODUCE", "42.37"), line("GROCERY", money(grocery)), line("HOUSEHOLD", "T " + money(household))) +
+            line("SUBTOTAL", money(BigDecimal("66.84") + grocery + household)) + taxes.map { (label, v) -> line(label, money(v)) } +
+            listOf(line("TOTAL", "187.32"), "VISA ************1234", "$lastSixth 17:42")
+        val parts = BigDecimal("30.98")
+        val tireTaxes = p.salesTaxes(today).map { it.label to (parts * it.rate).setScale(2, RoundingMode.HALF_UP) }
+        val tire = listOf("Canadian Tire #412", "Receipt # 412-88213", line("WASHER FLUID -40", "5.99"), line("H11 BULB", "24.99"), line("SUBTOTAL", "30.98")) +
+            tireTaxes.map { (label, v) -> line(label, money(v)) } +
+            listOf(line("TOTAL", money(parts + tireTaxes.fold(BigDecimal.ZERO) { s, t -> s + t.second })), "INTERAC", "${today.minus(DatePeriod(days = 1))} 10:12")
+        val power = p.power
+        // BILL-18: a bill that matches no bill yet, for "Create a bill from this".
+        val heat = p.t.gas?.let { gas ->
+            "${gas.replace(" ", "-")}-bill.jpg" to listOf(
+                gas, "Your natural gas bill", "Account Number 9100 2233 4455", "Statement number 2026-778812",
+                "Bill Date ${today.minus(DatePeriod(days = 4))}", "Previous reading ${today.minus(DatePeriod(days = 36))} 12,345",
+                "Current reading ${today.minus(DatePeriod(days = 5))} 12,456", "Gas used 111 m3", "Amount Due \$86.40", "Due Date ${today.plus(DatePeriod(days = 17))}",
+            )
+        } ?: ("water-bill.jpg" to listOf(
+            // Not the city's own name, which is already the property tax bill's.
+            "${p.t.city} Water Services", "Your water and sewer bill", "Account Number 9100 2233 4455", "Statement number 2026-778812",
+            "Bill Date ${today.minus(DatePeriod(days = 4))}", "Previous reading ${today.minus(DatePeriod(days = 36))} 1,234",
+            "Current reading ${today.minus(DatePeriod(days = 5))} 1,262", "Water used 28 m3", "Amount Due \$86.40", "Due Date ${today.plus(DatePeriod(days = 17))}",
+        ))
+        return listOf(
+            "IMG_4127.jpg" to grocer,
+            "${power.replace(" ", "-")}-bill.jpg" to listOf(
+                power, "Your electricity bill", "Bill date: ${due.minus(DatePeriod(days = 21))}", "Account number: 6 1234 5678 9", "Amount due \$138.91", "Due date: $due",
+            ),
+            heat,
+            "scan-0031.jpg" to tire,
+        )
+    }
+
     /** A receipt-like image, so the review screen has something to show. */
     private fun receiptImage(lines: List<String>): ByteArray {
         val img = java.awt.image.BufferedImage(620, 80 + lines.size * 40, java.awt.image.BufferedImage.TYPE_INT_RGB)
@@ -495,7 +593,7 @@ object DemoHousehold {
         // The cash each account started with, so the demo's chequing account is not drawn on years before it opens.
         fun account(name: String, type: AccountType, owners: Set<String>, number: String, cash: String) =
             books.accounts.create(AccountDraft(group, name, type, Currency.CAD, cad(cash), opened, institution.id, number, owners))
-        val brokerage = account(l("Courtage Disnat", "Brokerage (TD)"), AccountType.BROKERAGE, setOf(alex.id, sam.id), "DIS-4471230", "22000")
+        val brokerage = account(q(l("Courtage Disnat", "Disnat brokerage"), l("Courtage (TD)", "Brokerage (TD)")), AccountType.BROKERAGE, setOf(alex.id, sam.id), "DIS-4471230", "22000")
         val tfsa = account(l("CELI Alex", "TFSA Alex"), AccountType.TFSA, setOf(alex.id), l("CELI-5512", "TFSA-5512"), "14000")
         val rrsp = account(l("REER Sam", "RRSP Sam"), AccountType.RRSP, setOf(sam.id), l("REER-8820", "RRSP-8820"), "6000")
         fun security(symbol: String, name: String, kind: SecurityKind, assetClass: AssetClass = AssetClass.EQUITY, region: Region = Region.CANADA) =
@@ -554,7 +652,7 @@ object DemoHousehold {
         val safe = books.accounts.create(AccountDraft(group, l("Métaux précieux", "Precious metals"), AccountType.PRECIOUS_METALS, Currency.CAD, cad("0"), LocalDate(2024, 1, 1), institution.id, ownerMemberIds = setOf(alex.id, sam.id)))
         books.metals.save(
             MetalItem("", safe.id, Metal.GOLD, MetalForm.COIN, l("Feuille d’érable 1 oz", "Maple Leaf 1 oz"), BigDecimal.ONE, WeightUnit.OZT, BigDecimal("0.9999"), 3, "", l("Monnaie royale canadienne", "Royal Canadian Mint"),
-                LocalDate(2024, 5, 14), cad("9480"), BigDecimal("3"), MetalStorage.BANK_BOX, l("Desjardins, coffret 112", "TD, safe deposit box 112"), true, l("Assurance habitation, avenant de 15 000 $", "Home insurance rider, $15,000")),
+                LocalDate(2024, 5, 14), cad("9480"), BigDecimal("3"), MetalStorage.BANK_BOX, l("${p.bank}, coffret 112", "${p.bank}, safe deposit box 112"), true, l("Assurance habitation, avenant de 15 000 $", "Home insurance rider, $15,000")),
         )
         books.metals.save(
             MetalItem("", safe.id, Metal.SILVER, MetalForm.ROUND, l("Rondelles d’argent 1 oz", "Silver rounds 1 oz"), BigDecimal.ONE, WeightUnit.OZT, BigDecimal("0.999"), 25, dealer = "Silver Gold Bull",
@@ -624,13 +722,14 @@ object DemoHousehold {
             val date = LocalDate(year, m, 15)
             if (date > today) continue
             books.transactions.transfer(TransferDraft(rrif.id, chequing.id, date, cad("500"), memo = l("Retrait FERR", "RRIF withdrawal")))
-            books.transactions.create(TransactionDraft(chequing.id, LocalDate(year, m, 25).let { if (it > today) date else it }, cad("812.40"), l("Retraite Québec", "Service Canada"), listOf(SplitDraft(qppCategory, cad("812.40"))), memberId = gilles.id))
+            books.transactions.create(TransactionDraft(chequing.id, LocalDate(year, m, 25).let { if (it > today) date else it }, cad("812.40"), q("Retraite Québec", "Service Canada"), listOf(SplitDraft(qppCategory, cad("812.40"))), memberId = gilles.id))
         }
         plans.saveBeneficiary(Beneficiary("", rrif.id, BeneficiaryKind.BENEFICIARY, l("Succession de Gilles", "Estate of Gordon"), relationship = l("Succession", "Estate"), sharePercent = BigDecimal(100)))
-        val qpp = plans.savePension(Pension("", gilles.id, if (english) PensionKind.CPP else PensionKind.QPP, l("Rente de retraite du RRQ", "CPP retirement pension"), l("Retraite Québec", "Service Canada"), indexed = true, payer = l("Retraite Québec", "Service Canada")), group)
+        val pensionName = if (p.quebec) l("Rente de retraite du RRQ", "QPP retirement pension") else l("Rente de retraite du RPC", "CPP retirement pension")
+        val qpp = plans.savePension(Pension("", gilles.id, if (p.quebec) PensionKind.QPP else PensionKind.CPP, pensionName, q("Retraite Québec", "Service Canada"), indexed = true, payer = q("Retraite Québec", "Service Canada")), group)
         plans.saveStatement(qpp, PensionStatement("", qpp.id, year - 1, projectedAnnual = cad("9748.80")))
         val municipal = plans.savePension(
-            Pension("", sam.id, PensionKind.DEFINED_BENEFIT, l("Régime de retraite des employés municipaux", "OMERS Primary Pension Plan"), l("Ville de Québec", "City of Ottawa"), l("RREM-44817", "OM-44817"), normalRetirementAge = 65, indexed = true, survivorPercent = BigDecimal(60)),
+            Pension("", sam.id, PensionKind.DEFINED_BENEFIT, q("Régime de retraite des employés municipaux", p.t.pension), p.municipality, q("RREM-44817", "${p.t.pensionPrefix}-44817"), normalRetirementAge = 65, indexed = true, survivorPercent = BigDecimal(60)),
             group,
         )
         plans.saveStatement(municipal, PensionStatement("", municipal.id, year - 1, cad("6200"), cad("14800"), cad("38200"), cad("96400"), cad("5150")))
@@ -646,25 +745,25 @@ object DemoHousehold {
         val tasks = vehicles.addStarterTasks(civic.id, today) { ca.schippers.hfm.i18n.Messages.get(books.language, "task.$it") }.associateBy { it.templateKey }
         // An oil change three months ago, with its payment; and a do-it-yourself filter change without one.
         vehicles.saveService(
-            ServiceRecord("", civic.id, start.plus(DatePeriod(days = 5)), 61_500, l("Garage Tremblay", "Main Street Auto"), cost = cad("94.85"), taskIds = setOfNotNull(tasks["oil"]?.id, tasks["tire_rotation"]?.id)),
-            PaymentDraft(visa.id, cat("transport.maintenance"), l("Garage Tremblay", "Main Street Auto")),
+            ServiceRecord("", civic.id, start.plus(DatePeriod(days = 5)), 61_500, garageName, cost = cad("94.85"), taskIds = setOfNotNull(tasks["oil"]?.id, tasks["tire_rotation"]?.id)),
+            PaymentDraft(visa.id, cat("transport.maintenance"), garageName),
         )
         vehicles.saveService(ServiceRecord("", civic.id, start.plus(DatePeriod(days = 40)), 63_300, diy = true, cost = cad("24.99"), notes = l("Filtre Canadian Tire", "Canadian Tire filter"), taskIds = setOfNotNull(tasks["cabin_filter"]?.id)))
         books.transactions.create(
-            TransactionDraft(visa.id, start.plus(DatePeriod(days = 2)), cad("-1184.00"), l("Desjardins Assurances", "Intact Insurance"), listOf(SplitDraft(cat("transport.insurance"), cad("-1184.00"))), assetId = civic.id),
+            TransactionDraft(visa.id, start.plus(DatePeriod(days = 2)), cad("-1184.00"), p.insurer, listOf(SplitDraft(cat("transport.insurance"), cad("-1184.00"))), assetId = civic.id),
         )
 
-        val vet = books.health.saveProvider(HealthProvider("", group, l("Hôpital vétérinaire Charlesbourg", "Riverside Animal Hospital"), ProviderKind.VET, l("418-555-0190", "613-555-0190"), null, null, false))
-        books.health.saveProvider(HealthProvider("", group, l("Toilettage Patte de velours", "Pampered Paws Grooming"), ProviderKind.GROOMER, l("418-555-0133", "613-555-0133"), null, null, false))
+        val vet = books.health.saveProvider(HealthProvider("", group, vetName, ProviderKind.VET, p.phone("0190"), null, null, false))
+        books.health.saveProvider(HealthProvider("", group, q("Toilettage Patte de velours", "Pampered Paws Grooming"), ProviderKind.GROOMER, p.phone("0133"), null, null, false))
         books.transactions.create(
-            TransactionDraft(visa.id, start.plus(DatePeriod(days = 20)), cad("-287.40"), l("Hôpital vétérinaire Charlesbourg", "Riverside Animal Hospital"), listOf(SplitDraft(cat("pets.vet"), cad("-287.40"))), memberId = rex.id),
+            TransactionDraft(visa.id, start.plus(DatePeriod(days = 20)), cad("-287.40"), vetName, listOf(SplitDraft(cat("pets.vet"), cad("-287.40"))), memberId = rex.id),
         )
         books.transactions.create(
-            TransactionDraft(visa.id, LocalDate(today.year, 1, 15).let { if (it > today) start else it }, cad("-35.00"), l("Ville de Québec", "City of Ottawa"), listOf(SplitDraft(cat("pets.licence"), cad("-35.00"))), memberId = rex.id),
+            TransactionDraft(visa.id, LocalDate(today.year, 1, 15).let { if (it > today) start else it }, cad("-35.00"), p.municipality, listOf(SplitDraft(cat("pets.licence"), cad("-35.00"))), memberId = rex.id),
         )
         books.health.saveImmunization(Immunization("", group, rex.id, l("Rage", "Rabies"), start.plus(DatePeriod(days = 20)), vet.id, start.plus(DatePeriod(days = 20, years = 3)), null))
         books.health.saveImmunization(Immunization("", group, rex.id, "DHPP", start.plus(DatePeriod(days = 20)).minus(DatePeriod(years = 1)), vet.id, today.plus(DatePeriod(days = 18)), null))
-        books.calendar.create(EventDraft(group, l("Toilettage de Rex", "Rex's grooming"), EventCategory.PET, today.plus(DatePeriod(days = 4)), LocalTime(13, 30), 90, l("Patte de velours", "Pampered Paws"), memberId = rex.id))
+        books.calendar.create(EventDraft(group, l("Toilettage de Rex", "Rex's grooming"), EventCategory.PET, today.plus(DatePeriod(days = 4)), LocalTime(13, 30), 90, q("Patte de velours", "Pampered Paws"), memberId = rex.id))
     }
 
     /**
@@ -685,7 +784,7 @@ object DemoHousehold {
         val monday = today.minus(DatePeriod(days = today.dayOfWeek.ordinal))
         books.schedules.save(
             ca.schippers.hfm.books.PersonSchedule(
-                "", shared, sam.id, ca.schippers.hfm.books.ScheduleKind.WORK, l("Hôpital de l’Enfant-Jésus", "Civic Hospital"), monday.minus(DatePeriod(days = 28)), null, 2, false, null,
+                "", shared, sam.id, ca.schippers.hfm.books.ScheduleKind.WORK, q("Hôpital de l’Enfant-Jésus", p.t.hospital), monday.minus(DatePeriod(days = 28)), null, 2, false, null,
                 listOf(1, 2, 5).map { ca.schippers.hfm.books.ScheduleShift(0, dow(it), t(7), t(19)) } +
                     listOf(3, 4).map { ca.schippers.hfm.books.ScheduleShift(1, dow(it), t(19), t(7)) } +
                     ca.schippers.hfm.books.ScheduleShift(1, dow(6), t(7), t(19)),
@@ -696,7 +795,7 @@ object DemoHousehold {
         val pdDay = today.plus(DatePeriod(days = 10)).let { d -> if (d.dayOfWeek.ordinal >= 5) d.plus(DatePeriod(days = 7 - d.dayOfWeek.ordinal)) else d }
         books.schedules.save(
             ca.schippers.hfm.books.PersonSchedule(
-                "", shared, child.id, ca.schippers.hfm.books.ScheduleKind.SCHOOL, l("École Saint-Roch", "Hopewell Public School"),
+                "", shared, child.id, ca.schippers.hfm.books.ScheduleKind.SCHOOL, q("École Saint-Roch", p.t.school),
                 LocalDate(schoolYear, 9, 2), LocalDate(schoolYear + 1, 6, 23), 1, true, null,
                 weekdays.map { ca.schippers.hfm.books.ScheduleShift(0, dow(it), t(8, 15), t(15, 5)) },
                 listOf(ca.schippers.hfm.books.ScheduleException(pdDay, true, reason = l("Journée pédagogique", "PD day"))),
@@ -721,7 +820,7 @@ object DemoHousehold {
                 listOf(
                     item("101", 2, "10:00", "11:30", l("Planification trimestrielle", "Quarterly planning"), l("Salle 4", "Room 4")),
                     item("102", 3, "14:00", "15:00", l("Appel client", "Client call")),
-                    item("103", 4, "12:00", "13:00", l("Dîner d’équipe", "Team lunch"), l("Café du Monde", "The Wellington"), CalendarVisibility.SHARED),
+                    item("103", 4, "12:00", "13:00", l("Dîner d’équipe", "Team lunch"), q("Café du Monde", p.t.lunch), CalendarVisibility.SHARED),
                     item("104", 5, "07:30", "08:15", l("Physiothérapie", "Physio"), vis = CalendarVisibility.PRIVATE),
                     item("105", 10, "09:00", "16:00", l("Formation", "Training day")),
                 ),
@@ -733,7 +832,7 @@ object DemoHousehold {
             CalendarSnapshot(
                 "demo-family", "5", now, l("Famille", "Family"), "alex.demo@gmail.com", 0x43A047, CalendarVisibility.SHARED, day(0), until,
                 listOf(
-                    item("201", 6, null, null, l("Tournoi de soccer de Léa", "Maya's soccer tournament"), l("Parc Victoria", "Mooney's Bay"), days = 1),
+                    item("201", 6, null, null, l("Tournoi de soccer de Léa", "Maya's soccer tournament"), q("Parc Victoria", p.t.tournamentPark), days = 1),
                     item("202", 8, "17:30", "20:00", l("Souper chez grand-maman", "Dinner at Grandma's")),
                 ),
             ),
@@ -746,13 +845,18 @@ object DemoHousehold {
         fun day(n: Int) = today.plus(DatePeriod(days = n))
         val private = books.session.createGroup(l("Alex Demo - privé", "Alex Demo - private"), private = true)
         val health = books.health
-        val pharmacy = health.saveProvider(HealthProvider("", shared, l("Pharmacie Jean Coutu", "Shoppers Drug Mart"), ProviderKind.PHARMACY, l("418-555-0100", "613-555-0100"), l("1200, boul. Charest", "1200 Bank St"), null, false))
-        val doctor = health.saveProvider(HealthProvider("", shared, l("Dre Gagnon (GMF Limoilou)", "Dr. Patel (Glebe Family Health Team)"), ProviderKind.DOCTOR, l(l("418-555-0142", "613-555-0142"), "613-555-0142"), null, null, false))
-        val dentist = health.saveProvider(HealthProvider("", shared, l("Clinique dentaire Saint-Roch", "Elgin Street Dental"), ProviderKind.DENTIST, l(l("418-555-0177", "613-555-0177"), "613-555-0177"), null, null, false))
+        val pharmacy = health.saveProvider(HealthProvider("", shared, pharmacyName, ProviderKind.PHARMACY, p.phone("0100"), q("1200, boul. Charest", "1200 ${p.mainStreetShort}"), null, false))
+        val doctor = health.saveProvider(HealthProvider("", shared, doctorName, ProviderKind.DOCTOR, p.phone("0142"), null, null, false))
+        val dentist = health.saveProvider(HealthProvider("", shared, dentistName, ProviderKind.DENTIST, p.phone("0177"), null, null, false))
 
         val calendar = books.calendar
-        calendar.create(EventDraft(shared, l("Pose des pneus d’hiver", "Winter tires on"), EventCategory.VEHICLE, day(1), LocalTime(9, 30), 60, l("Garage Tremblay", "Main Street Auto"), reminderMinutes = listOf(1440, 60)))
-        calendar.create(EventDraft(shared, l("Rencontre conseillère Desjardins", "Meeting with the TD advisor"), EventCategory.FINANCIAL, day(6), LocalTime(14, 0), 45, l("Caisse Desjardins", "TD branch, Bank St"), accountId = chequing.id))
+        calendar.create(EventDraft(shared, l("Pose des pneus d’hiver", "Winter tires on"), EventCategory.VEHICLE, day(1), LocalTime(9, 30), 60, garageName, reminderMinutes = listOf(1440, 60)))
+        calendar.create(
+            EventDraft(
+                shared, l("Rencontre conseillère ${p.bank}", "Meeting with the ${p.bank} advisor"), EventCategory.FINANCIAL, day(6), LocalTime(14, 0), 45,
+                q("Caisse Desjardins", l("Succursale TD, ${p.mainStreetShort}", "TD branch, ${p.mainStreetShort}")), accountId = chequing.id,
+            ),
+        )
         calendar.create(EventDraft(shared, l("Nettoyage dentaire", "Dental cleaning"), EventCategory.MEDICAL, day(9), LocalTime(10, 15), 60, memberId = lea.id, providerId = dentist.id))
         calendar.create(EventDraft(private, l("Bilan annuel", "Annual physical"), EventCategory.MEDICAL, day(14), LocalTime(8, 40), 30, memberId = alex.id, providerId = doctor.id))
         calendar.create(EventDraft(shared, l("Ramonage de la cheminée", "Chimney sweep"), EventCategory.HOME, day(20), reminderMinutes = listOf(2 * 1440)))
@@ -763,7 +867,7 @@ object DemoHousehold {
         val lastWednesday = today.minus(DatePeriod(days = ((today.dayOfWeek.ordinal + 5) % 7).let { if (it == 0) 7 else it }))
         val swimming = calendar.create(
             EventDraft(
-                shared, l("Cours de natation", "Swimming lessons"), EventCategory.ACTIVITY, lastWednesday, LocalTime(18, 0), 60, l("Centre aquatique", "Brewer Pool"),
+                shared, l("Cours de natation", "Swimming lessons"), EventCategory.ACTIVITY, lastWednesday, LocalTime(18, 0), 60, q("Centre aquatique", p.t.swimming),
                 memberId = lea.id, recurrence = Recurrence.WEEKLY, endDate = day(60), reminderMinutes = listOf(120),
                 driverThere = ca.schippers.hfm.books.Driver(memberId = sam.id), driverBack = noahsMom, cost = cad("15.00"),
             ),
@@ -774,7 +878,7 @@ object DemoHousehold {
         val saturday = today.plus(DatePeriod(days = (5 - today.dayOfWeek.ordinal + 7) % 7))
         calendar.create(
             EventDraft(
-                shared, l("Match de soccer", "Soccer game"), EventCategory.ACTIVITY, saturday, LocalTime(9, 30), 90, l("Parc Victoria", "Lansdowne Park"),
+                shared, l("Match de soccer", "Soccer game"), EventCategory.ACTIVITY, saturday, LocalTime(9, 30), 90, q("Parc Victoria", p.t.gamePark),
                 memberId = lea.id, recurrence = Recurrence.WEEKLY, endDate = saturday.plus(DatePeriod(days = 42)), reminderMinutes = listOf(1440),
                 driverThere = ca.schippers.hfm.books.Driver(memberId = alex.id), driverBack = ca.schippers.hfm.books.Driver(memberId = alex.id),
             ),
@@ -796,12 +900,12 @@ object DemoHousehold {
         fun pct(s: String) = BigDecimal(s)
         val alexPlan = med.savePlan(
             MedPlan(
-                "", shared, MedPlanKind.GROUP_HEALTH, l("Assurance collective (Alex)", "Group benefits (Alex)"), l("SSQ Assurance", "Manulife"), "G-48812", "C-0045123", alex.id,
+                "", shared, MedPlanKind.GROUP_HEALTH, l("Assurance collective (Alex)", "Group benefits (Alex)"), q("SSQ Assurance", "Manulife"), "G-48812", "C-0045123", alex.id,
                 people = listOf(PlanPerson(alex.id, 1), PlanPerson(lea.id, 1), PlanPerson(sam.id, 2)),
             ),
         )
         val samPlan = med.savePlan(
-            MedPlan("", shared, MedPlanKind.GROUP_HEALTH, l("Régime d’employeur (Sam)", "Employer plan (Sam)"), l("Beneva", "Canada Life"), "77105", "S-2231", sam.id, people = listOf(PlanPerson(sam.id, 1), PlanPerson(alex.id, 2), PlanPerson(lea.id, 2))),
+            MedPlan("", shared, MedPlanKind.GROUP_HEALTH, l("Régime d’employeur (Sam)", "Employer plan (Sam)"), q("Beneva", "Canada Life"), "77105", "S-2231", sam.id, people = listOf(PlanPerson(sam.id, 1), PlanPerson(alex.id, 2), PlanPerson(lea.id, 2))),
         )
         listOf(
             MedCoverage("", alexPlan.id, MedService.PRESCRIPTION, pct("80")),
@@ -820,7 +924,8 @@ object DemoHousehold {
         // Paid by the first plan, nothing more to claim.
         val cleaning = expense(lea, MedService.DENTAL_PREVENTIVE, -120, "185.00", l("Nettoyage et examen", "Cleaning and exam"), dentist)
         med.recordPayment(med.submit(cleaning.id, alexPlan.id, day(-119)).id, day(-110), cad("166.50"))
-        val glasses = expense(alex, MedService.EYEWEAR, -380, "420.00", l("Lunettes (Lunetterie New Look)", "Glasses (Bank Street Optical)"))
+        val optical = q("Lunetterie New Look", "${p.t.mainStreet} Optical")
+        val glasses = expense(alex, MedService.EYEWEAR, -380, "420.00", l("Lunettes ($optical)", "Glasses ($optical)"))
         med.recordPayment(med.submit(glasses.id, alexPlan.id, day(-379)).id, day(-370), cad("200.00"))
         // Paid by Alex's plan; Sam's plan can take the rest.
         val massage = expense(alex, MedService.MASSAGE, -40, "120.00", l("Massothérapie", "Registered massage therapist"))
@@ -838,15 +943,15 @@ object DemoHousehold {
         fun cat(key: String) = books.categories.list().first { it.systemKey == key }.id
         fun day(n: Int) = today.plus(DatePeriod(days = n))
         // OTH-02, MED-11: Sam's client visits, and a specialist far from home.
-        for ((n, place, km) in listOf(Triple(-70, l("Client à Lévis", "Client in Kanata"), "28"), Triple(-41, l("Client à Montmagny", "Client in Smiths Falls"), "78"), Triple(-12, l("Client à Lévis", "Client in Kanata"), "28"))) {
+        for ((n, place, km) in listOf(Triple(-70, p.client1, p.client1Km), Triple(-41, p.client2, p.client2Km), Triple(-12, p.client1, p.client1Km))) {
             books.trips.save(Trip("", group, day(n), place, BigDecimal(km), true, TripPurpose.BUSINESS, civic.id, sam.id))
         }
         books.trips.save(Trip("", group, day(-25), l("Épicerie", "Groceries"), BigDecimal("6"), true, TripPurpose.PERSONAL, civic.id, alex.id))
-        books.trips.save(Trip("", group, day(-33), l("Institut de cardiologie de Montréal", "Kingston Health Sciences Centre"), BigDecimal(if (english) "196" else "253"), true, TripPurpose.MEDICAL, civic.id, alex.id))
+        books.trips.save(Trip("", group, day(-33), p.specialist, BigDecimal(q("253", p.t.specialistKm.toString())), true, TripPurpose.MEDICAL, civic.id, alex.id))
         // MNT-08, MNT-09: the roofer, the plumber, and the new roof on the house.
-        val roofer = books.contractors.save(Contractor("", group, l("Toitures Gagnon", "Capital Roofing"), l("Couvreur", "Roofer"), l("418-555-0142", "613-555-0142"), website = l("toituresgagnon.example", "capitalroofing.example")))
+        val roofer = books.contractors.save(Contractor("", group, q("Toitures Gagnon", "Capital Roofing"), l("Couvreur", "Roofer"), p.phone("0142"), website = q("toituresgagnon.example", "capitalroofing.example")))
         books.contractors.saveJob(roofer, ContractorJob("", day(-120), l("Nouveau toit", "New roof"), cad("14200.00"), 5))
-        val plumber = books.contractors.save(Contractor("", group, l("Plomberie Roy", "Rideau Plumbing"), l("Plombier", "Plumber"), l("418-555-0177", "613-555-0177")))
+        val plumber = books.contractors.save(Contractor("", group, plumberName, l("Plombier", "Plumber"), p.phone("0177")))
         books.contractors.saveJob(plumber, ContractorJob("", day(-300), l("Chauffe-eau", "Water heater"), cad("1850.00"), 4))
         books.contractors.saveJob(plumber, ContractorJob("", day(-40), l("Fuite sous l’évier", "Leak under the sink"), cad("240.00"), 3))
         val house = books.assets.list().first { it.kind == AssetKind.HOME }
@@ -865,15 +970,18 @@ object DemoHousehold {
         invoice(-40, l("Café du Quai", "Harbour Café"), listOf(InvoiceLine(l("Menus et affiches", "Menus and posters"), "8", "65.00"), InvoiceLine(l("Impression", "Printing"), "1", "120.00")), 30)
         invoice(-9, l("Atelier Lavoie inc.", "Lavoie Studio Inc."), listOf(InvoiceLine(l("Site Web : maquettes", "Website mock-ups"), "15", "65.00")), 30)
         // SAL-05: the duplex Alex and a sister own half each; its rent and costs carry its tag.
-        val duplex = books.rentals.save(RentalProperty("", group, l("Duplex rue Cartier", "Duplex on Bank Street"), "", l("212, rue Cartier, Québec", "212 Bank Street, Ottawa"), shareBp = 5_000))
+        val duplexStreet = q("rue Cartier", p.t.mainStreet)
+        val duplex = books.rentals.save(
+            RentalProperty("", group, q(l("Duplex rue Cartier", "Duplex on rue Cartier"), l("Duplex $duplexStreet", "Duplex on $duplexStreet")), "", q("212, rue Cartier, Québec", "212 $duplexStreet, ${p.city}"), shareBp = 5_000),
+        )
         val tag = books.tags().first { it.id == duplex.tagId }.name
         for (m in 3 downTo 1) {
             books.transactions.create(TransactionDraft(chequing.id, today.minus(DatePeriod(months = m)), cad("1150.00"), l("Locataire", "Tenant"), listOf(SplitDraft(cat("income.rental"), cad("1150.00"))), tags = setOf(tag)))
         }
-        books.transactions.create(TransactionDraft(chequing.id, day(-50), cad("-1240.00"), l("Ville de Québec", "City of Ottawa"), listOf(SplitDraft(cat("housing.municipal_tax"), cad("-1240.00"))), tags = setOf(tag)))
-        books.transactions.create(TransactionDraft(chequing.id, day(-38), cad("-240.00"), l("Plomberie Roy", "Rideau Plumbing"), listOf(SplitDraft(cat("housing.maintenance"), cad("-240.00"))), tags = setOf(tag)))
+        books.transactions.create(TransactionDraft(chequing.id, day(-50), cad("-1240.00"), p.municipality, listOf(SplitDraft(cat("housing.municipal_tax"), cad("-1240.00"))), tags = setOf(tag)))
+        books.transactions.create(TransactionDraft(chequing.id, day(-38), cad("-240.00"), plumberName, listOf(SplitDraft(cat("housing.maintenance"), cad("-240.00"))), tags = setOf(tag)))
         // CC-03: points on the Visa.
-        books.rewards.save(CardReward(visa.id, group, l("Desjardins BONUSDOLLARS", "TD Rewards"), RewardUnit.POINTS, BigDecimal("3"), BigDecimal("0.005")))
+        books.rewards.save(CardReward(visa.id, group, q("Desjardins BONUSDOLLARS", "TD Rewards"), RewardUnit.POINTS, BigDecimal("3"), BigDecimal("0.005")))
         books.rewards.addEntry(visa.id, day(-65), BigDecimal("4120"), RewardKind.EARNED)
         books.rewards.addEntry(visa.id, day(-35), BigDecimal("3985"), RewardKind.EARNED)
         books.rewards.addEntry(visa.id, day(-20), BigDecimal("5000"), RewardKind.REDEEMED, cad("25.00"), l("Carte-cadeau", "Gift card"))
@@ -890,11 +998,13 @@ object DemoHousehold {
         val house = books.assets.list().first { it.kind == AssetKind.HOME }
         // The cottage the seasonal checklist already added (one cottage in the demo).
         val cottage = books.assets.list().firstOrNull { it.kind == AssetKind.COTTAGE }
-            ?: books.assets.save(Asset("", group, AssetKind.COTTAGE, l("Chalet (Lac-Édouard)", "Cottage (Bon Echo)"), location = l("Lac-Édouard", "Cloyne")))
+            ?: books.assets.save(Asset("", group, AssetKind.COTTAGE, p.cottage, location = p.cottageTown))
         // UTL-01: a reading early each month for 26 months; electricity follows the seasons, and last month ran high.
-        val hydro = books.bills.list().firstOrNull { it.name == l("Hydro-Québec", "Hydro Ottawa") }
+        val hydro = books.bills.list().firstOrNull { it.name == p.power }
+        // Ontario's homes are billed by time of use.
+        val timeOfUse = !p.quebec && p.t.timeOfUse
         val houseMeter = books.utilities.saveMeter(
-            UtilityMeter("", group, l("Électricité de la maison", "House electricity"), MeterKind.ELECTRICITY, house.id, timeOfUse = english, billId = hydro?.id),
+            UtilityMeter("", group, l("Électricité de la maison", "House electricity"), MeterKind.ELECTRICITY, house.id, timeOfUse = timeOfUse, billId = hydro?.id),
         )
         val water = books.utilities.saveMeter(UtilityMeter("", group, l("Eau de la maison", "House water"), MeterKind.WATER, house.id))
         val cottageMeter = books.utilities.saveMeter(UtilityMeter("", group, l("Électricité du chalet", "Cottage electricity"), MeterKind.ELECTRICITY, cottage.id))
@@ -907,7 +1017,7 @@ object DemoHousehold {
         var cottageTotal = BigDecimal(2_210)
         var d = first
         while (d <= today) {
-            val tou = if (english) Triple(total * BigDecimal("0.18"), total * BigDecimal("0.18"), total * BigDecimal("0.64")) else null
+            val tou = if (timeOfUse) Triple(total * BigDecimal("0.18"), total * BigDecimal("0.18"), total * BigDecimal("0.64")) else null
             books.utilities.addReading(houseMeter.id, d, total, tou?.first, tou?.second, tou?.third)
             books.utilities.addReading(water.id, d, waterTotal)
             books.utilities.addReading(cottageMeter.id, d, cottageTotal)
@@ -921,7 +1031,7 @@ object DemoHousehold {
             d = d.plus(DatePeriod(months = 1))
         }
         // UTL-02: the cottage's propane tank, read every few weeks, with a delivery paid from the joint account.
-        val tank = books.utilities.saveTank(FuelTank("", group, l("Propane du chalet", "Cottage propane"), FuelKind.PROPANE, BigDecimal(1000), cottage.id, supplier = l("Propane Sélect", "Rideau Propane")))
+        val tank = books.utilities.saveTank(FuelTank("", group, l("Propane du chalet", "Cottage propane"), FuelKind.PROPANE, BigDecimal(1000), cottage.id, supplier = q("Propane Sélect", p.t.propane)))
         for ((n, percent) in listOf(-150 to 78, -120 to 72, -90 to 66, -62 to 58)) books.utilities.addTankReading(tank.id, day(n), BigDecimal(percent))
         books.utilities.addDelivery(tank.id, day(-50), BigDecimal(350), cad("329.00"), chequing.id)
         for ((n, percent) in listOf(-40 to 86, -25 to 80, -8 to 71)) books.utilities.addTankReading(tank.id, day(n), BigDecimal(percent))
@@ -929,7 +1039,7 @@ object DemoHousehold {
         // HRS-01: Sam's clients (those of the invoices), the hours billed on the last invoice, and hours not billed yet.
         val lavoie = books.workHours.saveClient(
             WorkClient(
-                "", group, l("Atelier Lavoie inc.", "Lavoie Studio Inc."), Currency.CAD, cad("65.00"), l("200, rue Saint-Joseph Est, Québec", "200 Elgin Street, Ottawa"), sam.id,
+                "", group, l("Atelier Lavoie inc.", "Lavoie Studio Inc."), Currency.CAD, cad("65.00"), q("200, rue Saint-Joseph Est, Québec", "200 ${p.t.street2}, ${p.city}"), sam.id,
                 tasks = listOf(WorkTask("", l("Conception graphique", "Graphic design")), WorkTask("", l("Site Web", "Website"), cad("75.00"))),
             ),
         )
@@ -958,7 +1068,7 @@ object DemoHousehold {
         books.chores.pay(allowance, day(-13))
 
         // VOL-01: Sam with the volunteer fire department, the child's community hours, Alex at the food bank.
-        val fire = l("Service incendie de La Tuque", "Addington Highlands Fire Department")
+        val fire = q("Service incendie de La Tuque", p.t.fireDept)
         var m = LocalDate(today.year, 1, 1)
         while (m <= today) {
             for ((dayOfMonth, minutes, activity) in listOf(Triple(4, 240, l("Pratique", "Training")), Triple(17, 840, l("Appels et garde", "Calls and standby")))) {
@@ -967,7 +1077,7 @@ object DemoHousehold {
             }
             m = m.plus(DatePeriod(months = 1))
         }
-        val foodBank = l("Moisson Québec", "Ottawa Food Bank")
+        val foodBank = q("Moisson Québec", p.t.foodBank)
         for ((n, minutes) in listOf(-60 to 180, -32 to 180, -11 to 120)) {
             books.volunteer.save(VolunteerEntry("", group, lea.id, foodBank, VolunteerKind.SCHOOL, day(n), minutes, activity = l("Tri des denrées", "Sorting food")))
         }
@@ -981,25 +1091,27 @@ object DemoHousehold {
         val assets = books.assets
         val house = assets.save(
             Asset(
-                "", group, AssetKind.HOME, l("Maison (rue des Érables)", "House (Maple Street)"), purchaseDate = LocalDate(2018, 6, 29), purchasePrice = cad("389000"),
-                valueMethod = ValueMethod.MANUAL, value = cad("515000"), valueDate = day(-60), location = l("Québec", "Ottawa"), notes = l("Évaluation municipale 2025 : 498 300 $", "MPAC assessment: $498,300"),
+                "", group, AssetKind.HOME, l("Maison", "House") + " (" + q("rue des Érables", l("rue Maple", "Maple Street")) + ")", purchaseDate = LocalDate(2018, 6, 29), purchasePrice = cad("389000"),
+                valueMethod = ValueMethod.MANUAL, value = cad("515000"), valueDate = day(-60), location = q("Québec", p.city),
+                notes = if (p.quebec) l("Évaluation municipale 2025 : 498 300 $", "2025 municipal assessment: $498,300") else l("Évaluation (${p.t.assessor}) : 498 300 $", "${p.t.assessor} assessment: $498,300"),
             ),
         )
         assets.save(
             Asset(
-                "", group, AssetKind.HEATING_COOLING, l("Thermopompe", "Heat pump"), house.id, "Mitsubishi", "MUZ-FS12", "MZ-221873", LocalDate(2022, 5, 10), l("Climatisation Laval", "Capital Heating & Cooling"), cad("6850"),
+                "", group, AssetKind.HEATING_COOLING, l("Thermopompe", "Heat pump"), house.id, "Mitsubishi", "MUZ-FS12", "MZ-221873", LocalDate(2022, 5, 10), q("Climatisation Laval", "Capital Heating & Cooling"), cad("6850"),
                 location = l("Extérieur", "Outside"), valueMethod = ValueMethod.DEPRECIATION, depreciationYears = 15,
             ),
         )
-        val fridgeBuy = books.transactions.create(TransactionDraft(visa.id, day(-45), cad("-1899.00"), l("Brault & Martineau", "The Brick")))
+        val fridgeStore = q("Brault & Martineau", "The Brick")
+        val fridgeBuy = books.transactions.create(TransactionDraft(visa.id, day(-45), cad("-1899.00"), fridgeStore))
         val fridge = assets.save(
             Asset(
-                "", group, AssetKind.APPLIANCE, l("Réfrigérateur", "Refrigerator"), house.id, "LG", "LRMVS3006S", "SN-77120", day(-45), l("Brault & Martineau", "The Brick"), cad("1899.00"), fridgeBuy.id, l("Cuisine", "Kitchen"),
+                "", group, AssetKind.APPLIANCE, l("Réfrigérateur", "Refrigerator"), house.id, "LG", "LRMVS3006S", "SN-77120", day(-45), fridgeStore, cad("1899.00"), fridgeBuy.id, l("Cuisine", "Kitchen"),
                 valueMethod = ValueMethod.DEPRECIATION, depreciationYears = 12,
             ),
         )
         assets.saveWarranty(AssetWarranty("", group, fridge.id, AssetWarrantyKind.MANUFACTURER, "LG Canada", l("Pièces et main-d’oeuvre", "Parts and labour"), day(-45), day(320), phone = "1-888-542-2623"))
-        assets.saveWarranty(AssetWarranty("", group, fridge.id, AssetWarrantyKind.CARD_EXTENDED, l("Visa Desjardins", "TD Visa"), cardAccountId = visa.id))
+        assets.saveWarranty(AssetWarranty("", group, fridge.id, AssetWarrantyKind.CARD_EXTENDED, q("Visa Desjardins", "TD Visa"), cardAccountId = visa.id))
         val tv = assets.save(Asset("", group, AssetKind.ELECTRONICS, l("Téléviseur 65 po", "65-inch TV"), house.id, "Samsung", "QN65Q80", purchaseDate = day(-700), purchasePrice = cad("1499.99"), location = l("Salon", "Living room")))
         assets.saveWarranty(AssetWarranty("", group, tv.id, AssetWarrantyKind.EXTENDED, l("Best Buy (plan de protection)", "Best Buy (protection plan)"), startDate = day(-700), endDate = day(30)))
         assets.save(Asset("", group, AssetKind.SPORTS, "Kayaks (2)", purchaseDate = day(-420), purchasePrice = cad("1250"), location = l("Chalet", "Cottage")))
@@ -1017,21 +1129,22 @@ object DemoHousehold {
         upkeep.addReading(boat.id, day(-150), 212)
         upkeep.addReading(boat.id, day(-20), 268)
         val boatTasks = upkeep.addStarterTasks(boat.id, today, ::task).associateBy { it.templateKey }
+        val marina = q("Marina du Lac-Beauport", "Lakeside Marina")
         upkeep.saveService(
-            AssetServiceRecord("", boat.id, day(-140), 214, l("Marina du Lac-Beauport", "Lakeside Marina"), parts = l("Huile 10W-30, filtre", "10W-30 oil, filter"), cost = cad("189.50"), taskIds = setOfNotNull(boatTasks["engine_oil"]?.id, boatTasks["boat_launch"]?.id)),
-            PaymentDraft(visa.id, books.categories.list().first { it.systemKey == "leisure.cottage_rv" }.id, l("Marina du Lac-Beauport", "Lakeside Marina")),
+            AssetServiceRecord("", boat.id, day(-140), 214, marina, parts = l("Huile 10W-30, filtre", "10W-30 oil, filter"), cost = cad("189.50"), taskIds = setOfNotNull(boatTasks["engine_oil"]?.id, boatTasks["boat_launch"]?.id)),
+            PaymentDraft(visa.id, books.categories.list().first { it.systemKey == "leisure.cottage_rv" }.id, marina),
         )
-        addSeasonalDemo(books, group, house, setOfNotNull(homeTasks["furnace_filter"]?.id), today, ::l)
+        addSeasonalDemo(books, group, house, setOfNotNull(homeTasks["furnace_filter"]?.id), today, p)
 
         val insurance = books.insurance
         insurance.save(
             InsurancePolicy(
-                "", group, PolicyKind.HOME, l("Desjardins Assurances", "Intact Insurance"), l("Courtier Morin", "Wilson Insurance Brokers"), "H-2241897", alex.id, cad("1384"), deductible = cad("1000"),
+                "", group, PolicyKind.HOME, p.insurer, q("Courtier Morin", "Wilson Insurance Brokers"), "H-2241897", alex.id, cad("1384"), deductible = cad("1000"),
                 coverage = cad("520000"), startDate = day(-340), renewalDate = day(25), assetIds = setOf(house.id),
             ),
         )
         insurance.save(
-            InsurancePolicy("", group, PolicyKind.AUTO, l("Desjardins Assurances", "Intact Insurance"), policyNumber = "A-7781020", premium = cad("96.50"), frequency = PremiumFrequency.MONTHLY, deductible = cad("500"), renewalDate = day(140), assetIds = setOf(civic.id)),
+            InsurancePolicy("", group, PolicyKind.AUTO, p.insurer, policyNumber = "A-7781020", premium = cad("96.50"), frequency = PremiumFrequency.MONTHLY, deductible = cad("500"), renewalDate = day(140), assetIds = setOf(civic.id)),
         )
         val life = insurance.save(
             InsurancePolicy("", group, PolicyKind.LIFE, "Sun Life", policyNumber = "L-500212", insuredMemberId = alex.id, premium = cad("42.15"), frequency = PremiumFrequency.MONTHLY, coverage = cad("500000"), coverageNotes = l("Temporaire 20 ans", "20-year term")),
@@ -1053,73 +1166,74 @@ object DemoHousehold {
         fun phone(label: String?, value: String) = ContactDetail(type = DetailType.PHONE, label = label, value = value)
         val accounts = books.accounts.list().map { it.account }
 
-        val bank = update(l("Desjardins", "TD Canada Trust")) {
+        val bank = update(q("Desjardins", "TD Canada Trust")) {
             it.copy(
                 purpose = l("Compte conjoint, Visa, placements et hypothèque du chalet", "Joint chequing, Visa, investments and cottage mortgage"),
-                details = it.details + phone(l("Service à la clientèle", "Customer service"), l("1 800 224-7737", "1 866 222-3456")) + phone(l("Cartes perdues", "Lost cards"), l("1 800 363-3380", "1 800 983-2582")),
-                website = l("desjardins.com", "td.com"),
+                details = it.details + phone(l("Service à la clientèle", "Customer service"), q("1 800 224-7737", "1 866 222-3456")) + phone(l("Cartes perdues", "Lost cards"), q("1 800 363-3380", "1 800 983-2582")),
+                website = q("desjardins.com", "td.com"),
             )
         }
-        update(l("Banque Nationale", "Tangerine")) { it.copy(purpose = l("Compte en dollars US", "US dollar account"), website = l("bnc.ca", "tangerine.ca")) }
-        update(l("Desjardins Assurances", "Intact Insurance")) {
+        update(q("Banque Nationale", "Tangerine")) { it.copy(purpose = l("Compte en dollars US", "US dollar account"), website = q("bnc.ca", "tangerine.ca")) }
+        update(p.insurer) {
             it.copy(
                 purpose = l("Assurance maison et auto", "Home and car insurance"),
-                details = it.details + phone(l("Réclamations", "Claims"), l("1 888 776-8343", "1 855 464-6828")) + ContactDetail(type = DetailType.NUMBER, label = l("Numéro de client", "Client number"), value = "C-44719025"),
+                details = it.details + phone(l("Réclamations", "Claims"), q("1 888 776-8343", "1 855 464-6828")) + ContactDetail(type = DetailType.NUMBER, label = l("Numéro de client", "Client number"), value = "C-44719025"),
             )
         }
         update("Sun Life") { it.copy(purpose = l("Assurance vie d’Alex", "Alex's life insurance"), memberIds = setOf(alex.id)) }
         // The advisor named in Alex's estate papers works at the bank and looks after the RRSP and TFSA.
-        val advisor = update(l("Marc Lavoie", "Daniel Wong")) {
+        val advisor = update(advisorName) {
             it.copy(person = true, organizationId = bank.id, jobTitle = l("Conseiller en placement", "Investment advisor"), purpose = l("REER et CELI", "RRSP and TFSA"), memberIds = setOf(alex.id, sam.id))
         }
         accounts.filter { it.type == AccountType.RRSP || it.type == AccountType.TFSA }.forEach { contacts.link(advisor.id, LinkRole.ADVISOR, LinkTarget.ACCOUNT, it.id) }
 
-        update(l("Dre Gagnon (GMF Limoilou)", "Dr. Patel (Glebe Family Health Team)")) {
+        update(doctorName) {
             it.copy(purpose = l("Médecin de famille de toute la famille", "Family doctor for all of us"), hours = l("Lun-ven 8 h-17 h ; sans rendez-vous le samedi", "Mon-Fri 8-5; walk-in Saturday mornings"))
         }
-        update(l("Pharmacie Jean Coutu", "Shoppers Drug Mart")) { it.copy(purpose = l("Ordonnances d’Alex et de Sam", "Alex's and Sam's prescriptions"), hours = l("Tous les jours 8 h-22 h", "Every day 8 a.m.-10 p.m.")) }
-        update(l("Clinique dentaire Saint-Roch", "Elgin Street Dental")) { it.copy(purpose = l("Dentiste de la famille", "Family dentist")) }
-        val vet = update(l("Hôpital vétérinaire Charlesbourg", "Riverside Animal Hospital")) { it.copy(purpose = l("Vétérinaire de Rex", "Rex's vet"), memberIds = setOf(rex.id)) }
+        update(pharmacyName) { it.copy(purpose = l("Ordonnances d’Alex et de Sam", "Alex's and Sam's prescriptions"), hours = l("Tous les jours 8 h-22 h", "Every day 8 a.m.-10 p.m.")) }
+        update(dentistName) { it.copy(purpose = l("Dentiste de la famille", "Family dentist")) }
+        val vet = update(vetName) { it.copy(purpose = l("Vétérinaire de Rex", "Rex's vet"), memberIds = setOf(rex.id)) }
         contacts.link(vet.id, LinkRole.VETERINARIAN, LinkTarget.PET, rex.id)
 
         fun add(c: Contact) = contacts.save(c.copy(groupId = group))
         add(
             Contact(
-                "", group, l("Dre Nadia Bélanger", "Dr. Lisa Chen"), person = true, jobTitle = l("Dermatologue", "Dermatologist"), kinds = setOf(ContactKind.SPECIALIST),
-                purpose = l("Dermatologue de Sam", "Sam's dermatologist"), memberIds = setOf(sam.id), details = listOf(phone(l("Clinique", "Clinic"), l("418-555-0161", "613-555-0161"))),
-                address = l("2600, boul. Laurier, Québec", "1081 Carling Ave, Ottawa"), notes = l("Un rendez-vous par année; demander une référence à la Dre Gagnon.", "Once a year; ask Dr. Patel for a referral."),
+                "", group, q("Dre Nadia Bélanger", l("Dre Lisa Chen", "Dr. Lisa Chen")), person = true, jobTitle = l("Dermatologue", "Dermatologist"), kinds = setOf(ContactKind.SPECIALIST),
+                purpose = l("Dermatologue de Sam", "Sam's dermatologist"), memberIds = setOf(sam.id), details = listOf(phone(l("Clinique", "Clinic"), p.phone("0161"))),
+                address = q("2600, boul. Laurier, Québec", "1081 ${p.t.street3}, ${p.city}"),
+                notes = q(l("Un rendez-vous par année; demander une référence à la Dre Gagnon.", "Once a year; ask Dr. Gagnon for a referral."), l("Un rendez-vous par année; demander une référence à la Dre Patel.", "Once a year; ask Dr. Patel for a referral.")),
             ),
         )
         add(
             Contact(
-                "", group, l("Orthodontie Limoilou", "Ottawa Orthodontics"), kinds = setOf(ContactKind.SPECIALIST, ContactKind.DENTIST),
-                purpose = l("Broches de Léa", "Maya's braces"), memberIds = setOf(lea.id), details = listOf(phone(null, l("418-555-0125", "613-555-0125"))),
+                "", group, q("Orthodontie Limoilou", l("Orthodontie ${p.t.city}", "${p.t.city} Orthodontics")), kinds = setOf(ContactKind.SPECIALIST, ContactKind.DENTIST),
+                purpose = l("Broches de Léa", "Maya's braces"), memberIds = setOf(lea.id), details = listOf(phone(null, p.phone("0125"))),
             ),
         )
         add(
             Contact(
-                "", group, l("Pharmacie Uniprix du Lac", "Rexall by the Lake"), kinds = setOf(ContactKind.PHARMACY),
-                purpose = l("Près du chalet", "Near the cottage"), details = listOf(phone(null, l("418-555-0108", "613-555-0108"))), hours = l("Lun-sam 9 h-18 h", "Mon-Sat 9-6"),
+                "", group, q("Pharmacie Uniprix du Lac", "Rexall by the Lake"), kinds = setOf(ContactKind.PHARMACY),
+                purpose = l("Près du chalet", "Near the cottage"), details = listOf(phone(null, p.phone("0108"))), hours = l("Lun-sam 9 h-18 h", "Mon-Sat 9-6"),
             ),
         )
         val hydro = add(
             Contact(
-                "", group, l("Hydro-Québec", "Hydro Ottawa"), kinds = setOf(ContactKind.UTILITY), purpose = l("Électricité de la maison", "Electricity at home"),
-                details = listOf(phone(l("Service à la clientèle", "Customer service"), l("1 888 385-7252", "613-738-6400")), ContactDetail(type = DetailType.NUMBER, label = l("Numéro de compte", "Account number"), value = "6 1234 5678 9")),
-                website = l("hydroquebec.com", "hydroottawa.com"),
+                "", group, p.power, kinds = setOf(ContactKind.UTILITY), purpose = l("Électricité de la maison", "Electricity at home"),
+                details = listOf(phone(l("Service à la clientèle", "Customer service"), q("1 888 385-7252", p.t.powerPhone)), ContactDetail(type = DetailType.NUMBER, label = l("Numéro de compte", "Account number"), value = "6 1234 5678 9")),
+                website = q("hydroquebec.com", p.t.powerWeb),
             ),
         )
-        books.bills.list().firstOrNull { it.name == l("Hydro-Québec", "Hydro Ottawa") }?.let { contacts.link(hydro.id, LinkRole.BILLER, LinkTarget.BILL, it.id) }
+        books.bills.list().firstOrNull { it.name == p.power }?.let { contacts.link(hydro.id, LinkRole.BILLER, LinkTarget.BILL, it.id) }
         add(
             Contact(
-                "", group, l("Comptabilité Roy", "Kim Accounting"), kinds = setOf(ContactKind.ACCOUNTANT), purpose = l("Déclarations de revenus de Sam (travail autonome)", "Sam's freelance tax returns"),
-                memberIds = setOf(sam.id), details = listOf(ContactDetail(type = DetailType.EMAIL, value = l("info@comptabiliteroy.example", "office@kimaccounting.example"))),
+                "", group, q("Comptabilité Roy", "Kim Accounting"), kinds = setOf(ContactKind.ACCOUNTANT), purpose = l("Déclarations de revenus de Sam (travail autonome)", "Sam's freelance tax returns"),
+                memberIds = setOf(sam.id), details = listOf(ContactDetail(type = DetailType.EMAIL, value = q("info@comptabiliteroy.example", "office@kimaccounting.example"))),
             ),
         )
         add(
             Contact(
-                "", group, l("École Saint-Fidèle", "Glebe Elementary School"), kinds = setOf(ContactKind.SCHOOL), purpose = l("École de Léa", "Maya's school"),
-                memberIds = setOf(lea.id), details = listOf(phone(l("Secrétariat", "Office"), l("418-555-0150", "613-555-0150")), phone(l("Service de garde", "Daycare"), l("418-555-0151", "613-555-0151"))),
+                "", group, q("École Saint-Fidèle", l("École élémentaire ${p.t.neighbourhood}", "${p.t.neighbourhood} Elementary School")), kinds = setOf(ContactKind.SCHOOL), purpose = l("École de Léa", "Maya's school"),
+                memberIds = setOf(lea.id), details = listOf(phone(l("Secrétariat", "Office"), p.phone("0150")), phone(l("Service de garde", "Daycare"), p.phone("0151"))),
             ),
         )
     }
@@ -1146,20 +1260,21 @@ object DemoHousehold {
         )
         bills.create(
             BillDraft(
-                BillKind.BILL, l("Hydro-Québec", "Hydro Ottawa"), cad("132.48"), chequing.id, Recurrence(Frequency.MONTHLY, adjust = BusinessDayAdjust.NEXT), next(12),
-                l("Hydro-Québec", "Hydro Ottawa"), "6 1234 5678 9", AmountKind.VARIABLE, paymentMethod = PaymentMethod.PAD, categoryId = cat("utilities.electricity"),
+                BillKind.BILL, p.power, cad("132.48"), chequing.id, Recurrence(Frequency.MONTHLY, adjust = BusinessDayAdjust.NEXT), next(12),
+                p.power, "6 1234 5678 9", AmountKind.VARIABLE, paymentMethod = PaymentMethod.PAD, categoryId = cat("utilities.electricity"),
                 type = home, categoryKey = "home.essential", subcategoryKey = "home.essential.electricity",
             ),
         )
+        val internet = q("Vidéotron", p.t.internet)
         bills.create(
             BillDraft(
-                BillKind.BILL, l("Vidéotron", "Rogers"), cad("95.00"), chequing.id, Recurrence.MONTHLY, next(18), l("Vidéotron", "Rogers"), l("000 482 917", "8 2600 1734 5512"),
+                BillKind.BILL, internet, cad("95.00"), chequing.id, Recurrence.MONTHLY, next(18), internet, q("000 482 917", "8 2600 1734 5512"),
                 paymentMethod = PaymentMethod.PAD, categoryId = cat("utilities.internet"), type = home, categoryKey = "home.essential", subcategoryKey = "home.essential.home_internet",
             ),
         )
         bills.create(
             BillDraft(
-                BillKind.BILL, l("Cellulaire", "Cell phone"), cad("65.00"), visa.id, Recurrence.MONTHLY, next(22), l("Fizz", "Koodo"), l("FZ-4471 0938", "7731 0482 19"),
+                BillKind.BILL, l("Cellulaire", "Cell phone"), cad("65.00"), visa.id, Recurrence.MONTHLY, next(22), q("Fizz", "Koodo"), q("FZ-4471 0938", "7731 0482 19"),
                 AmountKind.VARIABLE, paymentMethod = PaymentMethod.CARD, categoryId = cat("utilities.mobile"),
                 type = home, categoryKey = "home.essential", subcategoryKey = "home.essential.cell_phone",
             ),
@@ -1167,7 +1282,7 @@ object DemoHousehold {
         bills.create(
             BillDraft(
                 BillKind.BILL, l("Assurance habitation", "Home insurance"), cad("1184.00"), chequing.id, Recurrence.ANNUAL, today.plus(DatePeriod(days = 5)),
-                l("Desjardins Assurances", "Intact Insurance"), l("H-55 210 384", "HP 4471-2209"), categoryId = cat("housing.insurance"),
+                p.insurer, q("H-55 210 384", "HP 4471-2209"), categoryId = cat("housing.insurance"),
                 type = home, categoryKey = "home.protection", subcategoryKey = "home.protection.home_insurance",
             ),
         )
@@ -1181,21 +1296,21 @@ object DemoHousehold {
         // BILL-20: Sam's accounting software for the freelance work, with its sales taxes.
         bills.create(
             BillDraft(
-                BillKind.BILL, l("Logiciel comptable", "Accounting software"), cad(l("34.49", "33.90")), visa.id, Recurrence.MONTHLY,
-                next(5), l("ComptaNuage", "LedgerCloud"), l("CN-20931", "LC-20931"), paymentMethod = PaymentMethod.CARD, isSubscription = true,
+                BillKind.BILL, l("Logiciel comptable", "Accounting software"), Money.of(p.withSalesTax(BigDecimal("30.00"), today), Currency.CAD), visa.id, Recurrence.MONTHLY,
+                next(5), q("ComptaNuage", "LedgerCloud"), q("CN-20931", "LC-20931"), paymentMethod = PaymentMethod.CARD, isSubscription = true,
                 type = BillType.BUSINESS, categoryKey = "business.technology", subcategoryKey = "business.technology.software_licenses", memberId = sam.id,
             ),
         )
         // BILL-23: the house's property taxes, paid in instalments on the dates each year's tax bill lists.
         bills.create(
             BillDraft(
-                BillKind.BILL, l("Taxes municipales", "Property taxes"), cad(l("4207.00", "4812.00")), chequing.id, Recurrence(Frequency.INSTALMENTS, adjust = BusinessDayAdjust.NEXT),
-                today.minus(DatePeriod(days = 110)), l("Ville de Québec", "City of Ottawa"), l("Matricule 2245-7781-0093", "Roll 0614 123 4567 8900"),
+                BillKind.BILL, l("Taxes municipales", "Property taxes"), cad(q("4207.00", p.t.propertyTax)), chequing.id, Recurrence(Frequency.INSTALMENTS, adjust = BusinessDayAdjust.NEXT),
+                today.minus(DatePeriod(days = 110)), p.municipality, q("Matricule 2245-7781-0093", p.t.roll),
                 paymentMethod = PaymentMethod.ONLINE, categoryId = cat("housing.municipal_tax"),
                 type = home, categoryKey = "home.essential", subcategoryKey = "home.essential.property_taxes",
             ),
         )
-        bills.create(BillDraft(BillKind.INCOME, l("Paie", "Pay"), cad("3150.00"), chequing.id, Recurrence(Frequency.SEMI_MONTHLY, secondDay = 1), next(15), l("Employeur inc.", "Employer Inc."), categoryId = cat("income.employment.salary")))
+        bills.create(BillDraft(BillKind.INCOME, l("Paie", "Pay"), alexPayStub(today.year).net, chequing.id, Recurrence(Frequency.SEMI_MONTHLY, secondDay = 1), next(15), l("Employeur inc.", "Employer Inc."), categoryId = cat("income.employment.salary")))
         bills.create(BillDraft(BillKind.TRANSFER, l("Épargne mensuelle", "Monthly savings"), cad("500.00"), chequing.id, Recurrence.MONTHLY, next(16), transferAccountId = savings.id))
     }
 
@@ -1209,7 +1324,7 @@ object DemoHousehold {
     private fun addBillStatements(books: Books, chequing: Account, today: LocalDate) {
         fun cad(s: String) = Money.parse(s, Currency.CAD)
         val bills = books.bills.list()
-        val hydro = bills.first { it.name == l("Hydro-Québec", "Hydro Ottawa") }
+        val hydro = bills.first { it.name == p.power }
         val meter = books.utilities.meterFor(hydro.id)
         val paid = books.transactions.register(chequing.id).map { it.transaction }
         for (back in listOf(2, 1)) {
@@ -1228,11 +1343,19 @@ object DemoHousehold {
         }
         val phone = bills.first { it.name == l("Cellulaire", "Cell phone") }
         phone.recurrence.next(phone.startDate, today, phone.endDate)?.let { due ->
-            books.bills.recordStatement(phone.id, StatementDraft(due, cad("71.35"), l("F-0938-2210", "K-7731-1009"), today.minus(DatePeriod(days = 6))))
+            books.bills.recordStatement(phone.id, StatementDraft(due, cad("71.35"), q("F-0938-2210", "K-7731-1009"), today.minus(DatePeriod(days = 6))))
         }
         val taxes = bills.first { it.subcategoryKey == "home.essential.property_taxes" }
         fun on(days: Int) = BusinessDays.nextOrSame(today.plus(DatePeriod(days = days)))
-        if (english) {
+        if (!p.quebec && p.province != Province.ON) {
+            // Elsewhere: this year's bill in two instalments, the first paid.
+            val half = cad(p.t.propertyTax).toBigDecimal().divide(BigDecimal(2), 2, RoundingMode.HALF_UP)
+            books.bills.recordStatement(
+                taxes.id,
+                StatementDraft(on(-50), statementNumber = "${today.year}-0412", issuedDate = on(-80), instalments = listOf(BillInstalment(on(-50), Money.of(half, Currency.CAD)), BillInstalment(on(9), Money.of(half, Currency.CAD)))),
+            )
+            books.bills.markPaid(taxes.id, on(-50), on(-52))
+        } else if (!p.quebec) {
             books.bills.recordStatement(
                 taxes.id,
                 StatementDraft(on(-110), statementNumber = "${today.year} Interim", issuedDate = on(-140), instalments = listOf(BillInstalment(on(-110), cad("1190.00")), BillInstalment(on(-50), cad("1190.00")))),
@@ -1254,7 +1377,7 @@ object DemoHousehold {
             books.bills.markPaid(taxes.id, on(-50), on(-52))
         }
         // The next instalment paid in part: the rest is still due on its date.
-        books.bills.markPaid(taxes.id, on(9), today.minus(DatePeriod(days = 3)), cad(l("700.00", "600.00")))
+        books.bills.markPaid(taxes.id, on(9), today.minus(DatePeriod(days = 3)), cad(q("700.00", "600.00")))
     }
 
     /**
@@ -1277,15 +1400,16 @@ object DemoHousehold {
         // The bank's conversion: 2.5 % on top of the rate entered.
         fun posted(t: Transaction) = if (t.originalAmount != null) Money.of(t.amount.toBigDecimal().multiply(BigDecimal("1.025")), Currency.CAD, RoundingMode.HALF_UP) else t.amount
         val lines = recorded.mapIndexed { i, t ->
-            val name = t.payeeId?.let(payees::get) ?: if (t.transfer != null) l("VIREMENT", "TRANSFER") else "?"
-            val shift = if (name.startsWith(l("Vidéotron", "Rogers"))) 4 else 0
+            // The bank's own words: a Quebec bank's statement is in French.
+            val name = t.payeeId?.let(payees::get) ?: if (t.transfer != null) q("VIREMENT", "TRANSFER") else "?"
+            val shift = if (name.startsWith(q("Vidéotron", p.t.internet))) 4 else 0
             ImportedLine("D$i", t.date.plus(DatePeriod(days = shift)).let { if (it > end) end else it }, posted(t), name.uppercase(), null, null)
-        } + ImportedLine("FEE", end, fee, l("FRAIS MENSUELS DU FORFAIT", "MONTHLY PLAN FEE"), null, null)
+        } + ImportedLine("FEE", end, fee, q("FRAIS MENSUELS DU FORFAIT", "MONTHLY PLAN FEE"), null, null)
         val closing = account.openingBalance + recorded.map(::posted).fold(Money.zero(Currency.CAD), Money::plus) + fee
         books.statements.import(
             account.id,
             ImportedStatement("OFX", "0045678", Currency.CAD, account.openingDate, end, account.openingBalance, closing, lines),
-            l("releve-desjardins.ofx", "td-statement.ofx"),
+            q("releve-desjardins.ofx", "td-statement.ofx"),
         )
     }
 }

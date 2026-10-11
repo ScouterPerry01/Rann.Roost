@@ -1,3 +1,12 @@
+// File path and name: core/books/src/main/kotlin/ca/schippers/hfm/books/BillLists.kt
+// Modified On Timestamp: 2026-10-11 @ 13:05 EDT
+// Created On Timestamp: 2026-10-07 @ 13:51 EDT
+// File Description: The owner's bill categories and subcategories (BILL-13), and the guess of what
+//   a bill is for from its company's name (BILL-18).
+// Uses: core/books bill-classification.json, Books, FieldExtractor.
+// Used By: Books, BillService, DocumentService; app/desktop BillForm, BillsScreen, ReferenceScreens.
+// Purpose: Classify bills so they are grouped, reported and matched the same way everywhere.
+
 package ca.schippers.hfm.books
 
 import ca.schippers.hfm.domain.Ids
@@ -242,7 +251,9 @@ class BillListService internal constructor(private val books: Books) {
             // Before electricity: "Énergie Cardio" is a gym.
             "home.lifestyle.gym" to listOf("goodlife", "energie cardio", "gym", "fitness"),
             "home.essential.electricity" to listOf("hydro", "electri", "energie", " power", "toronto hydro", "alectra", "epcor"),
-            "home.essential.natural_gas" to listOf("enbridge", "energir", "gaz metro", "fortisbc", "atco gas", " gaz ", " gas ", "mazout", "heating oil"),
+            "home.essential.natural_gas" to listOf(
+                "enbridge", "energir", "gaz metro", "fortisbc", "atco gas", "saskenergy", "eastward energy", "liberty utilities", " gaz ", " gas ", "mazout", "heating oil",
+            ),
             "home.essential.water" to listOf(" water", " eau ", "aqueduc"),
             "home.essential.cell_phone" to listOf("fido", "koodo", "virgin", "freedom", "public mobile", "chatr", "lucky", "mobilite", "mobility", "cellulaire", "wireless", "sans fil"),
             "home.essential.home_internet" to listOf("videotron", "cogeco", "eastlink", "bell", "rogers", "telus", "shaw", "teksavvy", "ebox", "internet"),

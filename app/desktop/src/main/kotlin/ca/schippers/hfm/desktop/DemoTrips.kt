@@ -1,3 +1,12 @@
+// File path and name: app/desktop/src/main/kotlin/ca/schippers/hfm/desktop/DemoTrips.kt
+// Modified On Timestamp: 2026-10-11 @ 13:05 EDT
+// Created On Timestamp: 2026-10-06 @ 09:14 EDT
+// File Description: The sample household's trip log: saved places, the Civic's details and three
+//   months of driving a plug-in hybrid RAV4.
+// Uses: DemoPlace (local places, prices and coordinates), core/books trips and vehicles.
+// Used By: DemoHousehold.
+// Purpose: Show the trip log, fuel and charging features on realistic data.
+
 package ca.schippers.hfm.desktop
 
 import ca.schippers.hfm.books.Account
@@ -38,28 +47,34 @@ import java.math.RoundingMode
  * RAV4 driven for three months: commutes, a weekend at the cottage towing the utility trailer, home
  * and public charging, and fill-ups before and after the towing. The medical trip gets its times.
  */
-internal class DemoTrips(private val books: Books, private val english: Boolean) {
+internal class DemoTrips(private val books: Books, private val p: DemoPlace) {
 
-    private fun l(fr: String, en: String) = if (english) en else fr
+    private fun l(fr: String, en: String) = p.l(fr, en)
+
+    private fun q(qc: String, other: String) = p.q(qc, other)
 
     private fun cad(s: String) = Money.parse(s, Currency.CAD)
 
     private fun cat(key: String) = books.categories.list().first { it.systemKey == key }.id
 
     fun add(group: String, visa: Account, alex: Member, sam: Member, lea: Member, civic: Vehicle, today: LocalDate) {
-        val province = l("QC", "ON")
-        fun place(name: String, category: PlaceCategory, lat: Double, lon: Double, address: String? = null, radius: Int = 150) =
-            books.places.save(Place("", group, name, category, address, lat, lon, radius, province))
-        val home = place(l("Maison (rue des Érables)", "Home (Maple Street)"), PlaceCategory.HOME, l("46.80400", "45.39530").toDouble(), l("-71.24200", "-75.70600").toDouble(), l("118, rue des Érables, Québec", "48 Maple Street, Ottawa"))
-        val work = place(l("Bureau (boul. Laurier)", "Office (Bank Street)"), PlaceCategory.WORK, l("46.77700", "45.41890").toDouble(), l("-71.28100", "-75.69810").toDouble(), radius = 200)
-        val cottage = place(l("Chalet (Lac-Édouard)", "Cottage (Bon Echo)"), PlaceCategory.OTHER, l("47.65800", "44.89790").toDouble(), l("-72.27000", "-77.20940").toDouble(), radius = 300)
-        place(l("Institut de cardiologie de Montréal", "Kingston Health Sciences Centre"), PlaceCategory.MEDICAL, l("45.57450", "44.22460").toDouble(), l("-73.57950", "-76.49340").toDouble())
-        val station = place(l("Petro-Canada (ch. Sainte-Foy)", "Petro-Canada (Bank Street)"), PlaceCategory.FUEL, l("46.78800", "45.40150").toDouble(), l("-71.26200", "-75.68930").toDouble())
-        place(l("Garage Tremblay", "Main Street Auto"), PlaceCategory.GARAGE, l("46.81000", "45.41080").toDouble(), l("-71.23000", "-75.67410").toDouble())
-        val client = place(
-            l("Client à Lévis", "Client in Kanata"), PlaceCategory.CLIENT, l("46.80300", "45.30880").toDouble(), l("-71.17800", "-75.89870").toDouble(),
-            l("5500, boul. Guillaume-Couture, Lévis", "300 Terry Fox Drive, Kanata"),
+        val province = p.province.name
+        val t = p.t
+        fun place(name: String, category: PlaceCategory, qc: LatLon, other: LatLon, address: String? = null, radius: Int = 150): Place {
+            val at = if (p.quebec) qc else other
+            return books.places.save(Place("", group, name, category, address, at.lat, at.lon, radius, province))
+        }
+        val street = q("rue des Érables", l("rue Maple", "Maple Street"))
+        val home = place(
+            l("Maison", "Home") + " ($street)", PlaceCategory.HOME, LatLon(46.80400, -71.24200), t.home,
+            q("118, rue des Érables, Québec", "48 $street, ${p.city}"),
         )
+        val work = place(l("Bureau", "Office") + " (" + q("boul. Laurier", t.mainStreet) + ")", PlaceCategory.WORK, LatLon(46.77700, -71.28100), t.work, radius = 200)
+        val cottage = place(p.cottage, PlaceCategory.OTHER, LatLon(47.65800, -72.27000), t.cottageAt, radius = 300)
+        place(p.specialist, PlaceCategory.MEDICAL, LatLon(45.57450, -73.57950), t.specialistAt)
+        val station = place("Petro-Canada (" + q("ch. Sainte-Foy", t.mainStreet) + ")", PlaceCategory.FUEL, LatLon(46.78800, -71.26200), t.station)
+        place(q("Garage Tremblay", "Main Street Auto"), PlaceCategory.GARAGE, LatLon(46.81000, -71.23000), t.garage)
+        val client = place(p.client1, PlaceCategory.CLIENT, LatLon(46.80300, -71.17800), t.clientAt, q("5500, boul. Guillaume-Couture, Lévis", t.clientAddress))
         // The phone's user is Alex, proposed as the driver on the phone.
         runCatching { books.users.list().firstOrNull { it.isMe }?.let { books.users.update(it.id, it.displayName, alex.id) } }
 
@@ -76,9 +91,9 @@ internal class DemoTrips(private val books: Books, private val english: Boolean)
         val start = today.minus(DatePeriod(days = 90))
         val rav4 = books.vehicles.save(
             Vehicle(
-                "", group, "RAV4", "Toyota", "RAV4 Prime", 2023, "SE", l("Bleu", "Blue"), "JTMEB3FV7PD123456", l("H27 PRV", "CPXM 219"), FuelType.PLUG_IN_HYBRID, alex.id,
-                LocalDate(2023, 9, 20), cad("52890"), l("Toyota Ste-Foy", "Ottawa Toyota"), 12, Currency.CAD, today.plus(DatePeriod(months = 4)),
-                l("Desjardins Assurances", "Intact Insurance"), "AUT-5521874", today.plus(DatePeriod(days = 12)),
+                "", group, "RAV4", "Toyota", "RAV4 Prime", 2023, "SE", l("Bleu", "Blue"), "JTMEB3FV7PD123456", q("H27 PRV", t.plate2), FuelType.PLUG_IN_HYBRID, alex.id,
+                LocalDate(2023, 9, 20), cad("52890"), q("Toyota Ste-Foy", t.toyota), 12, Currency.CAD, today.plus(DatePeriod(months = 4)),
+                p.insurer, "AUT-5521874", today.plus(DatePeriod(days = 12)),
                 details = VehicleDetails(
                     l("2,5 L hybride rechargeable", "2.5 L plug-in hybrid"), Transmission.CVT, DriveKind.AWD, BigDecimal("55"), BigDecimal("18.1"),
                     "225/60R18", "225/65R17", "0W-16", BigDecimal("4.5"), 1_134, 2_495,
@@ -89,14 +104,14 @@ internal class DemoTrips(private val books: Books, private val english: Boolean)
 
         // Three months of driving: about 30 km a day not logged, commutes on the last working days,
         // and the weekend at the cottage with the trailer, three weeks ago.
-        val price = BigDecimal(l("1.689", "1.629"))
-        val kwhPrice = BigDecimal(l("0.078", "0.098"))
+        val price = BigDecimal(q("1.689", t.fuelPrice))
+        val kwhPrice = BigDecimal(q("0.078", t.kwhPrice))
         var odo = 18_400
         var sinceFill = 0.0
         val towOut = today.minus(DatePeriod(days = 23)).let { d -> d.minus(DatePeriod(days = (d.dayOfWeek.ordinal - DayOfWeek.FRIDAY.ordinal + 7) % 7)) }
         val towBack = towOut.plus(DatePeriod(days = 2))
         val commuteDays = (1..7).map { today.minus(DatePeriod(days = it)) }.filter { it.dayOfWeek.ordinal < 5 }.take(3).toSet()
-        val toCottage = if (english) 182 else 178
+        val toCottage = if (p.quebec) 178 else t.toCottage
         fun at(d: LocalDate, h: Int, m: Int) = LocalDateTime(d.year, d.month, d.day, h, m)
         fun fill(d: LocalDate) {
             val litres = BigDecimal(sinceFill).setScale(1, RoundingMode.HALF_UP).takeIf { it >= BigDecimal(5) } ?: return
@@ -162,12 +177,12 @@ internal class DemoTrips(private val books: Books, private val english: Boolean)
             if (day.dayOfWeek == DayOfWeek.SUNDAY && day != towBack) {
                 books.vehicles.saveFuel(
                     FuelEntry("", rav4.id, day, odo, BigDecimal("16.8"), Money.of(BigDecimal("16.8") * kwhPrice, Currency.CAD), energy = Energy.ELECTRICITY, charging = Charging.HOME),
-                    PaymentDraft(visa.id, cat("transport.ev_charging"), l("Hydro-Québec", "Hydro Ottawa")),
+                    PaymentDraft(visa.id, cat("transport.ev_charging"), p.power),
                 )
             }
             if (day == towBack.minus(DatePeriod(days = 1))) {
                 books.vehicles.saveFuel(
-                    FuelEntry("", rav4.id, day, odo, BigDecimal("12.4"), cad("6.20"), fullTank = false, station = l("Circuit électrique (Saint-Tite)", "FLO (Bon Echo Road)"), energy = Energy.ELECTRICITY, charging = Charging.PUBLIC),
+                    FuelEntry("", rav4.id, day, odo, BigDecimal("12.4"), cad("6.20"), fullTank = false, station = q("Circuit électrique (Saint-Tite)", t.charger), energy = Energy.ELECTRICITY, charging = Charging.PUBLIC),
                 )
             }
             day = day.plus(DatePeriod(days = 1))
@@ -176,10 +191,10 @@ internal class DemoTrips(private val books: Books, private val english: Boolean)
         val tasks = books.vehicles.addStarterTasks(rav4.id, start) { ca.schippers.hfm.i18n.Messages.get(books.language, "task.$it") }.associateBy { it.templateKey }
         books.vehicles.saveService(
             ca.schippers.hfm.books.ServiceRecord(
-                "", rav4.id, today.minus(DatePeriod(days = 60)), 19_280, l("Toyota Ste-Foy", "Ottawa Toyota"), cost = cad("189.90"),
+                "", rav4.id, today.minus(DatePeriod(days = 60)), 19_280, q("Toyota Ste-Foy", t.toyota), cost = cad("189.90"),
                 taskIds = setOfNotNull(tasks["oil"]?.id, tasks["tire_rotation"]?.id),
             ),
-            PaymentDraft(visa.id, cat("transport.maintenance"), l("Toyota Ste-Foy", "Ottawa Toyota")),
+            PaymentDraft(visa.id, cat("transport.maintenance"), q("Toyota Ste-Foy", t.toyota)),
         )
         // The Civic's trips entered on the computer leave from home, to the saved place of the same name;
         // MED-11: the medical trip gets its times.

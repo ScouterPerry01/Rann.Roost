@@ -27,9 +27,10 @@ subprojects {
         tasks.withType<Test>().configureEach {
             useJUnitPlatform()
         }
-        // The NFR-02 performance test is slow; it runs on its own with `performanceTest`.
+        // The NFR-02 performance test is slow; it runs on its own with `performanceTest`. So does
+        // building the sample households in every province (`:app:desktop:sampleHouseholdsTest`).
         tasks.named<Test>("test") {
-            useJUnitPlatform { excludeTags("performance") }
+            useJUnitPlatform { excludeTags("performance", "samples") }
         }
     }
 }

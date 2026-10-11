@@ -17,6 +17,7 @@ The Welcome screen is the first one you see. It shows the app's name and these c
 - **Create a new household**: opens the [Create a household](basics#create-screen) screen, to start a new set of books.
 - **Open an existing household**: opens a folder chooser. Choose the household's folder itself (its name ends with .hfm, such as Tremblay Family.hfm). The [Unlock household](basics#unlock-screen) screen then opens for it.
 - **Restore from a backup…**: brings back a household from a backup file (.hfmbak), for example after a broken disk or to move to a new computer. See [Restoring from a backup](basics#restore).
+- **Open a sample household**: opens a made-up household to try the app on. See [Trying a sample household](basics#samples).
 - **About and privacy**: shows the [About](about) page (version, updates, privacy, licence, support) before any household is open. **Back** returns to Welcome.
 - **Recent households**: the last five households opened on this computer, most recent first. Click one to go straight to its Unlock screen. A household whose folder was moved, renamed or deleted no longer appears; use **Open an existing household** to find it again.
 
@@ -33,6 +34,21 @@ The Welcome screen is the first one you see. It shows the app's name and these c
 5. The Unlock screen opens for the restored household. Sign in with the login name and password that were in use when the backup was made, or reset the password with your recovery key.
 
 If the backup cannot be restored, a message under the button says why. See [Backups](backups) for making backups and [Privacy, data and security](privacy-data#new-computer) for moving to a new computer.
+
+### Trying a sample household {#samples}
+
+@index: sample household; demo; try the app
+
+A sample household is made up and filled in with several months of activity, so you can see every screen at work before entering your own figures, or show the app to someone.
+
+1. On Welcome, click **Open a sample household**.
+2. Choose one of the three: **Alex and Sam** (a couple with a child, a dog, a rented duplex and a side business), **A family of five** (two working parents, three young children, a mortgage, an inherited cottage and large portfolios) or **Someone starting out** (a young renter learning to budget and starting to invest).
+3. Choose the language with **English** or **Français**, and the **Province or territory** it lives in: its taxes, benefits, utilities and places are those of that province or territory.
+4. Click **Open the sample**. Making it takes a little while; the screen says so meanwhile.
+
+![Choosing a sample household](images/sample-household.png)
+
+A banner at the top of every screen reminds you that it is a sample. Nothing you change in it is kept: when you lock it or close the app, the sample is deleted and Welcome comes back. It never appears in the recent households, and no backup is made of it. Its names, companies and amounts are invented; its taxes come from the app's own rates and rules.
 
 ### Create a household {#create-screen}
 

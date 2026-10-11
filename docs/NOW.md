@@ -1,6 +1,6 @@
 <!--
 File path and name: docs/NOW.md
-Modified On Timestamp: 2026-10-10 @ 21:40 EDT
+Modified On Timestamp: 2026-10-11 @ 13:05 EDT
 Created On Timestamp: 2026-10-09 @ 08:14 EDT
 File Description: The ONE short "where are we right now" file. Read this first when resuming.
 Uses: docs/session-log.md, the current handover file.
@@ -29,6 +29,12 @@ kept outside the repository. Detail: `docs/session-handover-2026-10-10.md`.
    reports, then check the live listing in English and French.
 2. Owner: keep the 12+ Play closed testers opted in for 14 days in a row, then apply for production
    (Rann.Roost.Mobile `docs/release-checklist.md` § 3).
+3. After the Store result (optional, cosmetic): rename the GitHub repository
+   `Schippers.Household.Finance.Manager` to `Rann.Roost` (no spaces/apostrophes allowed). Update the
+   8 files naming it (`Updates.kt`, `AboutScreen.kt`, README, `website/` EN+FR, release checklist,
+   `docs/store/microsoft-store.md`, third-party notices) and the `roost` submodule URL in
+   Rann.Roost.Mobile. Installed 1.0.0 keeps the old update address, so test it still finds updates
+   through GitHub's redirect; never reuse the old repository name.
 
 **Waiting on the developer:** the certification result and the closed test.
 

@@ -1,3 +1,13 @@
+<!--
+File path and name: README.md
+Modified On Timestamp: 2026-10-11 @ 13:05 EDT
+Created On Timestamp: 2026-10-01 @ 15:53 EDT
+File Description: The repository's front page: what RANN's Roost is, how to build, run and test it.
+Uses: docs/, tools/dev/README.md.
+Used By: GitHub visitors and developers.
+Purpose: Introduce the project and its build commands.
+-->
+
 # RANN's Roost
 
 <picture>
@@ -71,6 +81,7 @@ Requirements: JDK 21.
 ./gradlew :app:desktop:run          # run the desktop app
 ./gradlew :app:desktop:runDemo      # try it with a throw-away sample household (-Plang=fr for French)
 ./gradlew :core:books:performanceTest  # NFR-02: times screens and reports on 30 years of data
+./gradlew :app:desktop:sampleHouseholdsTest  # builds the sample households in every province and territory
 ./gradlew :app:desktop:packageMsix  # Microsoft Store package (on Windows, with the Windows SDK)
 ./gradlew :app:desktop:packageMsi   # Windows installer for testing (on Windows)
 ./gradlew :app:desktop:packageDeb   # Linux package (on Linux)
@@ -84,7 +95,7 @@ An installed or packaged copy checks itself when started with `JAVA_TOOL_OPTIONS
 
 Releases are built by `.github/workflows/release.yml` from a tag `v<version>` (see [docs/release-checklist.md](docs/release-checklist.md) and [ADR 0008](docs/adr/0008-signed-releases-and-updates.md)); run by hand, it is a dry run with a throwaway key that publishes nothing. Release notes live in `docs/releases/<version>.en.md` and `.fr.md`.
 
-The demo opens on any section with `-Psection=` (for example `DOCUMENTS`, `CONTACTS`, `PHONES`, `USERS`, `VEHICLES`, `GOALS`, `LOANS`, `INVESTMENTS`, `PLANS`, `TAXES`, `RATES`, `RATE_RULES`, `MEMBERS`), and on one account with `-Paccount=` (with `-Psection=ACCOUNTS`). `-Pmanual=bills` (or `bills#bill-form`, or `screen` for the screen shown) also opens the manual in its window. In English the sample household is a family in Ottawa, Ontario; in French (`-Plang=fr`) a family in Quebec City. Its users are `demo` / `demo-password` (administrator) and `sam` / `member-demo-password` (member).
+The demo opens on any section with `-Psection=` (for example `DOCUMENTS`, `CONTACTS`, `PHONES`, `USERS`, `VEHICLES`, `GOALS`, `LOANS`, `INVESTMENTS`, `PLANS`, `TAXES`, `RATES`, `RATE_RULES`, `MEMBERS`), and on one account with `-Paccount=` (with `-Psection=ACCOUNTS`). `-Pmanual=bills` (or `bills#bill-form`, or `screen` for the screen shown) also opens the manual in its window. In English the sample household is a family in Ottawa, Ontario; in French (`-Plang=fr`) a family in Quebec City. `-Pprovince=AB` (any province or territory) moves it there, and `-Psample=family` or `-Psample=single` opens one of the other two sample households instead: a family of five, or a young person starting out. Its users are `demo` / `demo-password` (administrator) and, for Alex and Sam, `sam` / `member-demo-password` (member). The same sample households open from the app's welcome screen with "Open a sample household".
 
 ## Support
 

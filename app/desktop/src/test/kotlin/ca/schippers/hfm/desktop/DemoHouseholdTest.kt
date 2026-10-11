@@ -1,3 +1,12 @@
+// File path and name: app/desktop/src/test/kotlin/ca/schippers/hfm/desktop/DemoHouseholdTest.kt
+// Modified On Timestamp: 2026-10-11 @ 13:05 EDT
+// Created On Timestamp: 2026-10-02 @ 21:26 EDT
+// File Description: Tests that the sample household builds, in every province and territory and
+//   both languages, and that the reminders and reports its screens show work on it.
+// Uses: DemoHousehold, DemoPlace, core/books, SQLCipher driver.
+// Used By: ./gradlew :app:desktop:test, and :app:desktop:sampleHouseholdsTest for every province.
+// Purpose: Keep the demo, the manual's pictures and the sample households working.
+
 package ca.schippers.hfm.desktop
 
 import ca.schippers.hfm.books.Books
@@ -11,6 +20,7 @@ import ca.schippers.hfm.i18n.Language
 import ca.schippers.hfm.security.KdfParams
 import kotlinx.datetime.minus
 import kotlinx.datetime.plus
+import org.junit.jupiter.api.Tag
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -32,8 +42,30 @@ class DemoHouseholdTest {
         assertTrue(books.members.list().any { it.displayName == "Léa" })
     }
 
-    private fun check(language: Language, house: String, boat: String, more: (Books) -> Unit) {
-        val session = DemoHousehold.create(HouseholdStore(SqlCipherJdbcDriverFactory(), KdfParams.TESTING), language)
+    /** A territory without natural gas or a city bus, a bilingual province in French, and Quebec in English. */
+    @Test
+    fun `it builds elsewhere and in the other language`() =
+        listOf(Province.NU to Language.ENGLISH, Province.NB to Language.FRENCH, Province.QC to Language.ENGLISH).forEach { (province, language) -> checkIn(province, language) }
+
+    /** Each province or territory once, the languages taking turns, plus Ontario in French (several minutes). */
+    @Test
+    @Tag("samples")
+    fun `it builds in every province and territory`() =
+        (Province.entries.mapIndexed { i, p -> p to Language.entries[i % 2] } + (Province.ON to Language.FRENCH)).distinct().forEach { (province, language) -> checkIn(province, language) }
+
+    private fun checkIn(province: Province, language: Language) {
+        val english = language == Language.ENGLISH
+        check(language, house = if (english) "House" else "Maison", boat = if (english) "Princecraft pontoon" else "Ponton", province = province) { books ->
+            assertEquals(province, books.province, "$province $language")
+            // The payees of the place, not Ottawa's or Quebec City's where it is neither.
+            val names = books.payees.list().map { it.name }
+            if (province != Province.ON) assertTrue("Hydro Ottawa" !in names && "OC Transpo" !in names, "$province $language: $names")
+            if (province != Province.QC) assertTrue("Hydro-Québec" !in names && "Desjardins Assurances" !in names, "$province $language: $names")
+        }
+    }
+
+    private fun check(language: Language, house: String, boat: String, province: Province = DemoPlace.defaultFor(language), more: (Books) -> Unit) {
+        val session = DemoHousehold.create(HouseholdStore(SqlCipherJdbcDriverFactory(), KdfParams.TESTING), language, province)
         session.use {
             val books = Books(it)
             val today = today()
@@ -72,8 +104,10 @@ class DemoHouseholdTest {
             assertTrue(instalments.any { o -> o.status == ca.schippers.hfm.books.OccurrenceStatus.DUE && o.payments.isNotEmpty() && o.outstanding < o.amount })
             assertTrue(instalments.any { o -> o.estimated })
             val waiting = books.documents.inbox().filter { d -> d.kind == ca.schippers.hfm.ocr.DocumentKind.BILL && books.documents.billFor(d.id) == null }
-            assertEquals(1, waiting.size, "the gas bill waits for a bill to be created")
-            assertEquals("home.essential.natural_gas", books.documents.billProposal(waiting.single().id).bill?.subcategoryKey)
+            assertEquals(1, waiting.size, "$province $language: the gas (or water) bill waits for a bill to be created")
+            // A water bill where homes are not heated with natural gas.
+            val heat = if (DemoPlace(province, language == Language.ENGLISH).let { p -> p.quebec || p.t.gas != null }) "home.essential.natural_gas" else "home.essential.water"
+            assertEquals(heat, books.documents.billProposal(waiting.single().id).bill?.subcategoryKey, "$province $language")
             more(books)
         }
     }

@@ -1,3 +1,11 @@
+# File path and name: .gitignore
+# Modified On Timestamp: 2026-10-12 @ 09:10 EDT
+# Created On Timestamp: 2026-10-01 @ 15:53 EDT
+# File Description: Files and folders git never tracks.
+# Uses: N/A
+# Used By: git.
+# Purpose: Keep build output, personal settings, household data and private papers out of the repository.
+
 # Gradle / build
 .gradle/
 build/
@@ -27,3 +35,6 @@ spikes/**/obj/
 # Never commit household data or keys
 *.hfm/
 *.hfmbak
+
+# Microsoft Store certification reports (private, kept beside the project only)
+docs/MS.Cert.Issue/

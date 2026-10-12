@@ -1,4 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+File path and name: app/desktop/packaging/msix/AppxManifest.xml
+Modified On Timestamp: 2026-10-12 @ 09:17 EDT
+Created On Timestamp: 2026-10-03 @ 08:26 EDT
+File Description: The Microsoft Store package's manifest template (identity, tiles, dependencies).
+Uses: store-identity.properties, the app's version (filled in by the packageMsix task).
+Used By: app/desktop/build.gradle.kts packageMsix.
+Purpose: Describe the desktop app to Windows and the Microsoft Store.
+-->
 <!-- Microsoft Store package (DIST-01). The packageMsix task fills in the @...@ values from
      store-identity.properties and the app's version; the Store signs the package on submission. -->
 <Package
@@ -17,6 +26,9 @@
 
   <Dependencies>
     <TargetDeviceFamily Name="Windows.Desktop" MinVersion="10.0.17763.0" MaxVersionTested="10.0.26100.0" />
+    <!-- The Visual C++ runtime that text recognition (ONNX Runtime) needs and the packaged JDK does
+         not fully include (MSVCP140_1.dll); the Store installs it with the app when missing. -->
+    <PackageDependency Name="Microsoft.VCLibs.140.00.UWPDesktop" MinVersion="14.0.30704.0" Publisher="CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US" />
   </Dependencies>
 
   <Resources>

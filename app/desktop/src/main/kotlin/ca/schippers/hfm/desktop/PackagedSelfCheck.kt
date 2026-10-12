@@ -1,3 +1,12 @@
+// File path and name: app/desktop/src/main/kotlin/ca/schippers/hfm/desktop/PackagedSelfCheck.kt
+// Modified On Timestamp: 2026-10-12 @ 09:14 EDT
+// Created On Timestamp: 2026-10-03 @ 08:26 EDT
+// File Description: The installed package's self-check: JDK modules, OCR, HEIC, AI client and an
+//   encrypted household, reported to a file without opening a window.
+// Uses: core/ocr-desktop, core/data, core/ai, the packaged runtime.
+// Used By: Main.kt; the release workflow (JAVA_TOOL_OPTIONS=-Dhfm.selfcheck=<file>).
+// Purpose: Catch a package that builds but cannot run on the user's computer.
+
 package ca.schippers.hfm.desktop
 
 import ca.schippers.hfm.data.HouseholdStore
@@ -45,6 +54,8 @@ internal object PackagedSelfCheck {
             "java.net.http.HttpClient", // java.net.http: rates, prices, the update check
             "java.util.prefs.Preferences", // java.prefs
             "java.sql.Connection", // java.sql
+            // jdk.accessibility: loaded at start where Java Access Bridge is on; without it the app did not open.
+            "com.sun.java.accessibility.util.EventQueueMonitor",
             "com.sun.net.httpserver.HttpServer", // jdk.httpserver: the listener for phones
             "sun.misc.Unsafe", // jdk.unsupported
         )

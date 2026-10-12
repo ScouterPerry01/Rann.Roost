@@ -1,6 +1,6 @@
 <!--
 File path and name: docs/release-checklist.md
-Modified On Timestamp: 2026-10-10 @ 21:15 EDT
+Modified On Timestamp: 2026-10-12 @ 09:18 EDT
 Created On Timestamp: 2026-10-06 @ 17:12 EDT
 File Description: The owner's release-day checklist for the desktop app (keys, tag, GitHub release, Microsoft Store).
 Uses: .github/workflows/release.yml, docs/store/, branding/store/, docs/releases/.
@@ -140,6 +140,10 @@ of the same commit instead (developer mode is on):
 
 - [ ] The welcome or unlock window opens (a "Failed to launch JVM" box means a JDK module is missing
       from the packaged runtime; see `suggestRuntimeModules` in the README).
+- [ ] Again with Java Access Bridge on, as the Microsoft Store's testers run it (1.0.0 was rejected for
+      this): close the app, create `%USERPROFILE%\.accessibility.properties` containing
+      `assistive_technologies=com.sun.java.accessibility.AccessBridge`, start it again, then delete the
+      file. A start-up error is also written to `%LOCALAPPDATA%\RANN's Roost\startup-error.log`.
 - [ ] Close it, then `Get-AppxPackage RANN.RannsRoost | Remove-AppxPackage`.
 
 The packaged app reads your real settings (recent households, language), but its writes are kept

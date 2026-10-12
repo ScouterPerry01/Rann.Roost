@@ -1,9 +1,9 @@
 // File path and name: app/desktop/src/main/kotlin/ca/schippers/hfm/desktop/Main.kt
-// Modified On Timestamp: 2026-10-11 @ 13:05 EDT
+// Modified On Timestamp: 2026-10-12 @ 09:17 EDT
 // Created On Timestamp: 2026-10-01 @ 15:53 EDT
 // File Description: The desktop app's entry point: the window, the tray, auto-lock and demo mode
-//   (runDemo: a sample household in any province with -Pprovince).
-// Uses: AppState, App.kt, DemoHousehold, DemoPlace.
+//   (runDemo: a sample household in any province with -Pprovince); a start-up error is reported.
+// Uses: AppState, App.kt, DemoHousehold, DemoPlace, StartupFailure.
 // Used By: The packaged app and ./gradlew :app:desktop:run / runDemo.
 // Purpose: Start the app.
 
@@ -31,10 +31,18 @@ import ca.schippers.hfm.i18n.Language
 import ca.schippers.hfm.i18n.Messages
 import kotlinx.coroutines.delay
 import java.util.prefs.Preferences
+import kotlin.system.exitProcess
 
 fun main() {
     PackagedSelfCheck.runIfRequested()
-    desktopApp()
+    // An error before or while the window opens would otherwise end in the launcher's bare
+    // "Failed to launch JVM" (the Microsoft Store's first review): say what it was instead. When our
+    // own message cannot show either, the error goes on to the launcher, whose box is better than none.
+    try {
+        desktopApp()
+    } catch (e: Throwable) {
+        if (StartupFailure.report(e)) exitProcess(0) else throw e
+    }
 }
 
 private fun desktopApp() = application {

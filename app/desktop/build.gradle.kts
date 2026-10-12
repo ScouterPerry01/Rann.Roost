@@ -1,3 +1,12 @@
+// File path and name: app/desktop/build.gradle.kts
+// Modified On Timestamp: 2026-10-12 @ 09:14 EDT
+// Created On Timestamp: 2026-10-01 @ 15:53 EDT
+// File Description: Build of the desktop app: packages (MSI, MSIX, deb, rpm), the packaged runtime's
+//   JDK modules, the demo, the sample-household sweep and the manual and Store pictures.
+// Uses: core/* modules, Compose Multiplatform, the Windows SDK (MSIX).
+// Used By: ./gradlew build, the CI and release workflows.
+// Purpose: One place that says how the desktop app is built, run and packaged.
+
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import java.util.Properties
@@ -155,8 +164,10 @@ compose.desktop {
             // fails only when its first class is used: without java.net.http the installed app did not open
             // (the update check's client is made at start), and without jdk.httpserver phones could not
             // connect. PackagedSelfCheck loads a class from each; rerun suggestRuntimeModules after adding
-            // a library or a JDK API.
-            modules("java.instrument", "java.naming", "java.net.http", "java.prefs", "java.sql", "jdk.httpserver", "jdk.unsupported")
+            // a library or a JDK API. jdk.accessibility is not found by suggestRuntimeModules but is needed:
+            // where Java Access Bridge is on (screen readers; the Microsoft Store's testers), AWT loads it at
+            // start and, without it, the app stops before its window opens ("Failed to launch JVM").
+            modules("java.instrument", "java.naming", "java.net.http", "java.prefs", "java.sql", "jdk.accessibility", "jdk.httpserver", "jdk.unsupported")
             windows {
                 menuGroup = "RANN's Roost"
                 // Keep this fixed forever: Windows uses it to recognise upgrades of the same app.

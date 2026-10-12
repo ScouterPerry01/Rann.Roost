@@ -4,7 +4,7 @@ Le Calendrier place vos rendez-vous à côté des factures, des dates de santé,
 
 ## Voir ce qui s’en vient {#see}
 
-1. Ouvrez **Calendrier** dans le groupe Argent du menu.
+1. Ouvrez **Calendrier** en haut du menu.
 2. L’onglet **Agenda** énumère tout ce qui arrive dans les 60 prochains jours, jour par jour : rendez-vous, factures à payer, renouvellements de médicaments, renouvellements et entretien.
 3. Les onglets **Jour**, **Semaine**, **Mois** et **Année** montrent le calendrier par jour, semaine, mois ou année. Utilisez **◀** et **▶** pour vous déplacer, **Aujourd’hui** pour revenir, et **Aller à une date** pour sauter à une date. Dans les onglets Mois et Année, cliquez sur un jour pour l’ouvrir dans l’onglet Jour.
 4. Décochez des cases dans le panneau **Afficher**, à droite, pour masquer des sortes d’éléments, ou ceux d’une personne. Votre choix est retenu sur cet ordinateur.

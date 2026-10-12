@@ -1,6 +1,6 @@
 # Calendar
 
-The Calendar brings together your appointments and the dates the rest of the app already knows. It is in the Money group of the menu.
+The Calendar brings together your appointments and the dates the rest of the app already knows. It stands on its own at the top of the menu, under Contacts.
 
 Besides the appointments you add, it shows:
 

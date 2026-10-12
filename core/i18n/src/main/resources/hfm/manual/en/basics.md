@@ -160,7 +160,7 @@ Two kinds of coloured banner can appear under the top bar:
 
 @index: menu; navigation; side menu; menu at the top
 
-The menu leads to every screen. The **Dashboard** and **Contacts** stand on their own at the top, outside the groups; the other screens are in six groups: Money, Investing and borrowing, Reports and taxes, Home and family, Settings, and Help.
+The menu leads to every screen. The **Dashboard**, **Contacts** and the **Calendar** stand on their own at the top, outside the groups; the other screens are in six groups: Money, Investing and borrowing, Reports and taxes, Home and family, Settings, and Help.
 
 The menu can be shown in two ways, and each user's choice is remembered on this computer:
 

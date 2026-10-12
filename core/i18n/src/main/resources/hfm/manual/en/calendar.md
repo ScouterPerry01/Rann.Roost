@@ -1,6 +1,6 @@
 # Calendar
 
-The Calendar brings together your appointments, your children's activities, each person's work and school hours, and every date the rest of the app already knows: bills coming due, prescriptions to refill, vaccines, renewals and maintenance. You can see it as an agenda, or by day, week, month or year, and choose what it shows. Calendar is in the Money group of the menu.
+The Calendar brings together your appointments, your children's activities, each person's work and school hours, and every date the rest of the app already knows: bills coming due, prescriptions to refill, vaccines, renewals and maintenance. You can see it as an agenda, or by day, week, month or year, and choose what it shows. Calendar stands on its own at the top of the menu, under Contacts, so it is always one click away.
 
 ![The Calendar screen, Agenda tab](images/calendar.png)
 

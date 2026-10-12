@@ -1,6 +1,6 @@
 # Calendrier
 
-Le Calendrier réunit vos rendez-vous, les activités de vos enfants, les heures de travail et d’école de chaque personne, et toutes les dates que le reste de l’application connaît déjà : les factures à payer, les médicaments à renouveler, les vaccins, les renouvellements et l’entretien. Vous pouvez le voir comme un agenda, ou par jour, semaine, mois ou année, et choisir ce qu’il montre. Calendrier se trouve dans le groupe Argent du menu.
+Le Calendrier réunit vos rendez-vous, les activités de vos enfants, les heures de travail et d’école de chaque personne, et toutes les dates que le reste de l’application connaît déjà : les factures à payer, les médicaments à renouveler, les vaccins, les renouvellements et l’entretien. Vous pouvez le voir comme un agenda, ou par jour, semaine, mois ou année, et choisir ce qu’il montre. Calendrier se trouve seul en haut du menu, sous Contacts : il est toujours à un clic.
 
 ![L’écran Calendrier, onglet Agenda](images/calendar.png)
 

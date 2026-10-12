@@ -1,6 +1,6 @@
 # Calendrier
 
-Le calendrier réunit vos rendez-vous et les dates que le reste de l’application connaît déjà. Il fait partie du groupe Argent dans le menu.
+Le calendrier réunit vos rendez-vous et les dates que le reste de l’application connaît déjà. Il se trouve seul en haut du menu, sous Contacts.
 
 En plus des rendez-vous que vous ajoutez, il affiche :
 

@@ -4,7 +4,7 @@ The Calendar puts your appointments next to the bills, health dates, renewals an
 
 ## See what is coming {#see}
 
-1. Open **Calendar** in the Money group of the menu.
+1. Open **Calendar** at the top of the menu.
 2. The **Agenda** tab lists everything in the next 60 days, day by day: appointments, bills coming due, refills, renewals and maintenance.
 3. The **Day**, **Week**, **Month** and **Year** tabs show the calendar by day, week, month or year. Use **◀** and **▶** to move, **Today** to come back, and **Go to a date** to jump to a date. In the Month and Year tabs, click a day to open it in the Day tab.
 4. Untick boxes in the **Show** panel on the right to hide kinds of items, or a person's. Your choice is remembered on this computer.

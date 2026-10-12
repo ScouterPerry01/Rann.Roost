@@ -1,3 +1,12 @@
+// File path and name: app/desktop/src/main/kotlin/ca/schippers/hfm/desktop/Navigation.kt
+// Modified On Timestamp: 2026-10-12 @ 09:48 EDT
+// Created On Timestamp: 2026-10-05 @ 02:20 EDT
+// File Description: The desktop menu: the screens at the top (Dashboard, Contacts, Calendar), the
+//   groups below them, as a list on the left or a bar across the top.
+// Uses: BooksModel (sections, counts), AppState (menu position, groups left closed).
+// Used By: MainScreen, HelpPanel.
+// Purpose: NAV-01 to NAV-03: lead to every screen, the everyday ones one click away.
+
 package ca.schippers.hfm.desktop
 
 import androidx.compose.foundation.clickable
@@ -33,9 +42,9 @@ import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 
-/** NAV-01: the menu's groups, in order; the dashboard and contacts stand on their own above them. */
+/** NAV-01: the menu's groups, in order; the dashboard, contacts and calendar stand on their own above them. */
 enum class NavGroup(val sections: List<Section>) {
-    MONEY(listOf(Section.ACCOUNTS, Section.DOCUMENTS, Section.BILLS, Section.BUDGETS, Section.GOALS, Section.FAMILY, Section.SIDE, Section.CALENDAR)),
+    MONEY(listOf(Section.ACCOUNTS, Section.DOCUMENTS, Section.BILLS, Section.BUDGETS, Section.GOALS, Section.FAMILY, Section.SIDE)),
     INVESTING(listOf(Section.INVESTMENTS, Section.PLANS, Section.LOANS)),
     REPORTS(listOf(Section.REPORTS, Section.TAXES)),
     HOME(listOf(Section.HEALTH, Section.MEDICAL, Section.ESTATE, Section.PETS, Section.VEHICLES, Section.TRIPS, Section.ASSETS, Section.UTILITIES, Section.VOLUNTEER)),
@@ -55,8 +64,11 @@ enum class NavGroup(val sections: List<Section>) {
     }
 }
 
-/** NAV-01: the screens outside the groups, at the top of the menu: the dashboard, then contacts (CON-01). */
-val STANDALONE = listOf(Section.DASHBOARD, Section.CONTACTS)
+/**
+ * NAV-01: the screens outside the groups, at the top of the menu, always one click away: the
+ * dashboard, contacts (CON-01) and the calendar (moved out of Money, the owner's choice for 1.1).
+ */
+val STANDALONE = listOf(Section.DASHBOARD, Section.CONTACTS, Section.CALENDAR)
 
 /** NAV-03: a section's name with its count, such as documents waiting for review. */
 private fun BooksModel.navLabel(section: Section, counts: Map<Section, Int>): String =

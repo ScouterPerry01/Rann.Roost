@@ -160,7 +160,7 @@ Deux sortes de bandeaux de couleur peuvent paraître sous la barre du haut :
 
 @index: menu; navigation; menu latéral; menu en haut
 
-Le menu mène à chaque écran. Le **Tableau de bord** et **Contacts** sont seuls en haut, en dehors des groupes ; les autres écrans sont répartis en six groupes : Argent, Placements et emprunts, Rapports et impôts, Maison et famille, Réglages, et Aide.
+Le menu mène à chaque écran. Le **Tableau de bord**, **Contacts** et le **Calendrier** sont seuls en haut, en dehors des groupes ; les autres écrans sont répartis en six groupes : Argent, Placements et emprunts, Rapports et impôts, Maison et famille, Réglages, et Aide.
 
 Le menu peut se présenter de deux façons, et le choix de chaque utilisateur est retenu sur cet ordinateur :
 

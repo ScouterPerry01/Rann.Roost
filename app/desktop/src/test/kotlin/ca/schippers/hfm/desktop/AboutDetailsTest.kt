@@ -1,3 +1,12 @@
+// File path and name: app/desktop/src/test/kotlin/ca/schippers/hfm/desktop/AboutDetailsTest.kt
+// Modified On Timestamp: 2026-10-12 @ 10:29 EDT
+// Created On Timestamp: 2026-10-07 @ 19:13 EDT
+// File Description: Tests the About screen's release notes and support details, and the Walk-Me
+//   guides' saved progress.
+// Uses: About and WalkMe code in app/desktop, the bundled docs/releases notes.
+// Used By: ./gradlew :app:desktop:test.
+// Purpose: HLP-02 and HLP-03 keep working as releases are added.
+
 package ca.schippers.hfm.desktop
 
 import ca.schippers.hfm.i18n.Language
@@ -34,7 +43,9 @@ class AboutDetailsTest {
             assertEquals("1.0.0", version)
             assertTrue(text.startsWith("# "))
             assertEquals("1.0.0", releaseNotes(language, "1.0.5")!!.first, "the nearest earlier version")
-            assertEquals("1.0.0", releaseNotes(language, "0.1.0")!!.first, "the latest when none is earlier")
+            assertEquals("1.1.0", releaseNotes(language, "1.1.0")!!.first)
+            // The newest notes bundled; update this line with each release's notes.
+            assertEquals("1.1.0", releaseNotes(language, "0.1.0")!!.first, "the latest when none is earlier")
         }
         assertTrue(releaseNotes(Language.FRENCH, "1.0.0")!!.second != releaseNotes(Language.ENGLISH, "1.0.0")!!.second, "each language its own notes")
     }

@@ -1,5 +1,5 @@
 # File path and name: .github/workflows/release.yml
-# Modified On Timestamp: 2026-10-12 @ 09:18 EDT
+# Modified On Timestamp: 2026-10-12 @ 19:16 EDT
 # Created On Timestamp: 2026-10-03 @ 08:57 EDT
 # File Description: Release workflow: builds, checks and signs every desktop package from a tag.
 # Uses: Gradle, tools/release, the release key secret, the Windows SDK on the runner.
@@ -37,7 +37,7 @@ jobs:
       version: ${{ steps.v.outputs.version }}
       dry: ${{ steps.v.outputs.dry }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - id: v
         shell: bash
         run: |
@@ -56,12 +56,12 @@ jobs:
     needs: version
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-java@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-java@v6
         with:
           distribution: temurin
           java-version: 21
-      - uses: gradle/actions/setup-gradle@v4
+      - uses: gradle/actions/setup-gradle@v5
       - name: Throwaway release key (dry run only)
         if: needs.version.outputs.dry == 'true'
         run: ./gradlew :tools:release:run --args="keygen $RUNNER_TEMP/dry-run.key" --console=plain
@@ -127,7 +127,7 @@ jobs:
             case "$f" in *.minisig) continue ;; esac
             minisign -Vm "$f" -p core/update/src/main/resources/hfm/update/release-key.pub
           done
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: linux
           path: dist/
@@ -137,12 +137,12 @@ jobs:
     needs: version
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-java@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-java@v6
         with:
           distribution: temurin
           java-version: 21
-      - uses: gradle/actions/setup-gradle@v4
+      - uses: gradle/actions/setup-gradle@v5
       - name: Throwaway release key (dry run only)
         if: needs.version.outputs.dry == 'true'
         shell: bash
@@ -177,7 +177,7 @@ jobs:
           if (Test-Path -LiteralPath $log) { Get-Content -LiteralPath $log }
           Write-Host "Window check: $result"
           if ($result -ne 'OK') { exit 1 }
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: msix
           path: app/desktop/build/compose/binaries/main/msix/*.msix
@@ -190,13 +190,13 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-java@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-java@v6
         with:
           distribution: temurin
           java-version: 21
-      - uses: gradle/actions/setup-gradle@v4
-      - uses: actions/download-artifact@v4
+      - uses: gradle/actions/setup-gradle@v5
+      - uses: actions/download-artifact@v8
         with:
           path: artifacts
       - name: Files for GitHub Releases

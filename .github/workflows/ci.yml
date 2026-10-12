@@ -1,3 +1,11 @@
+# File path and name: .github/workflows/ci.yml
+# Modified On Timestamp: 2026-10-12 @ 19:16 EDT
+# Created On Timestamp: 2026-10-01 @ 15:53 EDT
+# File Description: Continuous integration: core and desktop tests on Windows and Ubuntu, plus the performance test.
+# Uses: Gradle, actions/checkout, actions/setup-java, gradle/actions/setup-gradle (v5: last fully open-source line).
+# Used By: every push to main and every pull request.
+# Purpose: Keep main green; a pull request is merged only after these pass.
+
 name: CI
 
 on:
@@ -17,12 +25,12 @@ jobs:
         os: [windows-latest, ubuntu-latest]
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-java@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-java@v6
         with:
           distribution: temurin
           java-version: 21
-      - uses: gradle/actions/setup-gradle@v4
+      - uses: gradle/actions/setup-gradle@v5
       # HEIC photos are read with a decoder the user installs (ADR 0004); the Linux run tests with
       # the distribution's libheif and HEVC plugin. Windows runners have no HEVC extension, so the
       # missing-decoder path is tested there.
@@ -33,7 +41,7 @@ jobs:
         run: ./gradlew test :app:desktop:jar --console=plain
       - name: Upload test reports
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: test-reports-${{ matrix.os }}
           path: '**/build/reports/tests/'
@@ -42,12 +50,12 @@ jobs:
     name: Performance (NFR-02, 30 years of data)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-java@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-java@v6
         with:
           distribution: temurin
           java-version: 21
-      - uses: gradle/actions/setup-gradle@v4
+      - uses: gradle/actions/setup-gradle@v5
       - name: Time screens and reports on 250,000 transactions
         # CI machines are slower and shared; the limits are relaxed three times here.
         env:

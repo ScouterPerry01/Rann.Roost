@@ -1,6 +1,6 @@
 <!--
 File path and name: docs/session-log.md
-Modified On Timestamp: 2026-10-12 @ 23:08 EDT
+Modified On Timestamp: 2026-10-12 @ 23:59 EDT
 Created On Timestamp: 2026-10-09 @ 08:14 EDT
 File Description: Append-only session history, newest first.
 Uses: N/A (historical record).
@@ -17,6 +17,16 @@ When this file passes ~40 KB, move it to `docs/archive/session-log-through-<date
 Earlier history (before 2026-10-09) is in git log and `docs/development-plan.md`.
 
 ---
+
+## 2026-10-12 23:20 -> 23:59 EDT - Store resubmitted; PR #9 merged; v1.1.0 published
+
+- Owner resubmitted 1.1.0 to the Microsoft Store; certification in progress.
+- Shipped: session notes `ee2ccabe`; PR #9 merged (`287975fb`, Linux CI and release on ubuntu-26.04),
+  branch deleted; GitHub release **v1.1.0 published** (Latest; 1.0.0 Linux copies are offered the update).
+- Decisions (owner): merge PR #9 without re-running the tests on 26 (small accepted risk); publish 1.1.0
+  before Store certification; session notes committed straight to `main`.
+- Builds: no code changed and no local build run; PR #9 checks green on `ee2ccabe` (tests from Gradle's
+  cache again). Detail: `docs/session-handover-2026-10-12.md` § 10.
 
 ## 2026-10-12 08:50 -> 23:08 EDT - Store rejection fixed, v1.1.0 tagged; workflow add-ons; Ubuntu 26 trial
 

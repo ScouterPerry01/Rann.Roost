@@ -1,6 +1,6 @@
 <!--
 File path and name: docs/session-handover-2026-10-12.md
-Modified On Timestamp: 2026-10-12 @ 23:08 EDT
+Modified On Timestamp: 2026-10-12 @ 23:59 EDT
 Created On Timestamp: 2026-10-12 @ 10:18 EDT
 File Description: Handover for 2026-10-12: the Store rejection of 1.0.0, its fix, release 1.1.0, workflow add-ons, Ubuntu 26.
 Uses: docs/NOW.md, docs/release-checklist.md, .github/workflows/release.yml.
@@ -81,7 +81,7 @@ enabled. Tested with Access Bridge enabled on Windows 11 build 26200."
 - Proven by: PR checks, a release dry run from the branch (window check OK), a `natives.yml` run (helper
   SHA-256 `A0DAA128…`, not compared with the committed copy; the helper did not change).
 
-## 8. Ubuntu 26.04 (PR #9, `chore/ubuntu-26`, open, green)
+## 8. Ubuntu 26.04 (PR #9, `chore/ubuntu-26`; merged later, see § 10)
 
 - `ubuntu-latest` -> `ubuntu-26.04` in `ci.yml` (Ubuntu tests, performance) and `release.yml` (version,
   Linux packages, sign-and-draft). GitHub moves `ubuntu-latest` to 26 from 2026-10-19.
@@ -98,3 +98,15 @@ enabled. Tested with Access Bridge enabled on Windows 11 build 26200."
   without asking again; owner may prefer to be asked each time).
 - Later: GitHub repository rename to `Rann.Roost`; record the RANN's Roost Store ID in the release checklist
   once the listing is live; release checklist still names 1.0.0 file names in § 6-7 as examples.
+
+## 10. Late session (23:20 -> 23:59): resubmitted, merged, published
+
+- Microsoft Store: owner resubmitted 1.1.0; certification still in progress at the end of the session.
+- PR #9: owner chose to merge without a no-cache test run. Notes committed on the branch (`ee2ccabe`),
+  checks green again (Ubuntu job 37 s: tests still FROM-CACHE), merged with a merge commit (`287975fb`).
+  `chore/ubuntu-26` deleted locally and on GitHub (owner asked). The unit tests first really run on
+  Ubuntu 26 at the next code change; if they fail there, re-run without the build cache (`--rerun-tasks`).
+- Release: draft checked (3 Linux packages, `.minisig` for each, `SHA256SUMS`, `update.json`, all signed)
+  and published as Latest by the owner's decision, before Store certification. Not yet checked: that an
+  installed 1.0.0 Linux copy actually offers 1.1.0.
+- These notes were committed straight to `main` at the owner's request (no topic branch).

@@ -1,6 +1,6 @@
 <!--
 File path and name: docs/session-log.md
-Modified On Timestamp: 2026-10-12 @ 10:18 EDT
+Modified On Timestamp: 2026-10-12 @ 23:08 EDT
 Created On Timestamp: 2026-10-09 @ 08:14 EDT
 File Description: Append-only session history, newest first.
 Uses: N/A (historical record).
@@ -18,13 +18,17 @@ Earlier history (before 2026-10-09) is in git log and `docs/development-plan.md`
 
 ---
 
-## 2026-10-12 08:50 -> 10:18 EDT - Store rejection of 1.0.0 fixed; Calendar at the top; version 1.1.0
+## 2026-10-12 08:50 -> 23:08 EDT - Store rejection fixed, v1.1.0 tagged; workflow add-ons; Ubuntu 26 trial
 
-- Microsoft Store rejected 1.0.0 ("Failed to launch JVM"). Cause reproduced: Java Access Bridge on and no
-  `jdk.accessibility` in the runtime. Fixed, plus start-up error log/message, VC++ runtime in the MSIX and
-  a release-workflow window check (branch `fix/store-first-launch`, not yet committed).
-- Owner approved the sample households; Calendar moved to the top of the menu; all pictures retaken.
-- Decisions: release as 1.1.0 from `main`. Detail: `docs/session-handover-2026-10-12.md`.
+- Microsoft Store rejected 1.0.0 ("Failed to launch JVM"): Java Access Bridge on and no `jdk.accessibility`
+  in the runtime. Fixed with start-up error log/message, VC++ runtime in the MSIX, release window check.
+- Shipped: PR #7 (`44eaa1e6`, Calendar at the top of the menu, all pictures retaken), tag **`v1.1.0`**
+  (GitHub release drafted, not published); PR #8 (`d524cdb7`) current workflow add-ons. PR #9
+  (`chore/ubuntu-26`) green, not merged.
+- Decisions (owner): release as 1.1.0; Gradle add-on stays on open-source v5 (not v6's commercial terms).
+- Builds: local `./gradlew build` 985 tests, 0 failed, 1 skipped (HeifTest by design); CI green on PRs
+  #7-#9; release dry runs green (window check OK; Ubuntu 26 package self-checks OK). PRs #8-#9 reused
+  cached test results (no code change). Detail: `docs/session-handover-2026-10-12.md`.
 
 ## 2026-10-11 08:15 -> 18:35 EDT - Sample households in any province and language
 

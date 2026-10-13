@@ -1,5 +1,5 @@
 # File path and name: .github/workflows/ci.yml
-# Modified On Timestamp: 2026-10-12 @ 19:16 EDT
+# Modified On Timestamp: 2026-10-12 @ 19:27 EDT
 # Created On Timestamp: 2026-10-01 @ 15:53 EDT
 # File Description: Continuous integration: core and desktop tests on Windows and Ubuntu, plus the performance test.
 # Uses: Gradle, actions/checkout, actions/setup-java, gradle/actions/setup-gradle (v5: last fully open-source line).
@@ -22,7 +22,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [windows-latest, ubuntu-latest]
+        os: [windows-latest, ubuntu-26.04]
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v7
@@ -48,7 +48,7 @@ jobs:
 
   performance:
     name: Performance (NFR-02, 30 years of data)
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-java@v6

@@ -1,3 +1,13 @@
+<!--
+File path and name: docs/development-plan.md
+Modified On Timestamp: 2026-10-12 @ 23:08 EDT
+Created On Timestamp: 2026-10-01 @ 15:53 EDT
+File Description: Development plan: phases, stack, risks and the dated decisions log.
+Uses: the SRS, docs/adr/.
+Used By: the owner and Claude Code (search headings; the file is large).
+Purpose: One place for the plan and every dated decision.
+-->
+
 # RANN's Roost (Household Finance Manager) — Development Plan
 
 The application was renamed RANN's Roost on 2026-10-03 (see the decisions log); the SRS keeps its original title. Based on the *Household Finance Manager — Software Requirements Specification* (Oct 1, 2026) and its phase roadmap (`SRS Phases.png`). Requirement IDs refer to the SRS.
@@ -391,3 +401,4 @@ The application was renamed RANN's Roost on 2026-10-03 (see the decisions log); 
 | Before release: manual audit, security review, store refresh (2026-10-07) | Manual and help checked against every screen (`docs/manual-audit-2026-10-07.md`: 102 manual passages fixed, 10 added; 38 help topics fixed, 5 added; a test that every screen has a help topic in both languages); French typography: typographic apostrophes throughout and a space before every semicolon on screen. Security review of the 2026-10-07 features (`docs/security-review-2026-10-07.md`): trip photos filed with the trip's or vehicle's group, limits on untrusted PDF page sizes, AI numbers and instalments, the Immediately lock made reliable, no recent-apps picture on Android 13+ (decided while the owner was away: privacy over convenience), address lookup only on a tap. Store texts in both languages and the 1.0.0 release notes describe this week's features; every store, website and manual phone picture retaken (All bills among the desktop store pictures, the agenda and a trip among the phone ones). The release dry run passed on every package (run 37702907243) |
 | Store prices (2026-10-08) | Owner's decision: RANN's Roost in the Microsoft Store at CAD $19.99 one-time, set from the first submission (not started free); RANN's Roost Mobile on Google Play as a paid app at CAD $4.99 one-time, chosen when the app is created since Play never lets a free app become paid. Linux builds stay free (2026-10-07). This replaces SRS 16.2's "start free" for both stores and the free Android companion of DIST-03; the store texts, release notes, website and release checklist no longer call the companion free. No purchases inside either app and no licence checks |
 | Phone app in its own repository (2026-10-08) | Owner's decision: RANN's Roost Mobile is sold only on Google Play and its code is no longer GPL. It moved with its history to a private repository, Rann.Roost.Mobile, which builds against this repository's shared core (money, calc, domain, security, sync, ocr) and version catalog through a Git submodule; the phone app's code was removed from this repository's history before it is made public. The GitHub APK, its update check and the `apk` update channel are gone; the release workflow builds the Linux packages and the MSIX only. The Walk-Me test checks the phone's labels when Rann.Roost.Mobile is checked out beside this repository. Nothing changes for the desktop or the phone transfer |
+| GitHub Actions add-ons (2026-10-12) | Owner's decision: `gradle/actions/setup-gradle` stays on **v5** (last fully open-source line). v6 moved its caching into a closed component under Gradle's commercial Terms of Use (changeable at any time, California arbitration, indemnity); nothing in v6 is needed. Revisit if v5 stops working. The other add-ons follow their latest major versions |

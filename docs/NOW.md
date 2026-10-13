@@ -1,6 +1,6 @@
 <!--
 File path and name: docs/NOW.md
-Modified On Timestamp: 2026-10-12 @ 10:18 EDT
+Modified On Timestamp: 2026-10-12 @ 23:32 EDT
 Created On Timestamp: 2026-10-09 @ 08:14 EDT
 File Description: The ONE short "where are we right now" file. Read this first when resuming.
 Uses: docs/session-log.md, the current handover file.
@@ -13,28 +13,30 @@ Purpose: Keep current state out of the always-loaded CLAUDE.md.
 > **This file is OVERWRITTEN at the end of every session, never appended to. Keep it under ~40 lines.**
 > History goes in `docs/session-log.md`; detail in the day's handover file.
 
-**As of:** 2026-10-12 10:18 EDT
+**As of:** 2026-10-12 23:32 EDT
 
-**Branch:** `fix/store-first-launch` (from `main` `2c3709b0`), version **1.1.0**. Released: `v1.0.0`.
+**Branch:** `chore/ubuntu-26` (PR #9 open, all checks green, **not merged**). `main` = `d524cdb7`
+(pushed). Tag **`v1.1.0`** = `44eaa1e6`.
 
-**What happened:** the Microsoft Store **rejected 1.0.0** ("Failed to launch JVM"; report kept in the
-git-ignored `docs/MS.Cert.Issue/`). Cause found and reproduced: the testers run with Java Access Bridge on,
-and the packaged runtime lacked `jdk.accessibility`. Fixed on the branch, with start-up errors now logged
-and shown, the Visual C++ runtime declared in the MSIX, and a release-workflow step that opens the real
-window with Access Bridge on. The owner approved the sample households and asked for **Calendar at the
-top of the menu** (done; all manual and Store pictures retaken). Detail: `docs/session-handover-2026-10-12.md`.
+**What happened:** 1.1.0 fixes the Microsoft Store rejection of 1.0.0 (Java Access Bridge crash) and moves
+Calendar to the top of the menu. Tagged; the release workflow drafted the GitHub release (**draft, not
+published**); the MSIX is in the owner's `Downloads\RANNsRoost-1.1.0\`. Workflow add-ons updated (PR #8,
+merged); Gradle add-on kept on open-source v5 (owner). Ubuntu 26.04 tried on PR #9: packages build and
+self-check OK; unit tests came from Gradle's build cache (not re-run on 26). Detail: handover 2026-10-12.
 
 **NEXT (in order):**
-1. Commit the branch (owner's yes), pull request, CI green, merge to `main`.
-2. Release workflow **dry run** (`gh workflow run release.yml --ref main`): the new window step must pass.
-3. Tag `v1.1.0` (owner's yes), publish the GitHub release, upload `RANNsRoost-1.1.0-x64.msix` to the
-   Store with a note to the testers (handover § 4); update the Store screenshots from `docs/store/screenshots`.
-4. Owner: keep the 12+ Play closed testers opted in for 14 days, then apply for production.
-5. Optional, after the Store passes: rename the GitHub repository to `Rann.Roost` (handover 2026-10-11 and
-   earlier NOW notes: 8 files, the submodule URL, test that 1.0.0 still finds updates).
+1. 1.1.0 resubmitted to the Microsoft Store (owner, 2026-10-12): wait for certification.
+2. PR #9: owner chose **merge now** (unit tests not re-run on 26: accepted small risk). Must be merged
+   before GitHub moves `ubuntu-latest` to 26 on **2026-10-19**.
+3. Publish the v1.1.0 draft GitHub release: owner said **not yet** (2026-10-12); 1.0.0 Linux copies see
+   the update once it is published.
+4. After the Store passes: rann.ca Linux link = `.../releases/latest`; Store link from RANN's Roost >
+   Product identity (record its Store ID in the release checklist).
+5. Owner: Play closed test (12+ testers, 14 days), then production.
+6. Optional: rename the GitHub repository to `Rann.Roost` (earlier handovers).
 
-**Waiting on the developer:** approval to commit, tag and resubmit; the closed test.
+**Waiting on the developer:** Store certification result; when to publish the draft release.
 
-**To resume, read ONLY:** this file; `docs/session-handover-2026-10-12.md` § 3-4 if needed.
+**To resume, read ONLY:** this file; `docs/session-handover-2026-10-12.md` § 6-9.
 
 **Standing state:** no Android code in this repository. Public 1.0 = end of Phase 5.

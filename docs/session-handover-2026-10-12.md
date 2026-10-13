@@ -1,8 +1,8 @@
 <!--
 File path and name: docs/session-handover-2026-10-12.md
-Modified On Timestamp: 2026-10-12 @ 10:18 EDT
+Modified On Timestamp: 2026-10-12 @ 23:08 EDT
 Created On Timestamp: 2026-10-12 @ 10:18 EDT
-File Description: Handover for 2026-10-12: the Microsoft Store rejection of 1.0.0, its fix, and version 1.1.0.
+File Description: Handover for 2026-10-12: the Store rejection of 1.0.0, its fix, release 1.1.0, workflow add-ons, Ubuntu 26.
 Uses: docs/NOW.md, docs/release-checklist.md, .github/workflows/release.yml.
 Used By: Claude Code and the owner when resuming.
 Purpose: Keep the detail that does not belong in NOW.md or the session log.
@@ -45,7 +45,9 @@ Purpose: Keep the detail that does not belong in NOW.md or the session log.
   `-Register`, Access Bridge on, no saved settings: window opens. Self-check OK (8 JDK modules, OCR, HEIC,
   AI client, database). Forced failure (`-Djava.awt.headless=true`): log written, launcher box shown.
 - Not tested: the bilingual start-up message itself (no failure that still allows a window was found).
-- Full `./gradlew build`: see the session log.
+- Full local `./gradlew build`: 985 tests, 0 failed, 1 skipped (HeifTest by design), no warnings (after
+  updating `AboutDetailsTest` for the 1.1.0 notes).
+- CI on PR #7 green (Windows ~33 min). Release dry run on `main` and the real `v1.1.0` run: "Window check: OK".
 
 ## 4. Resubmission note for the Store testers (suggested)
 
@@ -56,3 +58,43 @@ enabled. Tested with Access Bridge enabled on Windows 11 build 26200."
 
 - Release the fix as **1.1.0 from `main`**, with the sample households, after the owner tried them.
 - Calendar stands on its own at the top of the menu, under Contacts.
+- `gradle/actions/setup-gradle` stays on **v5** (decisions log): v6 puts caching under Gradle's commercial
+  Terms of Use.
+
+## 6. Release 1.1.0 — where it stands
+
+- PR #7 merged (`44eaa1e6`); tag `v1.1.0` pushed; release run green. **GitHub release is a draft, not
+  published** (Linux .deb/.rpm/AppImage, signatures, SHA256SUMS, update.json). Publishing it tells 1.0.0
+  Linux copies about the update.
+- MSIX (`RANNsRoost-1.1.0-x64.msix`, SHA-256 `bd682121…7c1`) downloaded to the owner's
+  `Downloads\RANNsRoost-1.1.0\`. Checked inside: identity `RANN.RannsRoost`, version 1.1.0.0, VCLibs
+  dependency, `jdk.accessibility` in the runtime.
+- Store resubmission (owner, Partner Center > **RANN's Roost**, not another product): new package,
+  screenshots from `docs/store/screenshots` (EN/FR), certification note from § 4. Not confirmed done.
+- Linux download link for rann.ca: `https://github.com/ScouterPerry01/Schippers.Household.Finance.Manager/releases/latest`
+  (newest published release; page, not a file, since file names carry the version).
+
+## 7. Workflow add-ons (PR #8, merged, `d524cdb7`)
+
+- checkout v7, setup-java v6, upload-artifact v7, download-artifact v8, setup-gradle v5; headers added to
+  `ci.yml` and `natives.yml`. Node 20 / setup-java warnings gone.
+- Proven by: PR checks, a release dry run from the branch (window check OK), a `natives.yml` run (helper
+  SHA-256 `A0DAA128…`, not compared with the committed copy; the helper did not change).
+
+## 8. Ubuntu 26.04 (PR #9, `chore/ubuntu-26`, open, green)
+
+- `ubuntu-latest` -> `ubuntu-26.04` in `ci.yml` (Ubuntu tests, performance) and `release.yml` (version,
+  Linux packages, sign-and-draft). GitHub moves `ubuntu-latest` to 26 from 2026-10-19.
+- Proven on 26.04: libheif packages install (1.21.2); .deb, .rpm, AppImage build; self-check of the
+  installed .deb and the AppImage OK (8 JDK modules, OCR, HEIC, AI client, database); .rpm on Fedora OK.
+- **Not proven:** the unit tests on 26 — Gradle's build cache (`org.gradle.caching=true`) reused the
+  Ubuntu 24 results because the code did not change (all test tasks FROM-CACHE).
+- Owner to choose: merge (recommended; tests run on 26 at the next code change) or first add a
+  `workflow_dispatch` "re-run everything" option to `ci.yml` (`--rerun-tasks`) and run it.
+
+## 9. Housekeeping
+
+- Branches `fix/store-first-launch` and `chore/workflow-updates` deleted locally and on GitHub (the second
+  without asking again; owner may prefer to be asked each time).
+- Later: GitHub repository rename to `Rann.Roost`; record the RANN's Roost Store ID in the release checklist
+  once the listing is live; release checklist still names 1.0.0 file names in § 6-7 as examples.

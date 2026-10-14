@@ -1,6 +1,6 @@
 <!--
 File path and name: docs/session-log.md
-Modified On Timestamp: 2026-10-12 @ 23:59 EDT
+Modified On Timestamp: 2026-10-14 @ 03:45 EDT
 Created On Timestamp: 2026-10-09 @ 08:14 EDT
 File Description: Append-only session history, newest first.
 Uses: N/A (historical record).
@@ -17,6 +17,16 @@ When this file passes ~40 KB, move it to `docs/archive/session-log-through-<date
 Earlier history (before 2026-10-09) is in git log and `docs/development-plan.md`.
 
 ---
+
+## 2026-10-13 15:05 -> 2026-10-14 03:45 EDT - Store rejected 1.1.0 (cause unknown); v1.1.1 published
+
+- Store rejected 1.1.0: crash at launch on OS build 22621.1265; our own "could not start" box, report
+  quoted only its title. Not reproducible on build 26200. Owner emailed Microsoft support for the error text.
+- Shipped: PR #10 (`1215ea2b`) start-up box shows root cause + 8 stack lines; version 1.1.1; tag
+  **`v1.1.1`**, release run green, GitHub release **published** (Latest). MSIX not yet uploaded to the Store.
+- Decisions (owner): release 1.1.1 now; Store upload timing left to the owner.
+- Builds: local `./gradlew build` 991 tests, 0 failed, 1 skipped (HeifTest by design), no warnings;
+  PR #10 CI green. Detail: `docs/session-handover-2026-10-13.md`.
 
 ## 2026-10-12 23:20 -> 23:59 EDT - Store resubmitted; PR #9 merged; v1.1.0 published
 

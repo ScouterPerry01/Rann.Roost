@@ -1,6 +1,6 @@
 <!--
 File path and name: docs/NOW.md
-Modified On Timestamp: 2026-10-12 @ 23:59 EDT
+Modified On Timestamp: 2026-10-14 @ 03:45 EDT
 Created On Timestamp: 2026-10-09 @ 08:14 EDT
 File Description: The ONE short "where are we right now" file. Read this first when resuming.
 Uses: docs/session-log.md, the current handover file.
@@ -13,27 +13,29 @@ Purpose: Keep current state out of the always-loaded CLAUDE.md.
 > **This file is OVERWRITTEN at the end of every session, never appended to. Keep it under ~40 lines.**
 > History goes in `docs/session-log.md`; detail in the day's handover file.
 
-**As of:** 2026-10-12 23:59 EDT
+**As of:** 2026-10-14 03:45 EDT
 
-**Branch:** `main` (pushed; session notes on top of `287975fb`, PR #9 merged: Linux CI and release on ubuntu-26.04; branch deleted).
-Tag **`v1.1.0`** = `44eaa1e6`; its GitHub release is **published** (Latest).
+**Branch:** `main` (pushed; session notes on top of `1215ea2b`, PR #10 merged; branch deleted).
+Tag **`v1.1.1`** = `1215ea2b`; its GitHub release is **published** (Latest).
 
-**What happened:** 1.1.0 fixes the Microsoft Store rejection of 1.0.0 (Java Access Bridge crash) and moves
-Calendar to the top of the menu. Resubmitted to the Store; GitHub release published, so 1.0.0 Linux copies
-are offered the update. Gradle add-on kept on open-source v5 (owner). Ubuntu 26.04 merged; its unit tests
-came from Gradle's build cache (not re-run on 26; owner accepted). Detail: handover 2026-10-12.
+**What happened:** the Store rejected **1.1.0** too (10.1.2.10, crash at launch, OS build 22621.1265,
+Dell Latitude 5520 / Surface Laptop). The box was our own "RANN's Roost could not start", so the 1.0.0
+Access Bridge crash is fixed, but the report quoted only the title: **the cause is unknown**. 1.1.1 makes
+the box show the root cause and where it happened. Owner emailed Microsoft support for the full error text.
 
 **NEXT (in order):**
-1. Microsoft Store certification of 1.1.0 is in progress (resubmitted 2026-10-12): wait for it.
-2. If any Linux test trouble shows up on ubuntu-26.04, re-run the tests without the build cache.
-3. Check that a 1.0.0 Linux copy is offered 1.1.0 (optional).
-4. After the Store passes: rann.ca Linux link = `.../releases/latest`; Store link from RANN's Roost >
-   Product identity (record its Store ID in the release checklist).
+1. Wait for Microsoft's answer (full error text, `startup-error.log`, Event Viewer, device details); also
+   check Partner Center for the report's support-files ZIP (screenshot) -> `docs/MS.Cert.Issue/`.
+2. With the error text: fix the real cause (suspects: Skia/DirectX graphics, tray, settings/store,
+   locale; handover 2026-10-13 § 3), as 1.1.2 if needed.
+3. Upload the 1.1.1 MSIX to Partner Center (`gh run download 38528167425 -n msix -D $env:TEMP\rel111\msix`)
+   — owner decides when; safer after step 2.
+4. After the Store passes: rann.ca Store link; record the Store ID in the release checklist.
 5. Owner: Play closed test (12+ testers, 14 days), then production.
-6. Optional: rename the GitHub repository to `Rann.Roost` (earlier handovers).
+6. Optional: rename the GitHub repository to `Rann.Roost`.
 
-**Waiting on the developer:** Store certification result.
+**Waiting on the developer:** Microsoft support's reply; the Store resubmission decision.
 
-**To resume, read ONLY:** this file; `docs/session-handover-2026-10-12.md` § 9-10.
+**To resume, read ONLY:** this file; `docs/session-handover-2026-10-13.md`.
 
 **Standing state:** no Android code in this repository. Public 1.0 = end of Phase 5.

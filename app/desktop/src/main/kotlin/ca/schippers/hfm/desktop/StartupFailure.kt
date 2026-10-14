@@ -1,8 +1,9 @@
 // File path and name: app/desktop/src/main/kotlin/ca/schippers/hfm/desktop/StartupFailure.kt
-// Modified On Timestamp: 2026-10-12 @ 09:17 EDT
+// Modified On Timestamp: 2026-10-13 @ 18:05 EDT
 // Created On Timestamp: 2026-10-12 @ 09:17 EDT
 // File Description: What happens when the app cannot start: the error and its details are written
-//   to startup-error.log and shown in a message, instead of the launcher's bare "Failed to launch JVM".
+//   to startup-error.log and shown in a message (with its root cause and where it happened), instead of
+//   the launcher's bare "Failed to launch JVM".
 // Uses: core/i18n Messages, Swing JOptionPane.
 // Used By: Main.kt.
 // Purpose: Make a start-up failure on someone else's computer (a user's, the Microsoft Store's testers')
@@ -57,8 +58,22 @@ internal object StartupFailure {
         return runCatching {
             check(!GraphicsEnvironment.isHeadless())
             val language = Language.of(Locale.getDefault())
-            val text = Messages.get(language, "startup.failed.body", error.toString(), written?.toString() ?: "-")
+            val text = Messages.get(language, "startup.failed.body", summary(error), written?.toString() ?: "-")
             JOptionPane.showMessageDialog(null, text, Messages.get(language, "startup.failed.title"), JOptionPane.ERROR_MESSAGE)
         }.isSuccess
+    }
+
+    /**
+     * What the message shows of [error]: the error, its root cause and where that happened. A screenshot
+     * of the message is often all a tester sends back (the Microsoft Store's second review quoted only
+     * the title), so it has to name the cause even when the error wraps it.
+     */
+    internal fun summary(error: Throwable, frames: Int = 8): String {
+        val root = generateSequence(error) { e -> e.cause?.takeUnless { it === e } }.take(20).last()
+        return buildString {
+            append(error)
+            if (root !== error) append("\nCaused by: ").append(root)
+            root.stackTrace.take(frames).forEach { append("\n    at ").append(it) }
+        }
     }
 }

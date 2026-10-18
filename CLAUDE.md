@@ -99,6 +99,8 @@ submodule pinned to a commit here. Licence: GPL-3.0-or-later (except `branding/`
 - Website text (`website/`) must paste into Google Sites: headings and lists only, no tables, no HTML; keep the
   four rann.ca page addresses stable (the apps and store listings link to them).
 - Branch policy: work on a topic branch; `main` is updated after green CI with the owner's approval.
+- Never create a GitHub repository named `Schippers.Household.Finance.Manager` (this repository's old name):
+  released apps 1.0.0-1.1.1 check for updates at that address and rely on GitHub's redirect to `Rann.Roost`.
 
 ## Architecture & key decisions
 

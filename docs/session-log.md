@@ -1,6 +1,6 @@
 <!--
 File path and name: docs/session-log.md
-Modified On Timestamp: 2026-10-14 @ 03:45 EDT
+Modified On Timestamp: 2026-10-18 @ 11:05 EDT
 Created On Timestamp: 2026-10-09 @ 08:14 EDT
 File Description: Append-only session history, newest first.
 Uses: N/A (historical record).
@@ -17,6 +17,16 @@ When this file passes ~40 KB, move it to `docs/archive/session-log-through-<date
 Earlier history (before 2026-10-09) is in git log and `docs/development-plan.md`.
 
 ---
+
+## 2026-10-18 06:15 -> 11:05 EDT - 1.1.1 submitted to the Store; repository renamed to Rann.Roost
+
+- Microsoft support only pointed back to the report; no support ZIP for the 1.1.0 report.
+- Owner submitted the 1.1.1 MSIX to Partner Center with a note asking testers for the full message and
+  `startup-error.log`. 1.1.1 tested locally (developer-mode install): starts normally.
+- Owner runs 1.1.1 from `C:\Users\PSchi\Apps\RANNs Roost 1.1.1` until the Store passes (settings moved).
+- Decisions (owner): submit 1.1.1 now; Play closed test waits for the Store; GitHub repo renamed to
+  `Rann.Roost` (old address redirects; follow-up PR for the old name in 9 files).
+- Builds: none (notes only). Detail: `docs/session-handover-2026-10-18.md`.
 
 ## 2026-10-13 15:05 -> 2026-10-14 03:45 EDT - Store rejected 1.1.0 (cause unknown); v1.1.1 published
 

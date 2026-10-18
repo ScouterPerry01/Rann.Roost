@@ -1,3 +1,11 @@
+// File path and name: core/update/src/main/kotlin/ca/schippers/hfm/update/Updates.kt
+// Modified On Timestamp: 2026-10-18 @ 11:07 EDT
+// Created On Timestamp: 2026-10-03 @ 08:57 EDT
+// File Description: The update check: how a copy was installed, the signed update.json and its checks.
+// Uses: core/security ReleaseSignature, release-key.pub, kotlinx.serialization.
+// Used By: app/desktop Updater, tools/release Main (download addresses), UpdateCheckTest.
+// Purpose: Offer only signed, verified updates from this repository's GitHub Releases (DIST-05, ADR 0008).
+
 package ca.schippers.hfm.update
 
 import ca.schippers.hfm.security.ReleaseSignature
@@ -103,7 +111,7 @@ class UpdateCheck(private val publicKey: ReleaseSignature.PublicKey) {
 
     companion object {
         const val MANIFEST = "update.json"
-        const val RELEASES = "https://github.com/ScouterPerry01/Schippers.Household.Finance.Manager/releases"
+        const val RELEASES = "https://github.com/ScouterPerry01/Rann.Roost/releases"
 
         /** Always the newest published release (never a draft or pre-release). */
         const val MANIFEST_URL = "$RELEASES/latest/download/$MANIFEST"

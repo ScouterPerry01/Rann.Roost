@@ -1,6 +1,6 @@
 <!--
 File path and name: docs/release-checklist.md
-Modified On Timestamp: 2026-10-12 @ 09:18 EDT
+Modified On Timestamp: 2026-10-18 @ 11:07 EDT
 Created On Timestamp: 2026-10-06 @ 17:12 EDT
 File Description: The owner's release-day checklist for the desktop app (keys, tag, GitHub release, Microsoft Store).
 Uses: .github/workflows/release.yml, docs/store/, branding/store/, docs/releases/.
@@ -194,7 +194,7 @@ The phone app is released from its own repository, Rann.Roost.Mobile: follow its
       languages and in the files.
 - [ ] **Home pages** (`/rann-roost` and `/rann-roost-fr`): under "Get RANN's Roost", replace each
       "Coming soon" with a button to the Microsoft Store listing, the GitHub release
-      (https://github.com/ScouterPerry01/Schippers.Household.Finance.Manager/releases/latest) and,
+      (https://github.com/ScouterPerry01/Rann.Roost/releases/latest) and,
       once in production, the Play listing.
 - [ ] **Images:** upload `website/images/` to Google Drive and replace the pictures on both home pages
       (they were retaken on 2026-10-06), with the alt text written beside each in the page files.

@@ -86,10 +86,10 @@ Coming soon.
 ## Free software, with support
 
 RANN's Roost is free software under the GNU General Public License (version 3 or later); its source code is on GitHub. Anyone may build it from the source; the ready-to-install apps add signed builds, updates and support. RANN's Roost Mobile, the phone app, is not part of it: it is sold on Google Play.
-[Link "source code is on GitHub" → https://github.com/ScouterPerry01/Schippers.Household.Finance.Manager]
+[Link "source code is on GitHub" → https://github.com/ScouterPerry01/Rann.Roost]
 
 Questions and problems: info-rann-apps@NorthMail.ca, or an issue on GitHub.
-[Link "info-rann-apps@NorthMail.ca" → mailto:info-rann-apps@NorthMail.ca. Link "issue on GitHub" → https://github.com/ScouterPerry01/Schippers.Household.Finance.Manager/issues]
+[Link "info-rann-apps@NorthMail.ca" → mailto:info-rann-apps@NorthMail.ca. Link "issue on GitHub" → https://github.com/ScouterPerry01/Rann.Roost/issues]
 
 *Tax figures in RANN's Roost are organizational aids, not tax advice. Health records are an organizational aid, not medical advice.*
 

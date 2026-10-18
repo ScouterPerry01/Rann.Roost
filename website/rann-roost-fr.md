@@ -86,10 +86,10 @@ Bientôt offert.
 ## Un logiciel libre, avec du soutien
 
 RANN's Roost est un logiciel libre distribué sous la licence publique générale GNU (version 3 ou ultérieure); son code source est sur GitHub. Chacun peut le compiler à partir du code source; les applications prêtes à installer ajoutent des versions signées, les mises à jour et le soutien. RANN's Roost Mobile, l'application du téléphone, n'en fait pas partie : elle est vendue sur Google Play.
-[Lien « code source est sur GitHub » → https://github.com/ScouterPerry01/Schippers.Household.Finance.Manager]
+[Lien « code source est sur GitHub » → https://github.com/ScouterPerry01/Rann.Roost]
 
 Questions et problèmes : info-rann-apps@NorthMail.ca, ou un billet sur GitHub.
-[Lien « info-rann-apps@NorthMail.ca » → mailto:info-rann-apps@NorthMail.ca. Lien « billet sur GitHub » → https://github.com/ScouterPerry01/Schippers.Household.Finance.Manager/issues]
+[Lien « info-rann-apps@NorthMail.ca » → mailto:info-rann-apps@NorthMail.ca. Lien « billet sur GitHub » → https://github.com/ScouterPerry01/Rann.Roost/issues]
 
 *Les chiffres fiscaux de RANN's Roost sont une aide à l'organisation et non des conseils fiscaux. Les dossiers de santé sont une aide à l'organisation et non des conseils médicaux.*
 

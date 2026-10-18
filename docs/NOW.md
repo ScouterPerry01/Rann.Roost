@@ -1,6 +1,6 @@
 <!--
 File path and name: docs/NOW.md
-Modified On Timestamp: 2026-10-18 @ 11:05 EDT
+Modified On Timestamp: 2026-10-18 @ 11:07 EDT
 Created On Timestamp: 2026-10-09 @ 08:14 EDT
 File Description: The ONE short "where are we right now" file. Read this first when resuming.
 Uses: docs/session-log.md, the current handover file.
@@ -30,8 +30,9 @@ laptop from `C:\Users\PSchi\Apps\RANNs Roost 1.1.1` until the Store passes. GitH
    folder), install from the Store; rann.ca Store link; Store ID into the release checklist.
 3. Then the Play closed test (12+ testers, 14 days): owner waits for the Store so testers get the complete
    application (desktop + phone). Bump the phone's `roost` submodule at its next release.
-4. Rename follow-up (small PR): old repository address in `Updates.kt`, `AboutScreen.kt`, notices, README,
-   checklist, store and website texts; `git remote set-url` here and in the phone repo's `.gitmodules`.
+4. Rename follow-up: branches `chore/repo-rename` (here) and `chore/roost-rename` (phone repo) switch every
+   address to `Rann.Roost`; merge after green CI. Owner: paste the new GitHub links into the two rann.ca
+   pages (`website/rann-roost-en|fr.md`, lines 89 and 92).
 
 **Waiting on the developer:** the certification result.
 

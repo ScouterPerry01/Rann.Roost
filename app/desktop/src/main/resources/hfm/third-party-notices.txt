@@ -44,4 +44,4 @@ ZXing (QR codes)
 
 The RANN's Roost name and logo are (c) Perry Schippers, trading as RANN, and are not covered
 by the GPL. The application's own source code is GPL-3.0-or-later:
-https://github.com/ScouterPerry01/Schippers.Household.Finance.Manager
+https://github.com/ScouterPerry01/Rann.Roost

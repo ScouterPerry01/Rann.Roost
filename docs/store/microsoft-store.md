@@ -1,6 +1,6 @@
 <!--
 File path and name: docs/store/microsoft-store.md
-Modified On Timestamp: 2026-10-10 @ 02:26 EDT
+Modified On Timestamp: 2026-10-18 @ 11:07 EDT
 Created On Timestamp: 2026-10-03 @ 09:38 EDT
 File Description: The Microsoft Store listing texts of RANN's Roost in English and French, with the caption and alt text of each screenshot.
 Uses: docs/store/screenshots/desktop-en and desktop-fr; tools/dev/check_store_texts.py checks the limits.
@@ -17,7 +17,7 @@ Partner Center. Nothing has been published on the Microsoft Store yet: version 1
 - Price: CAD $19.99, one-time, from the first submission (SRS 16.2); a launch discount is a sale price in Partner Center.
 
 - Privacy policy URL: https://www.rann.ca/rann-apps/rann-roost/privacy-policy-en (French: https://www.rann.ca/rann-apps/rann-roost/privacy-policy-fr)
-- Website: https://www.rann.ca/rann-apps/rann-roost (source code: https://github.com/ScouterPerry01/Schippers.Household.Finance.Manager)
+- Website: https://www.rann.ca/rann-apps/rann-roost (source code: https://github.com/ScouterPerry01/Rann.Roost)
 - Support contact: info-rann-apps@NorthMail.ca
 - Category: Personal finance
 - Screenshots: `docs/store/screenshots/desktop-en/` and `desktop-fr/` (1440 × 900, eight per language, in listing order: dashboard, credit card register, spending by category, income tax estimate, investments, all bills with their columns, medical claims, budgets). Retake them with `./gradlew :app:desktop:storeScreenshots -Plang=en` (then `fr`), which draws the sample household offscreen. Each one has a caption and an alt text under "Screenshots: captions and alt text" at the end of this file.

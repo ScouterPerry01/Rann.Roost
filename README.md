@@ -1,6 +1,6 @@
 <!--
 File path and name: README.md
-Modified On Timestamp: 2026-10-11 @ 13:05 EDT
+Modified On Timestamp: 2026-10-18 @ 11:07 EDT
 Created On Timestamp: 2026-10-01 @ 15:53 EDT
 File Description: The repository's front page: what RANN's Roost is, how to build, run and test it.
 Uses: docs/, tools/dev/README.md.
@@ -35,7 +35,7 @@ Status: **1.0.0 is being prepared.** Every phase of the [development plan](docs/
 ## Get the apps
 
 - **Windows:** from the Microsoft Store (Windows 10 version 1809 or later, 64-bit), which installs, signs and updates it.
-- **Linux:** .deb, .rpm and AppImage packages (64-bit x86) on [GitHub Releases](https://github.com/ScouterPerry01/Schippers.Household.Finance.Manager/releases), each with a minisign signature and listed in `SHA256SUMS`. Check a download with `minisign -Vm <file> -p core/update/src/main/resources/hfm/update/release-key.pub`. These copies can check GitHub for updates once a day, if you agree when first asked.
+- **Linux:** .deb, .rpm and AppImage packages (64-bit x86) on [GitHub Releases](https://github.com/ScouterPerry01/Rann.Roost/releases), each with a minisign signature and listed in `SHA256SUMS`. Check a download with `minisign -Vm <file> -p core/update/src/main/resources/hfm/update/release-key.pub`. These copies can check GitHub for updates once a day, if you agree when first asked.
 - **Android:** RANN's Roost Mobile on Google Play (Android 10 or later), CAD $4.99. It needs RANN's Roost on the computer.
 - HEIC photos need the system's decoder: Microsoft's HEIF and HEVC Video Extensions on Windows, libheif with its HEVC plugin (such as `libheif-plugin-libde265`) on Linux.
 

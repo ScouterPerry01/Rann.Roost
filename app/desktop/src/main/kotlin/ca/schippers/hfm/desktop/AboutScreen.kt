@@ -1,3 +1,11 @@
+// File path and name: app/desktop/src/main/kotlin/ca/schippers/hfm/desktop/AboutScreen.kt
+// Modified On Timestamp: 2026-10-18 @ 11:07 EDT
+// Created On Timestamp: 2026-10-03 @ 08:57 EDT
+// File Description: The About screen: version, licence, source code address and third-party notices.
+// Uses: AppState texts (core/i18n), hfm/third-party-notices.txt.
+// Used By: MainScreen.
+// Purpose: Tell the user what they are running and where its source code is (GPL).
+
 package ca.schippers.hfm.desktop
 
 import androidx.compose.foundation.layout.Arrangement
@@ -43,7 +51,7 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 
-private const val REPOSITORY = "https://github.com/ScouterPerry01/Schippers.Household.Finance.Manager"
+private const val REPOSITORY = "https://github.com/ScouterPerry01/Rann.Roost"
 private const val WEBSITE = "https://www.rann.ca/rann-apps/rann-roost"
 private const val SUPPORT_EMAIL = "info-rann-apps@NorthMail.ca"
 

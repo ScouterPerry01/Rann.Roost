@@ -1,6 +1,6 @@
 <!--
 File path and name: docs/session-log.md
-Modified On Timestamp: 2026-10-18 @ 11:05 EDT
+Modified On Timestamp: 2026-10-20 @ 12:20 EDT
 Created On Timestamp: 2026-10-09 @ 08:14 EDT
 File Description: Append-only session history, newest first.
 Uses: N/A (historical record).
@@ -17,6 +17,17 @@ When this file passes ~40 KB, move it to `docs/archive/session-log-through-<date
 Earlier history (before 2026-10-09) is in git log and `docs/development-plan.md`.
 
 ---
+
+## 2026-10-20 07:20 -> 12:20 EDT - Store crash reproduced and fixed; v1.1.2 published
+
+- Store rejected 1.1.1 (same report as 1.1.0). Reproduced with the uploaded MSIX test-signed and installed
+  under a new standard user: Java's AF_UNIX wake-up pipe fails under MSIX AppData redirection, so the
+  update checker's `HttpClient` ended start-up.
+- Shipped: PR #12 (`bef9b95b`) `LoopbackPipe` (TCP pipe on Windows) + lazy update client; tag
+  **`v1.1.2`**, release run green, GitHub release **published** (Latest). MSIX not yet uploaded.
+- Decisions (owner): reproduce locally rather than more diagnostics; merge/tag/publish without step approvals.
+- Builds: local `./gradlew build` 994 tests, 0 failed, 1 skipped (HeifTest by design), no warnings; PR #12
+  CI and release dry run green; tag run's MSIX verified as the new user. Detail: `docs/session-handover-2026-10-20.md`.
 
 ## 2026-10-18 06:15 -> 11:05 EDT - 1.1.1 submitted to the Store; repository renamed to Rann.Roost
 

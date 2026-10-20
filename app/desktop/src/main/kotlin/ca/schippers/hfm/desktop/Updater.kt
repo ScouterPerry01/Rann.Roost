@@ -1,3 +1,12 @@
+// File path and name: app/desktop/src/main/kotlin/ca/schippers/hfm/desktop/Updater.kt
+// Modified On Timestamp: 2026-10-20 @ 10:05 EDT
+// Created On Timestamp: 2026-10-03 @ 08:57 EDT
+// File Description: Update checks for Linux packages from GitHub Releases (DIST-05, SEC-08): ask once,
+//   check, download, verify the signature, and the app's own version.
+// Uses: core/update UpdateCheck, core/security ReleaseSignature, java.net.http.
+// Used By: AppState, App.kt, MainScreen, AboutScreen.
+// Purpose: Let Linux users who installed a package from GitHub get new versions safely.
+
 package ca.schippers.hfm.desktop
 
 import androidx.compose.runtime.getValue
@@ -225,9 +234,15 @@ private fun downloadsFolder(): Path {
     return home.resolve("Downloads").takeIf(Files::isDirectory) ?: home
 }
 
-/** GitHub Releases over HTTPS, never redirected to plain HTTP (SEC-06). */
+/**
+ * GitHub Releases over HTTPS, never redirected to plain HTTP (SEC-06). The client is made at the first
+ * check, not when the app starts: a computer where it cannot be made still opens the app (the
+ * Microsoft Store's third rejection), and the check reports the error like any network failure.
+ */
 private object GitHubSource : UpdateSource {
-    private val client = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(10)).followRedirects(HttpClient.Redirect.NORMAL).build()
+    private val client by lazy {
+        HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(10)).followRedirects(HttpClient.Redirect.NORMAL).build()
+    }
 
     override fun manifest(): ByteArray = small(UpdateCheck.MANIFEST_URL)
     override fun signature(): String = small(UpdateCheck.SIGNATURE_URL).toString(Charsets.UTF_8)

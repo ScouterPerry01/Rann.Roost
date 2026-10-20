@@ -1,9 +1,9 @@
 // File path and name: app/desktop/src/main/kotlin/ca/schippers/hfm/desktop/Main.kt
-// Modified On Timestamp: 2026-10-12 @ 09:17 EDT
+// Modified On Timestamp: 2026-10-20 @ 10:05 EDT
 // Created On Timestamp: 2026-10-01 @ 15:53 EDT
 // File Description: The desktop app's entry point: the window, the tray, auto-lock and demo mode
 //   (runDemo: a sample household in any province with -Pprovince); a start-up error is reported.
-// Uses: AppState, App.kt, DemoHousehold, DemoPlace, StartupFailure.
+// Uses: AppState, App.kt, DemoHousehold, DemoPlace, LoopbackPipe, StartupFailure.
 // Used By: The packaged app and ./gradlew :app:desktop:run / runDemo.
 // Purpose: Start the app.
 
@@ -34,6 +34,8 @@ import java.util.prefs.Preferences
 import kotlin.system.exitProcess
 
 fun main() {
+    // Before anything connects (the self-check's AI client included): see LoopbackPipe.
+    LoopbackPipe.useTcp()
     PackagedSelfCheck.runIfRequested()
     // An error before or while the window opens would otherwise end in the launcher's bare
     // "Failed to launch JVM" (the Microsoft Store's first review): say what it was instead. When our

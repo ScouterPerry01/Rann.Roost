@@ -1,5 +1,5 @@
 // File path and name: app/desktop/src/test/kotlin/ca/schippers/hfm/desktop/AboutDetailsTest.kt
-// Modified On Timestamp: 2026-10-13 @ 18:20 EDT
+// Modified On Timestamp: 2026-10-20 @ 10:05 EDT
 // Created On Timestamp: 2026-10-07 @ 19:13 EDT
 // File Description: Tests the About screen's release notes and support details, and the Walk-Me
 //   guides' saved progress.
@@ -45,7 +45,7 @@ class AboutDetailsTest {
             assertEquals("1.0.0", releaseNotes(language, "1.0.5")!!.first, "the nearest earlier version")
             assertEquals("1.1.0", releaseNotes(language, "1.1.0")!!.first)
             // The newest notes bundled; update this line with each release's notes.
-            assertEquals("1.1.1", releaseNotes(language, "0.1.0")!!.first, "the latest when none is earlier")
+            assertEquals("1.1.2", releaseNotes(language, "0.1.0")!!.first, "the latest when none is earlier")
         }
         assertTrue(releaseNotes(Language.FRENCH, "1.0.0")!!.second != releaseNotes(Language.ENGLISH, "1.0.0")!!.second, "each language its own notes")
     }

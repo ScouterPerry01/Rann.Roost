@@ -1,6 +1,6 @@
 <!--
 File path and name: docs/release-checklist.md
-Modified On Timestamp: 2026-10-18 @ 11:07 EDT
+Modified On Timestamp: 2026-10-20 @ 12:25 EDT
 Created On Timestamp: 2026-10-06 @ 17:12 EDT
 File Description: The owner's release-day checklist for the desktop app (keys, tag, GitHub release, Microsoft Store).
 Uses: .github/workflows/release.yml, docs/store/, branding/store/, docs/releases/.
@@ -31,7 +31,8 @@ Background: [ADR 0008](adr/0008-signed-releases-and-updates.md) (signed releases
       gh run watch (gh run list --workflow release.yml -L 1 --json databaseId --jq '.[0].databaseId')
 
 - [ ] The Windows package opens normally when installed (not only the self-check): see
-      [section 6](#6-check-the-msix-on-this-computer).
+      [section 6](#6-check-the-msix-on-this-computer), including **6a** (signed, as a new standard user)
+      before every Store upload.
 - [ ] The real-phone test of the companion is done (in Rann.Roost.Mobile: its release checklist, step 0).
 - [ ] The release notes read well in both languages. The GitHub release body is the English file
       followed by the French one (assembled by the workflow); `update.json` carries both.
@@ -148,6 +149,47 @@ of the same commit instead (developer mode is on):
 
 The packaged app reads your real settings (recent households, language), but its writes are kept
 apart; your real household is not touched unless you open it.
+
+### 6a. As the Store installs it: signed, under a new standard user
+
+The developer-mode check above misses what the Store's testers do: install the package into the
+read-only `WindowsApps` folder and start it as a **fresh standard user**. 1.1.0 and 1.1.1 passed every
+check above and still failed this way (Java's socket-file pipe under MSIX file redirection, fixed in
+1.1.2). So test **the exact `msix` artifact you will upload**, signed with a throw-away test certificate.
+In your own **administrator** PowerShell window, with Developer Mode off:
+
+    $publisher = 'CN=A48DF0F5-6188-4675-BF5D-92E006CC2E83'   # the manifest's Publisher
+    $signtool  = 'C:\Program Files (x86)\Windows Kits\10\bin\10.0.26100.0\x64\signtool.exe'
+    $msix = (Get-ChildItem $env:TEMP\rel100\msix\*.msix).FullName
+    $cert = New-SelfSignedCertificate -Type Custom -Subject $publisher -KeyUsage DigitalSignature `
+        -FriendlyName 'RANNs Roost local Store test (delete after)' -CertStoreLocation 'Cert:\CurrentUser\My' `
+        -TextExtension @('2.5.29.37={text}1.3.6.1.5.5.7.3.3', '2.5.29.19={text}') -NotAfter (Get-Date).AddDays(7)
+    Copy-Item $msix C:\Users\Public\test.msix -Force
+    & $signtool sign /fd SHA256 /sha1 $cert.Thumbprint C:\Users\Public\test.msix
+    Export-Certificate -Cert $cert -FilePath C:\Users\Public\test.cer | Out-Null
+    Import-Certificate -FilePath C:\Users\Public\test.cer -CertStoreLocation Cert:\LocalMachine\TrustedPeople | Out-Null
+    Get-AppxPackage -AllUsers RANN.RannsRoost | Remove-AppxPackage -AllUsers   # same version, other contents: blocked otherwise
+    $pw = Read-Host -AsSecureString "Password for the test user"
+    New-LocalUser -Name RoostTest -Password $pw -Description "Store test - delete after"
+    Add-LocalGroupMember -Group Users -Member RoostTest
+
+Switch user to **RoostTest**, and in a normal (not administrator) PowerShell window:
+
+    Add-AppxPackage -Path C:\Users\Public\test.msix
+    Start-Process "shell:AppsFolder\RANN.RannsRoost_9cg7jhsmyye38!RANNsRoost"
+
+- [ ] The welcome window opens (no "could not start" box). If it fails, the log is in
+      `C:\Users\RoostTest\AppData\Local\Packages\RANN.RannsRoost_9cg7jhsmyye38\LocalCache\Local\RANN's Roost\`
+      (MSIX redirects it from the path the message shows).
+- [ ] Open a sample household and update the rates (proves network connections work).
+- [ ] Clean up as yourself, administrator window (the certificate can sign packages this computer trusts):
+
+      Get-ChildItem Cert:\LocalMachine\TrustedPeople, Cert:\CurrentUser\My | Where-Object Subject -eq $publisher | Remove-Item
+      Get-AppxPackage -AllUsers RANN.RannsRoost | Remove-AppxPackage -AllUsers
+      Remove-Item C:\Users\Public\test.msix, C:\Users\Public\test.cer
+      Remove-LocalUser RoostTest    # then delete C:\Users\RoostTest
+
+Upload the **unsigned** artifact (`$msix`), never `test.msix`.
 
 ## 7. Microsoft Store (Partner Center)
 

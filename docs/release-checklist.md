@@ -1,6 +1,6 @@
 <!--
 File path and name: docs/release-checklist.md
-Modified On Timestamp: 2026-10-20 @ 12:25 EDT
+Modified On Timestamp: 2026-10-21 @ 12:08 EDT
 Created On Timestamp: 2026-10-06 @ 17:12 EDT
 File Description: The owner's release-day checklist for the desktop app (keys, tag, GitHub release, Microsoft Store).
 Uses: .github/workflows/release.yml, docs/store/, branding/store/, docs/releases/.
@@ -205,6 +205,9 @@ Partner Center > Apps and games > **RANN's Roost** > Start submission (before th
 - [ ] **Properties:** category Personal finance; privacy policy
       https://www.rann.ca/rann-apps/rann-roost/privacy-policy-en; website https://www.rann.ca/rann-apps/rann-roost;
       support info-rann-apps@NorthMail.ca.
+      **Check the "Generative AI" box** in the product declarations: the app's optional AI reading
+      sends documents to Claude (Anthropic). Leaving it unchecked fails certification under policy 11.16
+      (1.1.2, 2026-10-21).
 - [ ] **Age ratings:** the IARC questionnaire (no violence, no user interaction with strangers, no purchases in the app).
 - [ ] **Store listings:** English (Canada) and French (Canada) from [`docs/store/microsoft-store.md`](store/microsoft-store.md),
       with the eight screenshots per language in `docs/store/screenshots/desktop-en` and `desktop-fr`

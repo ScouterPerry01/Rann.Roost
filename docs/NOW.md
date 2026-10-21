@@ -1,6 +1,6 @@
 <!--
 File path and name: docs/NOW.md
-Modified On Timestamp: 2026-10-20 @ 12:25 EDT
+Modified On Timestamp: 2026-10-21 @ 12:08 EDT
 Created On Timestamp: 2026-10-09 @ 08:14 EDT
 File Description: The ONE short "where are we right now" file. Read this first when resuming.
 Uses: docs/session-log.md, the current handover file.
@@ -13,7 +13,7 @@ Purpose: Keep current state out of the always-loaded CLAUDE.md.
 > **This file is OVERWRITTEN at the end of every session, never appended to. Keep it under ~40 lines.**
 > History goes in `docs/session-log.md`; detail in the day's handover file.
 
-**As of:** 2026-10-20 12:25 EDT
+**As of:** 2026-10-21 12:08 EDT
 
 **Branch:** `main` (pushed; PR #12 merged as `bef9b95b`). Tag **`v1.1.2`** = `bef9b95b` (GitHub release
 published, Latest). Phone repo Rann.Roost.Mobile: 1.0.0, `roost` submodule still pinned at `v1.0.0`.
@@ -24,8 +24,9 @@ first `HttpClient` (update checker) ended start-up. Fixed in **1.1.2** (`Loopbac
 The tag run's MSIX starts and updates rates as that user.
 
 **NEXT (in order):**
-1. Wait for certification: the tag run's MSIX (run 39441668916, SHA-256 `086f8b0d...`) was uploaded to
-   Partner Center on 2026-10-20; test certificate and test files removed. Fails -> read the new report.
+1. Wait for certification (2nd try of 1.1.2). The first try (2026-10-21) failed only on policy 11.16: the
+   "Generative AI" box was not checked under Properties. The report shows the app started and ran (the
+   crash is fixed). Box checked and the same MSIX resubmitted 2026-10-21. Fails -> read the new report.
 2. Store passes -> install from the Store (also as `RoostTest`, then remove that account); rann.ca Store
    link; Store ID into the release checklist. Release checklist § 6a now has the new-user test.
 3. Then the Play closed test (12+ testers, 14 days). Bump the phone's `roost` submodule at its next

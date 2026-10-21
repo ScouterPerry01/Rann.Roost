@@ -1,6 +1,6 @@
 <!--
 File path and name: docs/session-log.md
-Modified On Timestamp: 2026-10-20 @ 12:20 EDT
+Modified On Timestamp: 2026-10-21 @ 12:10 EDT
 Created On Timestamp: 2026-10-09 @ 08:14 EDT
 File Description: Append-only session history, newest first.
 Uses: N/A (historical record).
@@ -15,6 +15,16 @@ earlier blocks. Keep each block to ~5-10 lines - detail belongs in that day's ha
 
 When this file passes ~40 KB, move it to `docs/archive/session-log-through-<date>.md` and start a fresh one.
 Earlier history (before 2026-10-09) is in git log and `docs/development-plan.md`.
+
+---
+
+## 2026-10-21 11:50 -> 12:10 EDT - Store 1.1.2 failed on policy 11.16 (Generative AI not declared)
+
+- First certification of 1.1.2 failed only because the "Generative AI" box under Properties was unchecked.
+  The report screenshot shows the app running (Settings > AI reading): the start-up crash is fixed.
+- Owner checked the box and resubmitted the same MSIX. Release checklist § 7 now includes that step.
+- Branch `docs/store-genai-declaration` (`00303178` + end-session commit), not pushed.
+- Builds: none run (docs only). Detail: `docs/session-handover-2026-10-21.md`.
 
 ---
 

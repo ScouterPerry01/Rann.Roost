@@ -1,6 +1,6 @@
 <!--
 File path and name: docs/session-log.md
-Modified On Timestamp: 2026-10-21 @ 12:10 EDT
+Modified On Timestamp: 2026-10-22 @ 16:05 EDT
 Created On Timestamp: 2026-10-09 @ 08:14 EDT
 File Description: Append-only session history, newest first.
 Uses: N/A (historical record).
@@ -15,6 +15,17 @@ earlier blocks. Keep each block to ~5-10 lines - detail belongs in that day's ha
 
 When this file passes ~40 KB, move it to `docs/archive/session-log-through-<date>.md` and start a fresh one.
 Earlier history (before 2026-10-09) is in git log and `docs/development-plan.md`.
+
+---
+
+## 2026-10-22 15:30 -> 16:05 EDT - RANN's Roost 1.1.2 live on the Microsoft Store
+
+- 1.1.2 passed certification and is live on the Microsoft Store (CAD $19.99). Owner added the Store link to
+  the live rann.ca pages; the repo copy in `website/` still says "Coming soon".
+- Linux link for the site: `https://github.com/ScouterPerry01/Rann.Roost/releases/latest` (checked: opens v1.1.2).
+- Found: the live Store description says the Android companion is on Google Play (it is not yet); the website
+  and the Store listing disagree about phone sync through the cloud.
+- Builds: none run (docs only). Detail: `docs/session-handover-2026-10-22.md`.
 
 ---
 

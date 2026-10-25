@@ -1,3 +1,11 @@
+// File path and name: app/desktop/src/main/kotlin/ca/schippers/hfm/desktop/ExtrasScreens.kt
+// Modified On Timestamp: 2026-10-25 @ 17:53 EDT
+// Created On Timestamp: 2026-10-05 @ 03:52 EDT
+// File Description: The side-income and home screens (OTH-02, MNT-08, MNT-09, SAL-04, SAL-05, CC-03): trips,
+//   contractors, home projects, invoices, rental properties and card rewards.
+// Uses: BooksModel, the core/books services for each of these, the shared desktop controls.
+// Used By: The desktop app's Side income and home sections and the manual's screenshots.
+// Purpose: Keep the household's smaller records in one place.
 package ca.schippers.hfm.desktop
 
 import androidx.compose.foundation.clickable
@@ -48,6 +56,7 @@ import ca.schippers.hfm.books.InvoiceStatus
 import ca.schippers.hfm.books.InvoiceTax
 import ca.schippers.hfm.books.LinkTarget
 import ca.schippers.hfm.books.ProjectStatus
+import ca.schippers.hfm.books.REAL_PROPERTY_KINDS
 import ca.schippers.hfm.books.RentalProperty
 import ca.schippers.hfm.books.RewardKind
 import ca.schippers.hfm.books.RewardUnit
@@ -587,7 +596,7 @@ private fun ContractorJobsDialog(model: BooksModel, c: Contractor, onClose: () -
 internal fun ProjectsTab(model: BooksModel) {
     val books = model.books
     val projects = remember(model.revision) { books.homeProjects.list() }
-    val homes = remember(model.revision) { books.assets.list().filter { it.kind == AssetKind.HOME || it.kind == AssetKind.COTTAGE } }
+    val homes = remember(model.revision) { books.assets.list().filter { it.kind in REAL_PROPERTY_KINDS } }
     var editing by remember { mutableStateOf<HomeProject?>(null) }
     var costsOf by remember { mutableStateOf<String?>(null) }
     Button(onClick = { editing = HomeProject("", model.workGroup(), "", ProjectStatus.PLANNED, books.reports.base, homes.firstOrNull()?.id) }) { Text(model.t("project.add")) }

@@ -1,0 +1,234 @@
+-- File path and name: core/data/src/main/sqldelight/ledger/ca/schippers/hfm/data/ledger/RealProperty.sq
+-- Modified On Timestamp: 2026-10-25 @ 17:53 EDT
+-- Created On Timestamp: 2026-10-25 @ 16:00 EDT
+-- File Description: Ledger tables and queries for real-property details (AST-06 to AST-17).
+-- Uses: The asset table (Assets.sq).
+-- Used By: RealPropertyService (core/books); migration 35.sqm creates the same tables.
+-- Purpose: Keep every property detail in the asset's group ledger.
+
+-- Real-property details of a house, cottage, condo, land or building (AST-06 to AST-17), kept in
+-- the ledger of the asset's group (HH-11). Version 36. Specified in docs/spec-real-property.md.
+
+-- AST-07 to AST-10, AST-13, AST-14: one value per field. The fields are defined in code
+-- (RealPropertyCatalogue): a new field needs no new column.
+CREATE TABLE real_property_field (
+    asset_id TEXT NOT NULL REFERENCES asset(id) ON DELETE CASCADE,
+    field TEXT NOT NULL,
+    value TEXT NOT NULL,
+    PRIMARY KEY (asset_id, field)
+);
+
+-- AST-11: the rooms of a property. Lengths in metres, areas in square metres, as plain decimals.
+CREATE TABLE real_property_room (
+    id TEXT NOT NULL PRIMARY KEY,
+    asset_id TEXT NOT NULL REFERENCES asset(id) ON DELETE CASCADE,
+    room_type TEXT NOT NULL,
+    name TEXT,
+    level TEXT,
+    length_m TEXT,
+    width_m TEXT,
+    area_m2 TEXT,
+    flooring TEXT,
+    ceiling_height_m TEXT,
+    features TEXT,
+    condition TEXT,
+    position INTEGER NOT NULL
+);
+
+CREATE INDEX real_property_room_asset ON real_property_room(asset_id, position);
+
+-- AST-12: heating, cooling, water, electrical and the other systems; [child_asset_id] is the
+-- furnace or heat pump kept as its own asset for maintenance and warranty.
+CREATE TABLE real_property_system (
+    id TEXT NOT NULL PRIMARY KEY,
+    asset_id TEXT NOT NULL REFERENCES asset(id) ON DELETE CASCADE,
+    system_kind TEXT NOT NULL,
+    system_type TEXT,
+    fuel TEXT,
+    make_model TEXT,
+    capacity TEXT,
+    install_year INTEGER,
+    last_inspection_date TEXT,
+    ownership TEXT,
+    rental_provider TEXT,
+    rental_monthly_minor INTEGER,
+    child_asset_id TEXT REFERENCES asset(id) ON DELETE SET NULL,
+    notes TEXT,
+    position INTEGER NOT NULL
+);
+
+CREATE INDEX real_property_system_asset ON real_property_system(asset_id, position);
+
+-- AST-13: the other buildings and fixtures on the land (shed, barn, bunkie, dock...).
+CREATE TABLE real_property_structure (
+    id TEXT NOT NULL PRIMARY KEY,
+    asset_id TEXT NOT NULL REFERENCES asset(id) ON DELETE CASCADE,
+    structure_type TEXT NOT NULL,
+    name TEXT,
+    area_m2 TEXT,
+    year_built INTEGER,
+    construction TEXT,
+    heated INTEGER NOT NULL DEFAULT 0,
+    electricity INTEGER NOT NULL DEFAULT 0,
+    water INTEGER NOT NULL DEFAULT 0,
+    child_asset_id TEXT REFERENCES asset(id) ON DELETE SET NULL,
+    notes TEXT,
+    position INTEGER NOT NULL
+);
+
+CREATE INDEX real_property_structure_asset ON real_property_structure(asset_id, position);
+
+-- AST-15: the title holders among the household's members, with their share in basis points.
+CREATE TABLE real_property_owner (
+    asset_id TEXT NOT NULL REFERENCES asset(id) ON DELETE CASCADE,
+    member_id TEXT NOT NULL,
+    share_bp INTEGER,
+    tenancy TEXT,
+    PRIMARY KEY (asset_id, member_id)
+);
+
+-- AST-17: years a member designated the property as principal residence (aid for CRA form T2091).
+CREATE TABLE real_property_residence_year (
+    asset_id TEXT NOT NULL REFERENCES asset(id) ON DELETE CASCADE,
+    member_id TEXT NOT NULL,
+    year INTEGER NOT NULL,
+    PRIMARY KEY (asset_id, member_id, year)
+);
+
+-- AST-06: any other detail, in the user's own words.
+CREATE TABLE real_property_custom (
+    id TEXT NOT NULL PRIMARY KEY,
+    asset_id TEXT NOT NULL REFERENCES asset(id) ON DELETE CASCADE,
+    label TEXT NOT NULL,
+    value TEXT,
+    position INTEGER NOT NULL
+);
+
+CREATE INDEX real_property_custom_asset ON real_property_custom(asset_id, position);
+
+-- Fields ---------------------------------------------------------------------------------------
+
+propertyFields:
+SELECT field, value FROM real_property_field WHERE asset_id = ? ORDER BY field;
+
+allPropertyFields:
+SELECT * FROM real_property_field ORDER BY asset_id, field;
+
+upsertPropertyField:
+INSERT INTO real_property_field(asset_id, field, value) VALUES (?, ?, ?)
+ON CONFLICT(asset_id, field) DO UPDATE SET value = excluded.value;
+
+deletePropertyField:
+DELETE FROM real_property_field WHERE asset_id = ? AND field = ?;
+
+-- Rooms ----------------------------------------------------------------------------------------
+
+propertyRooms:
+SELECT * FROM real_property_room WHERE asset_id = ? ORDER BY position, id;
+
+upsertPropertyRoom:
+INSERT INTO real_property_room(id, asset_id, room_type, name, level, length_m, width_m, area_m2, flooring, ceiling_height_m, features, condition, position)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+ON CONFLICT(id) DO UPDATE SET
+    room_type = excluded.room_type,
+    name = excluded.name,
+    level = excluded.level,
+    length_m = excluded.length_m,
+    width_m = excluded.width_m,
+    area_m2 = excluded.area_m2,
+    flooring = excluded.flooring,
+    ceiling_height_m = excluded.ceiling_height_m,
+    features = excluded.features,
+    condition = excluded.condition,
+    position = excluded.position;
+
+deletePropertyRoom:
+DELETE FROM real_property_room WHERE id = ?;
+
+-- Systems --------------------------------------------------------------------------------------
+
+propertySystems:
+SELECT * FROM real_property_system WHERE asset_id = ? ORDER BY position, id;
+
+upsertPropertySystem:
+INSERT INTO real_property_system(id, asset_id, system_kind, system_type, fuel, make_model, capacity, install_year, last_inspection_date, ownership,
+    rental_provider, rental_monthly_minor, child_asset_id, notes, position)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+ON CONFLICT(id) DO UPDATE SET
+    system_kind = excluded.system_kind,
+    system_type = excluded.system_type,
+    fuel = excluded.fuel,
+    make_model = excluded.make_model,
+    capacity = excluded.capacity,
+    install_year = excluded.install_year,
+    last_inspection_date = excluded.last_inspection_date,
+    ownership = excluded.ownership,
+    rental_provider = excluded.rental_provider,
+    rental_monthly_minor = excluded.rental_monthly_minor,
+    child_asset_id = excluded.child_asset_id,
+    notes = excluded.notes,
+    position = excluded.position;
+
+deletePropertySystem:
+DELETE FROM real_property_system WHERE id = ?;
+
+-- Outbuildings and fixtures --------------------------------------------------------------------
+
+propertyStructures:
+SELECT * FROM real_property_structure WHERE asset_id = ? ORDER BY position, id;
+
+upsertPropertyStructure:
+INSERT INTO real_property_structure(id, asset_id, structure_type, name, area_m2, year_built, construction, heated, electricity, water, child_asset_id, notes, position)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+ON CONFLICT(id) DO UPDATE SET
+    structure_type = excluded.structure_type,
+    name = excluded.name,
+    area_m2 = excluded.area_m2,
+    year_built = excluded.year_built,
+    construction = excluded.construction,
+    heated = excluded.heated,
+    electricity = excluded.electricity,
+    water = excluded.water,
+    child_asset_id = excluded.child_asset_id,
+    notes = excluded.notes,
+    position = excluded.position;
+
+deletePropertyStructure:
+DELETE FROM real_property_structure WHERE id = ?;
+
+-- Owners and residence years -------------------------------------------------------------------
+
+propertyOwners:
+SELECT * FROM real_property_owner WHERE asset_id = ? ORDER BY member_id;
+
+upsertPropertyOwner:
+INSERT INTO real_property_owner(asset_id, member_id, share_bp, tenancy) VALUES (?, ?, ?, ?)
+ON CONFLICT(asset_id, member_id) DO UPDATE SET share_bp = excluded.share_bp, tenancy = excluded.tenancy;
+
+deletePropertyOwner:
+DELETE FROM real_property_owner WHERE asset_id = ? AND member_id = ?;
+
+propertyResidenceYears:
+SELECT * FROM real_property_residence_year WHERE asset_id = ? ORDER BY year, member_id;
+
+allResidenceYears:
+SELECT * FROM real_property_residence_year ORDER BY year, asset_id, member_id;
+
+insertResidenceYear:
+INSERT INTO real_property_residence_year(asset_id, member_id, year) VALUES (?, ?, ?)
+ON CONFLICT(asset_id, member_id, year) DO NOTHING;
+
+deleteResidenceYear:
+DELETE FROM real_property_residence_year WHERE asset_id = ? AND member_id = ? AND year = ?;
+
+-- Custom fields --------------------------------------------------------------------------------
+
+propertyCustom:
+SELECT * FROM real_property_custom WHERE asset_id = ? ORDER BY position, id;
+
+upsertPropertyCustom:
+INSERT INTO real_property_custom(id, asset_id, label, value, position) VALUES (?, ?, ?, ?, ?)
+ON CONFLICT(id) DO UPDATE SET label = excluded.label, value = excluded.value, position = excluded.position;
+
+deletePropertyCustom:
+DELETE FROM real_property_custom WHERE id = ?;

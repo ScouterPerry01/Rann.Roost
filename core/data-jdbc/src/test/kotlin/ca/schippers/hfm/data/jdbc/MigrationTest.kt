@@ -1,3 +1,11 @@
+// File path and name: core/data-jdbc/src/test/kotlin/ca/schippers/hfm/data/jdbc/MigrationTest.kt
+// Modified On Timestamp: 2026-10-25 @ 17:53 EDT
+// Created On Timestamp: 2026-10-02 @ 00:43 EDT
+// File Description: Upgrade tests (NFR-11): encrypted databases built from each saved schema snapshot are
+//   filled, upgraded to the current version and checked.
+// Uses: SqlCipherJdbcDriverFactory, SchemaManager, the snapshots in core/data/src/main/sqldelight/*/schemas.
+// Used By: ./gradlew :core:data-jdbc:test.
+// Purpose: Households made by any earlier version open in this one with their data intact.
 package ca.schippers.hfm.data.jdbc
 
 import app.cash.sqldelight.db.QueryResult
@@ -512,6 +520,27 @@ class MigrationTest {
     }
 
     @Test
+    fun `version 35 ledgers keep their homes and gain real-property details`() {
+        val file = temp.resolve("ledger35.db")
+        older("../data/src/main/sqldelight/ledger/schemas/35.db", file, 35).use { driver ->
+            driver.execute(null, "INSERT INTO asset(id, kind, name, created_at, updated_at) VALUES ('h', 'HOME', 'Maison', 0, 0)", 0)
+        }
+        factory.open(file, key).use { driver ->
+            SchemaManager.prepare(driver, LedgerDatabase.Schema, file)
+            assertEquals(LedgerDatabase.Schema.version, SchemaManager.userVersion(driver))
+            val db = LedgerDatabase(driver)
+            assertEquals("Maison", db.assetsQueries.assetById("h").executeAsOne().name)
+            val q = db.realPropertyQueries
+            assertEquals(0, q.propertyFields("h").executeAsList().size, "a home starts with no details")
+            q.upsertPropertyField("h", "roll_number", "0614-012")
+            q.upsertPropertyRoom("r", "h", "KITCHEN", null, "MAIN", "4.2", "3.5", null, null, null, null, null, 0)
+            q.upsertPropertyOwner("h", "m", 10_000, "SOLE")
+            driver.execute(null, "DELETE FROM asset WHERE id = 'h'", 0)
+            assertEquals(0, q.propertyFields("h").executeAsList().size + q.propertyRooms("h").executeAsList().size + q.propertyOwners("h").executeAsList().size, "details go with their asset")
+        }
+    }
+
+    @Test
     fun `version 6 core databases gain saved reports`() {
         val file = temp.resolve("core6.db")
         older("../data/src/main/sqldelight/core/schemas/6.db", file, 6).use { driver ->
@@ -637,7 +666,7 @@ class MigrationTest {
         }
         factory.open(file, key).use { driver ->
             SchemaManager.prepare(driver, LedgerDatabase.Schema, file)
-            assertEquals(35L, LedgerDatabase.Schema.version)
+            assertEquals(36L, LedgerDatabase.Schema.version)
             assertEquals(LedgerDatabase.Schema.version, SchemaManager.userVersion(driver))
             val db = LedgerDatabase(driver)
             assertEquals("Garage", db.calendarQueries.eventById("e").executeAsOne().title, "events stay")
@@ -726,7 +755,7 @@ class MigrationTest {
         }
         factory.open(file, key).use { driver ->
             SchemaManager.prepare(driver, LedgerDatabase.Schema, file)
-            assertEquals(35L, LedgerDatabase.Schema.version)
+            assertEquals(36L, LedgerDatabase.Schema.version)
             assertEquals(LedgerDatabase.Schema.version, SchemaManager.userVersion(driver))
             val q = LedgerDatabase(driver).medicalQueries
             assertEquals("AFTER_SERVICE", q.planById("m").executeAsOne().claim_rule, "existing plans keep counting from the service")
@@ -771,7 +800,7 @@ class MigrationTest {
         }
         factory.open(file, key).use { driver ->
             SchemaManager.prepare(driver, LedgerDatabase.Schema, file)
-            assertEquals(35L, LedgerDatabase.Schema.version)
+            assertEquals(36L, LedgerDatabase.Schema.version)
             assertEquals(LedgerDatabase.Schema.version, SchemaManager.userVersion(driver))
             val tq = LedgerDatabase(driver).trackersQueries
             assertEquals(0L, tq.chores().executeAsOne().several_a_day, "existing chores are ticked once a day")
@@ -790,7 +819,7 @@ class MigrationTest {
         }
         factory.open(file, key).use { driver ->
             SchemaManager.prepare(driver, LedgerDatabase.Schema, file)
-            assertEquals(35L, LedgerDatabase.Schema.version)
+            assertEquals(36L, LedgerDatabase.Schema.version)
             assertEquals(LedgerDatabase.Schema.version, SchemaManager.userVersion(driver))
             val q = LedgerDatabase(driver).extrasQueries
             val trip = q.tripById("t").executeAsOne()
@@ -826,7 +855,7 @@ class MigrationTest {
         }
         factory.open(file, key).use { driver ->
             SchemaManager.prepare(driver, LedgerDatabase.Schema, file)
-            assertEquals(35L, LedgerDatabase.Schema.version)
+            assertEquals(36L, LedgerDatabase.Schema.version)
             assertEquals(LedgerDatabase.Schema.version, SchemaManager.userVersion(driver))
             val q = LedgerDatabase(driver).ledgerQueries
             val bill = q.billById("b").executeAsOne()
@@ -859,7 +888,7 @@ class MigrationTest {
         }
         factory.open(file, key).use { driver ->
             SchemaManager.prepare(driver, LedgerDatabase.Schema, file)
-            assertEquals(35L, LedgerDatabase.Schema.version)
+            assertEquals(36L, LedgerDatabase.Schema.version)
             assertEquals(LedgerDatabase.Schema.version, SchemaManager.userVersion(driver))
             val q = LedgerDatabase(driver).ledgerQueries
             val payment = q.billPayments("b").executeAsOne()

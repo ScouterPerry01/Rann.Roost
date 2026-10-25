@@ -1,3 +1,10 @@
+// File path and name: core/books/src/test/kotlin/ca/schippers/hfm/books/SaveKeepsChildrenTest.kt
+// Modified On Timestamp: 2026-10-25 @ 17:53 EDT
+// Created On Timestamp: 2026-10-02 @ 21:38 EDT
+// File Description: Saving a record again keeps the rows that hang off it (ON DELETE CASCADE guard).
+// Uses: An encrypted test household and the core/books services.
+// Used By: ./gradlew :core:books:test.
+// Purpose: Catch any INSERT OR REPLACE on a table that others reference with ON DELETE CASCADE.
 package ca.schippers.hfm.books
 
 import ca.schippers.hfm.data.HouseholdStore
@@ -100,5 +107,22 @@ class SaveKeepsChildrenTest {
         books.assets.saveClaim(WarrantyClaim("", w.id, d("2026-05-01"), "Bruit"))
         books.assets.saveWarranty(w.copy(phone = "1-888-000-0000"))
         assertEquals(1, books.assets.claims(w.id).size)
+    }
+
+    @Test
+    fun `a property keeps its details when the asset is saved again`() {
+        val house = books.assets.save(Asset("", group, AssetKind.HOME, "Maison"))
+        val member = books.members.create("Anne", MemberKind.ADULT).id
+        books.realProperty.save(
+            RealProperty(
+                house.id, mapOf("roll_number" to "0614-012"), rooms = listOf(PropertyRoom(type = "KITCHEN")),
+                systems = listOf(PropertySystem(kind = "HEATING")), structures = listOf(PropertyStructure(type = "SHED")),
+                owners = listOf(PropertyOwner(member)), residenceYears = listOf(ResidenceYear(member, 2020)),
+                custom = listOf(PropertyCustomField(label = "Pole", value = "HP-1")),
+            ),
+        )
+        books.assets.save(house.copy(notes = "Repainted"))
+        val p = books.realProperty.get(house.id)
+        assertEquals(listOf(1, 1, 1, 1, 1, 1, 1), listOf(p.fields.size, p.rooms.size, p.systems.size, p.structures.size, p.owners.size, p.residenceYears.size, p.custom.size))
     }
 }

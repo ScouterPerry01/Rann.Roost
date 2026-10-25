@@ -1,0 +1,106 @@
+-- File path and name: core/data/src/main/sqldelight/ledger/ca/schippers/hfm/data/ledger/35.sqm
+-- Modified On Timestamp: 2026-10-25 @ 17:53 EDT
+-- Created On Timestamp: 2026-10-25 @ 16:00 EDT
+-- File Description: Ledger migration from version 35 to 36: the real-property tables.
+-- Uses: The asset table.
+-- Used By: SchemaManager when an older ledger is opened; MigrationTest.
+-- Purpose: Add real-property details to existing households (additions only).
+
+-- Version 35 to 36. Only additions: new tables for real-property details (AST-06 to AST-17).
+
+-- AST-07 to AST-10, AST-13, AST-14: one value per field of a house, cottage, condo, land or building.
+-- The fields are defined in code (RealPropertyCatalogue): a new field needs no new column.
+CREATE TABLE real_property_field (
+    asset_id TEXT NOT NULL REFERENCES asset(id) ON DELETE CASCADE,
+    field TEXT NOT NULL,
+    value TEXT NOT NULL,
+    PRIMARY KEY (asset_id, field)
+);
+
+-- AST-11: the rooms of a property. Lengths in metres, areas in square metres, as plain decimals.
+CREATE TABLE real_property_room (
+    id TEXT NOT NULL PRIMARY KEY,
+    asset_id TEXT NOT NULL REFERENCES asset(id) ON DELETE CASCADE,
+    room_type TEXT NOT NULL,
+    name TEXT,
+    level TEXT,
+    length_m TEXT,
+    width_m TEXT,
+    area_m2 TEXT,
+    flooring TEXT,
+    ceiling_height_m TEXT,
+    features TEXT,
+    condition TEXT,
+    position INTEGER NOT NULL
+);
+
+CREATE INDEX real_property_room_asset ON real_property_room(asset_id, position);
+
+-- AST-12: heating, cooling, water, electrical and the other systems; [child_asset_id] is the
+-- furnace or heat pump kept as its own asset for maintenance and warranty.
+CREATE TABLE real_property_system (
+    id TEXT NOT NULL PRIMARY KEY,
+    asset_id TEXT NOT NULL REFERENCES asset(id) ON DELETE CASCADE,
+    system_kind TEXT NOT NULL,
+    system_type TEXT,
+    fuel TEXT,
+    make_model TEXT,
+    capacity TEXT,
+    install_year INTEGER,
+    last_inspection_date TEXT,
+    ownership TEXT,
+    rental_provider TEXT,
+    rental_monthly_minor INTEGER,
+    child_asset_id TEXT REFERENCES asset(id) ON DELETE SET NULL,
+    notes TEXT,
+    position INTEGER NOT NULL
+);
+
+CREATE INDEX real_property_system_asset ON real_property_system(asset_id, position);
+
+-- AST-13: the other buildings and fixtures on the land (shed, barn, bunkie, dock...).
+CREATE TABLE real_property_structure (
+    id TEXT NOT NULL PRIMARY KEY,
+    asset_id TEXT NOT NULL REFERENCES asset(id) ON DELETE CASCADE,
+    structure_type TEXT NOT NULL,
+    name TEXT,
+    area_m2 TEXT,
+    year_built INTEGER,
+    construction TEXT,
+    heated INTEGER NOT NULL DEFAULT 0,
+    electricity INTEGER NOT NULL DEFAULT 0,
+    water INTEGER NOT NULL DEFAULT 0,
+    child_asset_id TEXT REFERENCES asset(id) ON DELETE SET NULL,
+    notes TEXT,
+    position INTEGER NOT NULL
+);
+
+CREATE INDEX real_property_structure_asset ON real_property_structure(asset_id, position);
+
+-- AST-15: the title holders among the household's members, with their share in basis points.
+CREATE TABLE real_property_owner (
+    asset_id TEXT NOT NULL REFERENCES asset(id) ON DELETE CASCADE,
+    member_id TEXT NOT NULL,
+    share_bp INTEGER,
+    tenancy TEXT,
+    PRIMARY KEY (asset_id, member_id)
+);
+
+-- AST-17: years a member designated the property as principal residence (aid for CRA form T2091).
+CREATE TABLE real_property_residence_year (
+    asset_id TEXT NOT NULL REFERENCES asset(id) ON DELETE CASCADE,
+    member_id TEXT NOT NULL,
+    year INTEGER NOT NULL,
+    PRIMARY KEY (asset_id, member_id, year)
+);
+
+-- AST-06: any other detail, in the user's own words.
+CREATE TABLE real_property_custom (
+    id TEXT NOT NULL PRIMARY KEY,
+    asset_id TEXT NOT NULL REFERENCES asset(id) ON DELETE CASCADE,
+    label TEXT NOT NULL,
+    value TEXT,
+    position INTEGER NOT NULL
+);
+
+CREATE INDEX real_property_custom_asset ON real_property_custom(asset_id, position);

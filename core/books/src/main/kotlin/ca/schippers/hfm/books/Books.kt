@@ -1,3 +1,11 @@
+// File path and name: core/books/src/main/kotlin/ca/schippers/hfm/books/Books.kt
+// Modified On Timestamp: 2026-10-25 @ 17:53 EDT
+// Created On Timestamp: 2026-10-01 @ 18:08 EDT
+// File Description: The household's books: every bookkeeping service, the open groups and their ledgers,
+//   permission checks, settings and validation errors.
+// Uses: HouseholdSession (core/data); core/calc rules; core/i18n messages.
+// Used By: The desktop app, the phone listener, demo households and every core/books test.
+// Purpose: One entry point to everything the apps do with a household.
 package ca.schippers.hfm.books
 
 import ca.schippers.hfm.calc.Province
@@ -77,6 +85,7 @@ class Books(val session: HouseholdSession, internal val clock: () -> Long = Syst
     val medical = MedicalService(this)
     val assets = AssetService(this)
     val assetMaintenance = AssetMaintenanceService(this)
+    val realProperty = RealPropertyService(this)
     val insurance = InsuranceService(this)
     val brokerage = BrokerageImportService(this)
     val plans = PlanService(this)

@@ -1,3 +1,13 @@
+<!--
+File path and name: docs/requirements-additions.md
+Modified On Timestamp: 2026-10-25 @ 12:05 EDT
+Created On Timestamp: 2026-10-02 @ 00:43 EDT
+File Description: Requirements added after the SRS, by area, with the SRS's priority definitions.
+Uses: The SRS ("docs/Household Finance Manager — Software Requirements Specification.md").
+Used By: The development plan, ADRs, docs/plan-multi-device.md, docs/spec-real-property.md, tests and the manual.
+Purpose: Keep the owner's later requests traceable by id.
+-->
+
 # Requirements added after the SRS
 
 Requests from the owner after Phase 1 (2026-10-02). They use the SRS's priority definitions and
@@ -262,3 +272,45 @@ Source: `docs/Bill-Modifications.md` (the owner's list).
 | HLP-02 | About shows the version and updates, what's new in this version (the release notes), the privacy summary and policy, the licence and brand notice, support contact, third-party notices, and a button that copies details for support (version, operating system, Java, database versions; no personal data). | Should |
 | HLP-03 | Walk-Me: step-by-step guides for the common tasks, chosen from a Walk-Me menu. A guide opens as a small window docked at the side (not blocking the app); each step says where to go, what to select and what to enter, highlights the control on screen, has Show me (opens the right screen), Back and Next, moves on by itself when the step is done where that can be seen, and links to the manual section. | Should |
 | HLP-04 | Walk-Me guides in English and French for: household creation; institutions and accounts; members and users; importing a statement or Quicken file; reconciling; backups; bills; municipal property taxes; paying a bill in part; budgets; savings goals; pairing a phone; capturing and processing a receipt; capturing and processing a bill; itemizing; AI reading; mortgages; loans and lines of credit; investment accounts and holdings; registered plans; vehicles and maintenance; trips on the phone; the seasonal checklist; utilities and meters; medical expenses and claims; insurance; contacts; family money and allowances; the year-end tax package; the income tax estimate; custom reports; the emergency and estate summary. Guides are content files that can be extended. | Should |
+
+## Several computers per household (owner's request, 2026-10-25; release 2.0.0)
+
+Decided in ADR 0011; built as described in `docs/plan-multi-device.md`.
+
+| ID | Requirement | Priority |
+| --- | --- | --- |
+| MD-01 | A household can be used on several computers. Each computer keeps its own full copy on its own disk, works offline, and comes back in step with the others by itself. Sharing is opt-in; a household on one computer works as before. | Must |
+| MD-02 | Computers exchange changes through a folder the family already has (OneDrive, Dropbox, Google Drive, Nextcloud, a network share, or a USB stick carried between computers). Each computer writes only its own files and never changes a file once written. | Must |
+| MD-03 | Computers on the same home network also exchange changes directly over Wi-Fi: they find each other on the network, and the first contact between two computers is approved once on both screens with a code. The folder and Wi-Fi can be used together. | Must |
+| MD-04 | A new computer joins a household by pointing to the shared folder or finding a computer on Wi-Fi, then signing in with the user's own password. It receives only the groups that user can open; a second user signing in later receives theirs. A child's or other restricted user's own computer therefore holds only the groups granted to that user. | Must |
+| MD-05 | Everything exchanged, in the folder or over Wi-Fi, is encrypted with the group's key and signed by the user who made the change. Private groups stay unreadable to anyone without their key (HH-11). | Must |
+| MD-06 | Changes made at the same time on different computers are merged field by field: edits to different fields are all kept. When the same money field (amount, date, account, splits, budget amount, loan terms) was changed on two computers before they saw each other's change, the latest is kept and the other is listed in Changes to review with Keep, Use the other and Open. | Must |
+| MD-07 | A deletion is never undone by an older change from another computer. Anything added offline to a record deleted elsewhere is kept in Changes to review with Restore and Discard, never silently lost. | Must |
+| MD-08 | The same statement or file imported on two computers is recognised: the second copy is listed in Changes to review as imported twice. The same tag or payee created on two computers is merged into one. | Should |
+| MD-09 | Things the app does by itself (posting goal contributions and loan payments, bill and event occurrences, scheduled reports and e-mails, price and rate downloads) happen once, not once per computer. Scheduled reports and downloads run on the main computer for automatic jobs: the household's first computer, unless the role is transferred to another computer, or taken over by an administrator when the main computer has problems (with a prompt when it has not been seen for 3 days). A former main computer that comes back stops its jobs. | Must |
+| MD-10 | A computer accepts a change only if its author had the right to make it (edit permission on that group; administrators only for users, groups, permissions and household settings). Refused changes are shown to administrators. | Must |
+| MD-11 | A Computers screen lists each computer, its users, app version, when it was last seen and how it connects. An administrator can remove a computer, and rotate a group's key so a removed computer can no longer read new data. | Must |
+| MD-12 | The top bar shows the sync state: up to date, sending, not synced for a number of days, or offline. The history shows who made each change and on which computer. | Should |
+| MD-13 | A computer with an older version keeps working and holds changes made by a newer version, with a message asking to update it. | Must |
+| MD-14 | Existing households upgrade in place: 2.0.0 opens a household folder wherever the user points (local disk, external drive, network share, cloud folder) or restores a 1.x backup, makes a full backup first, then converts it. A household found in a cloud or network folder is moved to the computer's own disk (the old files kept aside, never deleted) and that folder becomes the shared folder. A household copy is never opened by two computers at once. | Must |
+| MD-15 | A phone stays paired with the computer it was paired with and syncs with that computer only. One computer can have several phones, each paired under a separate user account; a phone syncs while its user is signed in on that computer. What the phone captures reaches the other computers like any other change. | Must |
+| MD-16 | Documents are copied to every computer by default. A computer can be set to keep documents only on the main computer, opening them from there when it is reachable. | Should |
+
+## Real-property details (owner's request, 2026-10-25; release 2.0.0)
+
+Fields, choice lists and tables are specified in `docs/spec-real-property.md`. Every field is optional.
+
+| ID | Requirement | Priority |
+| --- | --- | --- |
+| AST-06 | New asset kinds Condo, Land and Building (multi-unit, commercial, farm and other buildings) beside Home and Cottage. These five kinds have a Property section, and any detail not listed can be added as a custom field (label and value). | Must |
+| AST-07 | Identification and use: property type, building style, use (principal residence, seasonal, rental…), occupancy, how it was acquired; and the civic address in Canadian form (unit, number, street, municipality, county or region, province or territory, postal code checked as A1A 1A1, country), with the rural civic number, map coordinates entered by hand, and directions. | Must |
+| AST-08 | Legal identifiers and title: assessment roll number (with the province's format as a hint), parcel identifier (PIN, PID, title or LINC, Quebec cadastre lot), lot, plan, concession, block, part, geographic township, survey description (section–township–range–meridian), full legal description, title or instrument number, registry office, tenure, lease end date, survey, easements and restrictions. | Must |
+| AST-09 | Land and terrain: lot area, frontage and depth, shape, topography, soil, drainage, vegetation, waterfront and shoreline, water frontage and depth, view, access and road maintenance, fencing, zoning, land designations (agricultural reserve, greenbelt, flood plain, conservation, heritage…) and farm land use. | Should |
+| AST-10 | Building: year built (or estimated), builder, renovations, storeys and floors, areas above and below grade, ceiling height, units, bedrooms, bathrooms and kitchens, construction type, foundation, exterior finish, roof shape, material and year, windows and doors, insulation, EnerGuide rating, interior walls and flooring, fireplaces, accessibility, known hazardous materials and radon; basement type, finish, height, entrance, suite, waterproofing, sump pump, backwater valve and past water damage; garage, driveway and parking. | Should |
+| AST-11 | Rooms: a list of rooms with type, name, level, dimensions and area, flooring, ceiling height, features and condition, with photos; the home inventory can be grouped by room. | Should |
+| AST-12 | Systems: heating, cooling, water heating, ventilation, electrical, plumbing, water supply and treatment, sewage, fireplaces and stoves, solar, generator, EV charger, security and fire protection, with type, fuel, make and model, capacity, installation year, last inspection (WETT, septic, well water), and whether owned or rented; each can link to its own asset for maintenance and warranty. | Should |
+| AST-13 | Outbuildings and features: other buildings and fixtures on the land (garage, shed, barn, bunkie, boathouse, dock, sauna, greenhouse…), the pool, hot tub, decks and other outdoor and interior features; and for condos and co-ops, the corporation, legal unit, monthly fee and what it includes, parking stall, locker, exposure, amenities, property manager, reserve fund study, special assessments and bylaw notes. | Should |
+| AST-14 | Value and tax: assessed value (land and building), assessment year and authority, tax account number, annual property tax linked to the property-tax bill, school support, insured replacement cost, market value estimates, and the linked mortgage or line of credit with the equity shown. | Must |
+| AST-15 | Owners: title holders among the household members with their share and form of tenancy (joint tenancy, tenants in common…); shares must total 100 % when given; used by net worth per person and the estate summary. | Should |
+| AST-16 | A printable property fact sheet (print and PDF) with every filled-in field, with the choice to leave out legal identifiers and owners. Rentals link to their property and show its address; the estate summary and home inventory show the address, roll number and parcel identifier. | Should |
+| AST-17 | Years designated as principal residence per property and member, on every real-property asset (home, cottage, condo, land, building), as an aid for CRA form T2091, with a warning when two properties are designated for the same year; marked as an aid, not tax advice. | Should |

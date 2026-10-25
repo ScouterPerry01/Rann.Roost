@@ -1,6 +1,6 @@
 <!--
 File path and name: docs/plan-multi-device.md
-Modified On Timestamp: 2026-10-25 @ 12:30 EDT
+Modified On Timestamp: 2026-10-25 @ 15:25 EDT
 Created On Timestamp: 2026-10-25 @ 11:10 EDT
 File Description: Detailed plan for RANN's Roost 2.0.0: one household shared by several computers, upgrade of
   existing households, and the real-property details.
@@ -100,16 +100,23 @@ Problems the plan must solve:
 - Changes are captured **inside SQLite with generated triggers**, not in the 50 Kotlin services.
 - **Generator:** at open time it reads `PRAGMA table_info` and `PRAGMA index_list` and creates three triggers
   per synced table: AFTER INSERT, AFTER UPDATE (only the columns whose value changed) and AFTER DELETE.
-- **Outbox:** the triggers append to a local `sync_outbox` table: table, key (JSON of the key columns),
+- **Outbox:** the triggers append to a local `repl_outbox` table: table, key (JSON of the key columns),
   kind, changed columns as JSON (`json_object`), local sequence.
-- **Who and when:** a temp table `sync_context` holds the signed-in user and an "applying remote changes"
-  flag. Triggers record the user, and skip capture while remote changes are applied or migrations run.
+- **Skipping capture:** while remote changes are applied or migrations run, a row sits in the file's
+  `repl_apply` table. It is inserted at the start of that write transaction and deleted before the commit.
+  The triggers skip capture while the row exists, and SQLite's single writer keeps other connections from
+  writing meanwhile. A temp table cannot be used: triggers stored in the file cannot read temp tables (spike).
+- **Who and when:** Kotlin adds the signed-in user, the computer and the clock when it seals the outbox rows,
+  so the triggers do not need them.
 - **Change sets:** after each committed transaction, Kotlin stamps the outbox rows with the clock (4.2) and
   seals them into one change set. One transaction stays one unit on every computer.
 - **History:** `change_log` and `audit_log` stay as the user-facing history, synced as append-only tables.
   Applied changes are audited under their author, with the author's computer.
-- **Verify in the spike:** JSON functions in the SQLCipher build used by `core/data-jdbc`; triggers on
-  cascaded deletes; the cost on the NFR-02 household (250,000 transactions) and on large statement imports.
+- **The generator works from an explicit list** of the tables in the policy manifest (4.3), never from a
+  name filter. The core database already has `sync_device` and `sync_item`, so new bookkeeping tables are
+  named `repl_*`.
+- **Spike results (2026-10-25):** see ADR 0011 § Phase 0 spike. Capture works on every table. Its cost is
+  about 3.6 times on a bulk load of 250,000 transactions, and no visible difference on ordinary saves.
 
 ### 4.2 Clock
 
@@ -130,7 +137,7 @@ fails when a table has none, as `MessagesTest` does for texts.
 | `APPEND_ONLY` | Rows are only added; merge is the union | audit_log, change_log, ai_usage, goal_entry, reward_entry, readings, logs |
 | `COUNTER` | Each computer keeps its own count; the value shown is the sum | merchant_memory.uses |
 | `IDEMPOTENT` | Deterministic ids, so the same row from two computers is one row (4.6) | bill_occurrence, event_occurrence, auto-posted entries, fx_rate, spot_price, security_price |
-| `LOCAL_ONLY` | Never synced | sync_device, sync_item, device settings (5.1), sync_* tables |
+| `LOCAL_ONLY` | Never synced | sync_device, sync_item, device settings (5.1), repl_* tables |
 
 **Flagged fields:** for money-critical fields (transaction amount, date, account and splits; budget amounts;
 loan terms) the latest change wins. When the losing change was made before the two computers had seen each
@@ -138,7 +145,7 @@ other's change, the losing value is also added to **Changes to review** (6.2).
 
 ### 4.4 Deletes (P4)
 
-- A delete writes a **tombstone** (table, key, clock) in `sync_tombstone`. An older insert or update of that
+- A delete writes a **tombstone** (table, key, clock) in `repl_tombstone`. An older insert or update of that
   row is then ignored.
 - Cascades still run locally on each computer, and the child deletes are idempotent.
 - **A delete against an offline addition** (Anne deletes an account while Perry adds a transaction to it):
@@ -313,8 +320,8 @@ For each group, in clock order:
 
 1. Check the signature, the format and the permissions (6.3).
 2. Open a database transaction and set the "applying" flag.
-3. Merge each row by its policy, against `sync_clock (table, pk, column, hlc)` and `sync_tombstone`.
-4. Park failures (missing parent, unique clash) in `sync_conflict`.
+3. Merge each row by its policy, against `repl_clock (table, pk, column, hlc)` and `repl_tombstone`.
+4. Park failures (missing parent, unique clash) in `repl_conflict`.
 5. Commit and record the read position.
 
 The engine is deterministic: the same files give the same database in any order and with duplicates.
@@ -371,8 +378,8 @@ upgrades do today:
    **Restore** of a 1.x `.hfmbak` also works and converts after restoring.
 2. **Full backup first.** A complete `.hfmbak` goes next to the existing pre-upgrade copies. The screen says
    where it is and that 1.x cannot open the converted household.
-3. **Schema.** The migrations of the 2.0 batch run: sync tables (`sync_outbox`, `sync_clock`,
-   `sync_tombstone`, `sync_conflict`, `sync_local_setting`, `sync_peer`), the real-property tables, and the new
+3. **Schema.** The migrations of the 2.0 batch run: sync tables (`repl_outbox`, `repl_clock`,
+   `repl_tombstone`, `repl_conflict`, `repl_local_setting`, `repl_peer`), the real-property tables, and the new
    asset kinds. They run on `core.db` and on every ledger the user can open. Ledgers the user cannot open are
    converted when their owner next signs in, and the household stays single-computer until all are converted.
 4. **Identity and key ring.** Device settings move to the local table, `device.json` is created, and the key
@@ -410,7 +417,7 @@ built.
 - **Capture completeness:** run the `core/books` test suites with capture on, replay the outbox into an empty
   replica, and compare every table. They must be identical.
 - **Convergence fuzzing:** three simulated computers, random service calls, random delivery order, duplicates
-  and delays. Every replica must end identical, and nothing may be lost without a `sync_conflict` row.
+  and delays. Every replica must end identical, and nothing may be lost without a `repl_conflict` row.
 - **Rule tests:** every table has a policy; every UNIQUE constraint has a resolver; every automatic write
   uses a deterministic id.
 - **Security:** each of these is refused: forged signature, wrong group key, key-ring entry by a non-admin,

@@ -1,6 +1,6 @@
 <!--
 File path and name: docs/adr/0011-several-computers.md
-Modified On Timestamp: 2026-10-25 @ 12:15 EDT
+Modified On Timestamp: 2026-10-25 @ 15:20 EDT
 Created On Timestamp: 2026-10-25 @ 12:15 EDT
 File Description: ADR 0011: one household used on several computers (release 2.0.0).
 Uses: ADR 0002 (storage and keys), ADR 0005 (backups), ADR 0006 (phone pairing), requirements MD-01 to MD-16.
@@ -96,3 +96,51 @@ database files.** Released as 2.0.0, a free update. The details are in `docs/pla
   SRS's ARC-01 gets a note that the household is replicated, not hosted.
 - Rough size: about 8–11 months for one developer working with Claude, most of the risk in capture, merge,
   key ring and Wi-Fi.
+
+## Phase 0 spike (2026-10-25)
+
+**Proven** by `ReplicationSpikeTest` in `core/data-jdbc` (10 tests, run on Windows with the project's
+SQLite3 Multiple Ciphers build 3.53.4.0, SQLCipher v4 mode, real ledger and core schemas):
+
+- **Triggers install on every table.** The generator reads `PRAGMA table_info` and creates 381 triggers on
+  the 127 ledger tables and 57 on 19 of the 21 core tables. The spike skipped every name starting with
+  `sync_`, and the core database already has `sync_device` and `sync_item` (phone pairing). Those two stay
+  local-only anyway, but **the new bookkeeping tables need their own prefix (`repl_`) and the generator an
+  explicit list**, not a name filter. Every table has a primary key. The widest table is `vehicle` (41 columns). There is one BLOB column, `app_user.public_key`; it is
+  carried as hex and restored with `unhex`.
+- **The JSON functions work on encrypted files.** An update records only the columns that changed, and an
+  update that changes nothing records nothing.
+- **Cascaded deletes fire the children's triggers** (`txn` → `txn_split`).
+- **Upserts are captured correctly.** An `ON CONFLICT DO UPDATE` that hits an existing row is captured as
+  an update only.
+- **Replay works.** Replaying the outbox into a second, empty copy, with SQL generated from the schema only,
+  gives identical tables. The test covered inserts, updates to NULL, deletes with cascades, an upsert,
+  composite keys, accents and quotes.
+- **The "applying remote changes" switch must live in the file, not in a temp table.** A trigger stored in
+  the file cannot read a temp table ("no such table: main.ctx"). The switch is therefore a row in a table of
+  the file, inserted at the start of the apply transaction and deleted before its commit. SQLite allows one
+  writer at a time, so no other connection can write while the row exists. The test with two threads
+  confirms it: the screen's write waited for the apply, and it was captured, while the applied row was not.
+- **The clock works.** The hybrid logical clock stays ordered when the computer's clock goes back, and
+  moves past a clock received from another computer.
+
+**Cost of capture:** 250,000 transactions with their splits in one transaction took 6.7 s without capture
+and 24.3 s with capture (about 3.6 times). That is 500,001 changes, about 300 bytes each before compression.
+
+- Ordinary saves are a few rows, so the extra time does not show.
+- A 10,000-line statement import costs about 1 s extra.
+- Converting an existing household must not capture its existing rows. It stamps a base clock and starts
+  from a snapshot instead (plan §8 step 5), which this result confirms is necessary.
+- Phase 2 should try one outbox row per statement, rather than per row, for bulk imports, if needed.
+
+**Not yet proven (they need two computers or two Windows accounts, and are owner-run):**
+
+- The shared-folder round trip through OneDrive, Google Drive, Dropbox and a network share. Use
+  `tools/dev/folder_sync_probe.py` (procedure in `tools/dev/README.md`), with both computers writing and
+  reading at the same time.
+- Network discovery (mDNS) on Windows and Linux. No library has been chosen yet. JmDNS (Apache 2.0, works
+  with GPL-3.0) is the first candidate. The check moves to the start of phase 6, and typing the address by
+  hand stays the fallback.
+
+**Go/no-go:** **go** for change capture with generated triggers (phases 1–3). The folder transport (phase 4)
+waits on the probe results, and Wi-Fi discovery (phase 6) is checked when that phase starts.

@@ -1,6 +1,6 @@
 <!--
 File path and name: docs/session-log.md
-Modified On Timestamp: 2026-10-22 @ 16:05 EDT
+Modified On Timestamp: 2026-10-25 @ 14:05 EDT
 Created On Timestamp: 2026-10-09 @ 08:14 EDT
 File Description: Append-only session history, newest first.
 Uses: N/A (historical record).
@@ -15,6 +15,18 @@ earlier blocks. Keep each block to ~5-10 lines - detail belongs in that day's ha
 
 When this file passes ~40 KB, move it to `docs/archive/session-log-through-<date>.md` and start a fresh one.
 Earlier history (before 2026-10-09) is in git log and `docs/development-plan.md`.
+
+---
+
+## 2026-10-25 10:45 -> 14:05 EDT - Decision and plan for 2.0.0 (several computers, real property)
+
+- Found: 1.1.2 is not safe for two computers using one household folder (no lock; WAL over network or cloud).
+- Owner decided: 2.0.0 only (free update). Each computer keeps its own copy; changes go through a shared
+  folder and home Wi-Fi. Phones stay with their computer. Full real-property details. No 1.2.0.
+- Delivered: `docs/plan-multi-device.md`, `docs/spec-real-property.md`, ADR 0011, MD-01..16 and AST-06..17;
+  commit `740dc734`, tag `plan-2.0.0-2026-10-25`, PR #15 merged (`45ab897d`).
+- Builds: none locally (docs only); PR #15 CI green (Ubuntu, Windows, performance). Detail:
+  `docs/session-handover-2026-10-25.md`.
 
 ---
 

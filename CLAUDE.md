@@ -104,7 +104,7 @@ submodule pinned to a commit here. Licence: GPL-3.0-or-later (except `branding/`
 
 ## Architecture & key decisions
 
-- Durable decisions are ADRs in `docs/adr/` (0001 stack … 0010 rates and rules); the dated decisions log is
+- Durable decisions are ADRs in `docs/adr/` (0001 stack … 0011 several computers); the dated decisions log is
   `docs/development-plan.md` § Decisions log. Add an ADR rather than describing a decision here.
 
 ## Where the rest of the context lives

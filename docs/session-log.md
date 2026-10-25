@@ -1,6 +1,6 @@
 <!--
 File path and name: docs/session-log.md
-Modified On Timestamp: 2026-10-25 @ 14:05 EDT
+Modified On Timestamp: 2026-10-25 @ 19:45 EDT
 Created On Timestamp: 2026-10-09 @ 08:14 EDT
 File Description: Append-only session history, newest first.
 Uses: N/A (historical record).
@@ -17,6 +17,17 @@ When this file passes ~40 KB, move it to `docs/archive/session-log-through-<date
 Earlier history (before 2026-10-09) is in git log and `docs/development-plan.md`.
 
 ---
+
+## 2026-10-25 14:10 -> 19:45 EDT - Phase 0 spike merged; phase R batches 1 and 2
+
+- Spike (PR #17, CI green) merged into `main` as `605f1244`: capture by triggers works; go verdict in ADR 0011.
+- Phase R batch 1 on `feature/real-property` (`e903cb10`, pushed): ledger migration 35→36 (7 tables),
+  `RealPropertyCatalogue` (~150 fields), `RealPropertyService`, 716 EN/FR texts, tests.
+- Batch 2 (uncommitted): `PropertyDialog.kt`, the asset dialog button, ~70 texts, `ResidenceYearsTest`.
+- Owner pointed out: family members do not share a cloud login → the exchange folder is a folder shared
+  between accounts (or a NAS / Wi-Fi). Docs to update on a docs branch.
+- Builds: batch 1 full `./gradlew build` 1006 tests, 0 failures, 1 skipped (HeifTest); batch 2 only
+  `:app:desktop:test :core:i18n:test` 81 tests, 0 failures. Detail: handover 2026-10-25 §7-§10.
 
 ## 2026-10-25 10:45 -> 14:05 EDT - Decision and plan for 2.0.0 (several computers, real property)
 

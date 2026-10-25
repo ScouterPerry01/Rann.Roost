@@ -1,3 +1,11 @@
+// File path and name: app/desktop/src/main/kotlin/ca/schippers/hfm/desktop/AssetsScreen.kt
+// Modified On Timestamp: 2026-10-25 @ 19:15 EDT
+// Created On Timestamp: 2026-10-02 @ 21:53 EDT
+// File Description: The Assets screen: assets and their dialog, upkeep, seasonal checklist, projects,
+//   contractors, what covers each asset, and insurance policies.
+// Uses: AssetService, InsuranceService and related core/books services; Components.kt; PropertyDialog.kt.
+// Used By: MainScreen navigation (Assets section).
+// Purpose: AST, WAR and INS on the desktop.
 package ca.schippers.hfm.desktop
 
 import androidx.compose.foundation.clickable
@@ -52,6 +60,7 @@ import ca.schippers.hfm.books.MeterUnit
 import ca.schippers.hfm.books.PolicyBeneficiary
 import ca.schippers.hfm.books.PolicyKind
 import ca.schippers.hfm.books.PremiumFrequency
+import ca.schippers.hfm.books.REAL_PROPERTY_KINDS
 import ca.schippers.hfm.books.ValidationException
 import ca.schippers.hfm.books.ValueMethod
 import ca.schippers.hfm.books.Transaction
@@ -180,6 +189,7 @@ private fun AssetDialog(model: BooksModel, existing: Asset, onClose: () -> Unit)
     var saved by remember { mutableStateOf(existing.takeIf { it.id.isNotBlank() }) }
     var warranty by remember { mutableStateOf<AssetWarranty?>(null) }
     var asking by remember { mutableStateOf(false) }
+    var property by remember { mutableStateOf(false) }
     val linked = transactionId?.let { id -> remember(id) { runCatching { books.transactions.get(id) }.getOrNull() } }
     val hits = remember(find) { if (find.trim().length < 2) emptyList() else books.search.search(find, locale, 30).transactions.filter { it.transaction.amount.isNegative } }
 
@@ -277,6 +287,8 @@ private fun AssetDialog(model: BooksModel, existing: Asset, onClose: () -> Unit)
             }
 
             saved?.let { s ->
+                // AST-06: the address, legal description, rooms, systems and the rest of a property.
+                if (s.kind in REAL_PROPERTY_KINDS) OutlinedButton(onClick = { property = true }) { Text(model.t("assets.propertyDetails")) }
                 HorizontalDivider(Modifier.padding(vertical = 6.dp))
                 Text(model.t("assets.coverage"), style = MaterialTheme.typography.titleSmall)
                 val coverage = remember(model.revision, s.id) { books.assets.coverage(s.id, today()) }
@@ -298,6 +310,7 @@ private fun AssetDialog(model: BooksModel, existing: Asset, onClose: () -> Unit)
         }
     }
     warranty?.let { w -> WarrantyDialog(model, w) { warranty = null } }
+    if (property) saved?.let { s -> PropertyDialog(model, s) { property = false } }
     saved?.let { s ->
         if (asking) {
             AskBeforeDeleting(model, model.t("assets.delete.asset", s.name), onDismiss = { asking = false }) {

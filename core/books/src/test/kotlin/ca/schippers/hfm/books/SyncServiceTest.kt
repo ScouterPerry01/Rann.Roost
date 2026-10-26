@@ -1,3 +1,10 @@
+// File path and name: core/books/src/test/kotlin/ca/schippers/hfm/books/SyncServiceTest.kt
+// Modified On Timestamp: 2026-10-26 @ 03:06 EDT
+// Created On Timestamp: 2026-10-02 @ 08:33 EDT
+// File Description: Phone sync on the desktop side (SRS section 3), driven the way a phone drives it.
+// Uses: An encrypted test household, core/sync contracts and crypto, core/books SyncService.
+// Used By: ./gradlew :core:books:test.
+// Purpose: Prove pairing, import once, reference data and refusal of removed or unknown phones.
 package ca.schippers.hfm.books
 
 import ca.schippers.hfm.data.HouseholdStore
@@ -292,5 +299,21 @@ class SyncServiceTest {
         books.sync.revoke("pixel-8", now)
         assertFailsWith<DeviceNotPairedException> { send(key, SyncRequest(now, listOf(receipt))) }
         assertTrue(books.sync.devices().single().revoked)
+    }
+
+    @Test
+    fun `pairing the same phone again keeps its history and lifts the removal`() {
+        // plan-multi-device P14: an upsert in place, not INSERT OR REPLACE.
+        val key = pairAsPhone(books.sync.invitation("Bureau", "127.0.0.1", 47311, now))
+        send(key, SyncRequest(now, listOf(receipt)))
+        books.sync.revoke("pixel-8", now)
+        val again = pairAsPhone(books.sync.invitation("Bureau", "127.0.0.1", 47311, now))
+        val device = books.sync.devices().single()
+        assertFalse(device.revoked)
+        assertEquals(1, device.itemsReceived)
+        assertEquals(now, device.lastSeen)
+        // The item already received is still known, so it is not imported a second time.
+        assertEquals(listOf("item-1"), send(again, SyncRequest(now, listOf(receipt))).imported)
+        assertEquals(1, books.documents.inbox().size)
     }
 }

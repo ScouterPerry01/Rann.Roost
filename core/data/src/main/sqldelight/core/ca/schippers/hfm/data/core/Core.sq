@@ -1,3 +1,11 @@
+-- File path and name: core/data/src/main/sqldelight/core/ca/schippers/hfm/data/core/Core.sq
+-- Modified On Timestamp: 2026-10-26 @ 03:05 EDT
+-- Created On Timestamp: 2026-10-01 @ 15:53 EDT
+-- File Description: Core database tables and queries: household, users, groups, categories, settings, rates, phones.
+-- Uses: SQLDelight; migrations core/<n>.sqm create the same tables.
+-- Used By: core/data (HouseholdSession), core/books services.
+-- Purpose: Household-wide data every signed-in user can open.
+
 -- Core database: household-wide data every signed-in user can open.
 -- Amounts never appear here; they live in the ledger partitions.
 
@@ -460,9 +468,13 @@ SELECT * FROM pet ORDER BY archived, name;
 deletePet:
 DELETE FROM pet WHERE id = ?;
 
+-- Updates in place (plan-multi-device P14): pairing the same phone again takes the new keys, user and
+-- group and lifts a revocation, but keeps when it was last seen and how many items it sent.
 insertDevice:
-INSERT OR REPLACE INTO sync_device(id, name, public_key, pair_key, user_id, group_id, paired_at, last_seen, items_received, revoked_at)
-VALUES (?, ?, ?, ?, ?, ?, ?, NULL, 0, NULL);
+INSERT INTO sync_device(id, name, public_key, pair_key, user_id, group_id, paired_at, last_seen, items_received, revoked_at)
+VALUES (?, ?, ?, ?, ?, ?, ?, NULL, 0, NULL)
+ON CONFLICT(id) DO UPDATE SET name = excluded.name, public_key = excluded.public_key, pair_key = excluded.pair_key,
+    user_id = excluded.user_id, group_id = excluded.group_id, paired_at = excluded.paired_at, revoked_at = NULL;
 
 devices:
 SELECT * FROM sync_device ORDER BY revoked_at IS NOT NULL, paired_at DESC;

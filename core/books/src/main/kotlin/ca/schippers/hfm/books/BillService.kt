@@ -1,3 +1,10 @@
+// File path and name: core/books/src/main/kotlin/ca/schippers/hfm/books/BillService.kt
+// Modified On Timestamp: 2026-10-26 @ 03:05 EDT
+// Created On Timestamp: 2026-10-01 @ 21:42 EDT
+// File Description: Bills (BILL-01 onward): bills, their occurrences, payments and bill statements.
+// Uses: The ledger's Ledger.sq bill queries; core/calc schedules and lead times; Ids.
+// Used By: The desktop Bills screens, calendar and reminders; demo households.
+// Purpose: Know what is due, what is paid, and remind the household.
 package ca.schippers.hfm.books
 
 import ca.schippers.hfm.calc.rules.LeadTimes
@@ -853,7 +860,7 @@ class BillService internal constructor(private val books: Books) {
     ) {
         val existing = storedOccurrence(group, billId, dueDate)
         books.ledger(group).ledgerQueries.upsertOccurrence(
-            existing?.id ?: Ids.newId(), billId, dueDate.toString(), amount?.minorUnits, status.name, txnId, paidDate, documentId ?: existing?.document_id,
+            existing?.id ?: Ids.nameBased(billId, "occurrence", dueDate.toString()), billId, dueDate.toString(), amount?.minorUnits, status.name, txnId, paidDate, documentId ?: existing?.document_id,
             scheduledDate ?: existing?.scheduled_date,
         )
     }

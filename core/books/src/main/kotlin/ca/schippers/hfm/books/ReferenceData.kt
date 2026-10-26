@@ -1,3 +1,10 @@
+// File path and name: core/books/src/main/kotlin/ca/schippers/hfm/books/ReferenceData.kt
+// Modified On Timestamp: 2026-10-26 @ 03:05 EDT
+// Created On Timestamp: 2026-10-01 @ 18:08 EDT
+// File Description: Reference data services: institutions and the bilingual category tree with its built-in defaults.
+// Uses: The core database's queries; /hfm/books/default-categories.json; Ids.
+// Used By: Books, the desktop category and institution screens, importers.
+// Purpose: Keep the household's lists of institutions and categories, and seed the defaults.
 package ca.schippers.hfm.books
 
 import ca.schippers.hfm.calc.Province
@@ -175,7 +182,7 @@ class CategoryService internal constructor(private val books: Books) {
         books.session.core.transaction {
             fun insert(node: DefaultCategory, parentId: String?, kind: String, index: Int) {
                 if (!node.appliesTo(province)) return
-                val id = Ids.newId()
+                val id = Ids.nameBased(books.session.householdId, "category", node.key)
                 val nodeKind = node.kind ?: kind
                 books.core.insertCategory(id, parentId, node.key, node.en, node.fr, nodeKind, node.tax, index.toLong())
                 node.children.forEachIndexed { i, child -> insert(child, id, nodeKind, i) }
@@ -207,7 +214,7 @@ class CategoryService internal constructor(private val books: Books) {
                 if (node.key in keys && node.key !in byKey && node.appliesTo(province)) {
                     val parent = parentKey?.let(byKey::get)
                     if (parentKey == null || parent != null) {
-                        val id = Ids.newId()
+                        val id = Ids.nameBased(books.session.householdId, "category", node.key)
                         books.core.insertCategory(id, parent?.id, node.key, node.en, node.fr, parent?.kind ?: nodeKind, node.tax, index.toLong())
                         byKey[node.key] = books.core.categories().executeAsList().first { it.id == id }
                     }

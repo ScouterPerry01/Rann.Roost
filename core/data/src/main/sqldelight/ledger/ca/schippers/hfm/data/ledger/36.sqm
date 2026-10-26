@@ -1,0 +1,25 @@
+-- File path and name: core/data/src/main/sqldelight/ledger/ca/schippers/hfm/data/ledger/36.sqm
+-- Modified On Timestamp: 2026-10-26 @ 04:19 EDT
+-- Created On Timestamp: 2026-10-26 @ 04:19 EDT
+-- File Description: Ledger migration from version 36 to 37: change-capture bookkeeping.
+-- Uses: Nothing but SQLite.
+-- Used By: SchemaManager when an older ledger database is opened; MigrationTest.
+-- Purpose: Prepare households to be shared between computers (plan-multi-device 4.1); additions only.
+
+-- Version 36 to 37. Two new tables, empty until sharing is turned on. Same as Replication.sq.
+
+CREATE TABLE repl_outbox (
+    seq INTEGER NOT NULL PRIMARY KEY,
+    tbl TEXT NOT NULL,
+    pk TEXT NOT NULL,
+    kind TEXT NOT NULL,
+    cols TEXT,
+    hlc TEXT,
+    user_id TEXT
+);
+
+CREATE INDEX repl_outbox_hlc ON repl_outbox(hlc);
+
+CREATE TABLE repl_applying (
+    id INTEGER NOT NULL PRIMARY KEY CHECK (id = 1)
+);

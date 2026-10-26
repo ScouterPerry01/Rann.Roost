@@ -1,5 +1,5 @@
 // File path and name: core/replication/src/main/kotlin/ca/schippers/hfm/replication/PolicyManifest.kt
-// Modified On Timestamp: 2026-10-26 @ 04:00 EDT
+// Modified On Timestamp: 2026-10-26 @ 04:19 EDT
 // Created On Timestamp: 2026-10-26 @ 03:45 EDT
 // File Description: The merge policy of every table of the core and ledger databases (plan-multi-device 4.3).
 // Uses: Nothing: plain data, checked against the real schemas by PolicyManifestTest.
@@ -92,6 +92,11 @@ object PolicyManifest {
         core("sync_device", Policy.LOCAL_ONLY)
         core("sync_item", Policy.LOCAL_ONLY)
         core("repl_local_setting", Policy.LOCAL_ONLY)
+        // Change capture's own bookkeeping (4.1), in both kinds of database.
+        core("repl_outbox", Policy.LOCAL_ONLY)
+        core("repl_applying", Policy.LOCAL_ONLY)
+        ledger("repl_outbox", Policy.LOCAL_ONLY)
+        ledger("repl_applying", Policy.LOCAL_ONLY)
 
         // --- Ledger databases: money --------------------------------------------------------------
         ledger("account")

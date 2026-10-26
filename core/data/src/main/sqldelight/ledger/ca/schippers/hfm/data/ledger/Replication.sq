@@ -1,0 +1,43 @@
+-- File path and name: core/data/src/main/sqldelight/ledger/ca/schippers/hfm/data/ledger/Replication.sq
+-- Modified On Timestamp: 2026-10-26 @ 04:19 EDT
+-- Created On Timestamp: 2026-10-26 @ 04:19 EDT
+-- File Description: Change-capture bookkeeping of a ledger database (plan-multi-device 4.1). Version 37.
+-- Uses: Triggers made by core/replication's CaptureTriggers; migration 36.sqm creates the same tables.
+-- Used By: core/replication (capture and sealing).
+-- Purpose: Record every change made on this computer so it can be sent to the household's other computers.
+
+-- Changes made on this computer, in order, waiting to be sealed into a change set. Written only by the
+-- capture triggers; never sent as rows (LOCAL_ONLY). pk and cols are JSON objects; kind is I, U or D.
+CREATE TABLE repl_outbox (
+    seq INTEGER NOT NULL PRIMARY KEY,
+    tbl TEXT NOT NULL,
+    pk TEXT NOT NULL,
+    kind TEXT NOT NULL,
+    cols TEXT,
+    -- Stamped after the transaction commits: the clock value and the signed-in user.
+    hlc TEXT,
+    user_id TEXT
+);
+
+CREATE INDEX repl_outbox_hlc ON repl_outbox(hlc);
+
+-- While its one row exists, the triggers capture nothing: another computer's changes are being applied,
+-- or a migration runs. It is a table in the file because a trigger cannot read a temporary table.
+CREATE TABLE repl_applying (
+    id INTEGER NOT NULL PRIMARY KEY CHECK (id = 1)
+);
+
+unstampedChanges:
+SELECT * FROM repl_outbox WHERE hlc IS NULL ORDER BY seq;
+
+stampChange:
+UPDATE repl_outbox SET hlc = ?, user_id = ? WHERE seq = ?;
+
+outboxCount:
+SELECT count(*) FROM repl_outbox;
+
+startApplying:
+INSERT INTO repl_applying(id) VALUES (1) ON CONFLICT(id) DO NOTHING;
+
+stopApplying:
+DELETE FROM repl_applying;

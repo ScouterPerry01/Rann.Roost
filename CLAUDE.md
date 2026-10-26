@@ -1,6 +1,6 @@
 <!--
 File path and name: CLAUDE.md
-Modified On Timestamp: 2026-10-26 @ 03:45 EDT
+Modified On Timestamp: 2026-10-26 @ 03:48 EDT
 Created On Timestamp: 2026-10-09 @ 08:14 EDT
 File Description: Project guidance for Claude Code. Holds ONLY durable instructions. Current state lives in
                  docs/NOW.md; history in docs/session-log.md.
@@ -74,9 +74,10 @@ submodule pinned to a commit here. Licence: GPL-3.0-or-later (except `branding/`
 - Never `INSERT OR REPLACE` on a table referenced with ON DELETE CASCADE: use
   `INSERT ... ON CONFLICT(id) DO UPDATE` (`SaveKeepsChildrenTest` guards it).
 - Sync (2.0.0, ADR 0011): every new table gets a merge policy in `core/replication`'s `PolicyManifest`
-  (`PolicyManifestTest` fails otherwise). Rows the app makes by itself (seeds, automatic postings,
-  occurrences) use `Ids.nameBased`, never `Ids.newId()`. Migrations are deterministic: no random ids, no
-  clock values. New sync bookkeeping tables start with `repl_`. The phone must never need `core/replication`.
+  (`PolicyManifestTest` fails otherwise), and every new UNIQUE constraint a resolution in `UniqueResolutions`.
+  Rows the app makes by itself (seeds, automatic postings, occurrences) use `Ids.nameBased`, never
+  `Ids.newId()`. Migrations are deterministic: no random ids, no clock values. New sync bookkeeping tables
+  start with `repl_`. The phone must never need `core/replication`.
 
 ## Working cadence
 

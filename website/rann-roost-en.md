@@ -1,4 +1,12 @@
 <!--
+File path and name: website/rann-roost-en.md
+Modified On Timestamp: 2026-10-26 @ 02:36 EDT
+Created On Timestamp: 2026-10-04 @ 03:26 EDT
+File Description: Text of the English RANN's Roost home page on rann.ca.
+Uses: website/images/.
+Used By: The owner, pasting into Google Sites.
+Purpose: Keep the live page's text under version control.
+
 Home page for https://www.rann.ca/rann-apps/rann-roost, to build in the Google Sites editor.
 Lines in [square brackets] are instructions for building the page, not text to paste.
 Images are inserted with Insert > Images > Select from Drive (files from website/images/).
@@ -73,11 +81,11 @@ The phone also shows this month's budgets, the bills coming due and the maintena
 
 **Windows**
 From the Microsoft Store, CAD $19.99.
-Coming soon.
+[Button "Get it from Microsoft" → https://apps.microsoft.com/detail/9NZC41PQ1BWG]
 
 **Linux**
 Free .deb, .rpm and AppImage packages.
-Coming soon.
+[Button "Download from GitHub" → https://github.com/ScouterPerry01/Rann.Roost/releases/latest]
 
 **Android companion**
 CAD $4.99 on Google Play. Requires RANN's Roost on your computer.

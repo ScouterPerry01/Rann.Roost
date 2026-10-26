@@ -138,7 +138,7 @@ recommendation (memory "decide when away"). Sections 7-13 cover it.
 
 ## 12. Next
 
-1. PR #22 merged at 05:5x after green CI (owner said yes). Merge the `feature/phase2-capture-perf` PR on the owner's yes.
+1. PR #22 merged at about 06:00 after green CI (owner said yes). Merge the `feature/phase2-capture-perf` PR on the owner's yes.
 2. Capture performance: compare with the baseline; profile the tax estimate and calendar with capture on.
 3. Phase 3 (apply engine, plan 6.1): `repl_clock`, `repl_tombstone`, `repl_conflict`, field-by-field merge,
    aggregates, convergence fuzz test.

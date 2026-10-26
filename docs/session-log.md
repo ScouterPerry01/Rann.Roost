@@ -1,6 +1,6 @@
 <!--
 File path and name: docs/session-log.md
-Modified On Timestamp: 2026-10-25 @ 19:45 EDT
+Modified On Timestamp: 2026-10-26 @ 02:30 EDT
 Created On Timestamp: 2026-10-09 @ 08:14 EDT
 File Description: Append-only session history, newest first.
 Uses: N/A (historical record).
@@ -17,6 +17,17 @@ When this file passes ~40 KB, move it to `docs/archive/session-log-through-<date
 Earlier history (before 2026-10-09) is in git log and `docs/development-plan.md`.
 
 ---
+
+## 2026-10-25 19:50 -> 2026-10-26 02:30 EDT - Phase R finished; PR #18 to main
+
+- `feature/real-property`: `3b17be8a` dialog, `75352304` demo property details, `1011b26a` fact sheet /
+  rental picker / estate and inventory, `9be750d1` manual chapter + help, `6b4c0b55` dialog layout (tabs down
+  the left, wrapping French), homes in net worth by default. All pushed; **PR #18** to `main` opened.
+- Docs branch `docs/shared-exchange-folder` (`81356a23`, pushed): exchange folder shared between accounts.
+- Uncommitted (awaiting approval): registered-plan negative-cash warning (owner said yes), single sample's TFSA
+  kept positive, store and website pictures retaken, these wrap-up docs.
+- Build: `./gradlew build` (test-runner) 1011 tests, 0 failures, 1 skipped (HeifTest). Detail: handover
+  2026-10-26.
 
 ## 2026-10-25 14:10 -> 19:45 EDT - Phase 0 spike merged; phase R batches 1 and 2
 

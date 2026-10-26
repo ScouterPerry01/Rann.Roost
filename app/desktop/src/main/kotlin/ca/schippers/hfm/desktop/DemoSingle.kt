@@ -1,5 +1,5 @@
 // File path and name: app/desktop/src/main/kotlin/ca/schippers/hfm/desktop/DemoSingle.kt
-// Modified On Timestamp: 2026-10-11 @ 13:05 EDT
+// Modified On Timestamp: 2026-10-26 @ 02:10 EDT
 // Created On Timestamp: 2026-10-11 @ 12:46 EDT
 // File Description: The single-person sample household: a young, active renter on a modest salary,
 //   learning to budget, paying down a credit card and a student loan, and starting to invest.
@@ -191,7 +191,8 @@ internal class DemoSingle(books: Books, p: DemoPlace) : DemoKit(books, p) {
             if (date > today) continue
             add(TransferDraft(chequing.id, tfsa.id, date, cad("200.00"), memo = l("Cotisation CELI", "TFSA contribution")))
             val price = BigDecimal("33.10") + BigDecimal(7 - back).multiply(BigDecimal("0.40"))
-            inv.save(InvestmentTxn("", tfsa.id, date, InvestmentKind.BUY, xeqt.id, BigDecimal(6), price, cad(price * BigDecimal(6)), cad("0")))
+            // Five units stay within the $200 contribution at every month's price (a TFSA cannot borrow).
+            inv.save(InvestmentTxn("", tfsa.id, date, InvestmentKind.BUY, xeqt.id, BigDecimal(5), price, cad(price * BigDecimal(5)), cad("0")))
             if (back <= 4) {
                 add(TransferDraft(chequing.id, fhsa.id, date, cad("300.00"), memo = l("Cotisation CELIAPP", "FHSA contribution")))
                 val balanced = BigDecimal("32.40") + BigDecimal(4 - back).multiply(BigDecimal("0.25"))

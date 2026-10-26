@@ -1,3 +1,11 @@
+// File path and name: app/desktop/src/main/kotlin/ca/schippers/hfm/desktop/InvestmentsScreen.kt
+// Modified On Timestamp: 2026-10-26 @ 02:00 EDT
+// Created On Timestamp: 2026-10-02 @ 14:06 EDT
+// File Description: The Investments screen: accounts and holdings, transactions, statements, capital gains
+//   and ACB, securities, prices and brokerage imports.
+// Uses: InvestmentService and related core/books services; Components.kt.
+// Used By: MainScreen navigation (Investments section).
+// Purpose: INV and REC-08 on the desktop; warns when a registered plan's cash goes below zero.
 package ca.schippers.hfm.desktop
 
 import androidx.compose.foundation.clickable
@@ -202,6 +210,10 @@ private fun AccountView(model: BooksModel, h: AccountHoldings, onAction: (InvAct
         Stat(model.t("investments.marketValue"), model.money(market))
         Stat(model.t("investments.bookCost"), model.money(h.bookCost))
         Stat(model.t("investments.unrealized"), model.money(market - h.bookCost))
+    }
+    // A registered plan cannot borrow: cash below zero means a contribution or transfer in is missing.
+    if (account.type.isRegistered && h.cash.isNegative) {
+        Text(model.t("investments.negativeCash", model.money(h.cash)), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
     }
     if (h.missingPrices.isNotEmpty()) {
         Text(model.t("investments.missingPrices", h.missingPrices.joinToString { it.label }), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
@@ -494,25 +506,35 @@ private fun TransactionDialog(model: BooksModel, account: Account, existing: Inv
         }
     }
 
+    fun build(): InvestmentTxn {
+        val zero = Money.zero(c)
+        return InvestmentTxn(
+            existing?.id.orEmpty(), account.id, dateOf(date), kind, securityId.takeIf { kind != InvestmentKind.FEE || it != null },
+            if (kind in WITH_QUANTITY) parseDecimal(qty, locale) else null, if (kind in WITH_PRICE) parseDecimal(price, locale) else null,
+            if (kind in WITH_AMOUNT) parseAmount(amount, c, locale) ?: zero else zero,
+            if (kind in WITH_FEES) parseAmount(fees, c, locale) ?: zero else zero,
+            if (kind == InvestmentKind.INCOME) parseAmount(withheld, c, locale) ?: zero else zero,
+            if (kind in setOf(InvestmentKind.INCOME, InvestmentKind.REINVEST)) incomeType else null,
+            if (kind in setOf(InvestmentKind.SPLIT, InvestmentKind.MERGER)) parseDecimal(ratio, locale) else null,
+            if (kind == InvestmentKind.MERGER) otherId else null, existing?.externalId, memo,
+        )
+    }
+
+    // A registered plan's cash after this transaction (on the later of today and its date); a warning, not a block.
+    val asOf = maxOf(today(), runCatching { dateOf(date) }.getOrDefault(today()))
+    val cashBefore = remember(model.revision, asOf) {
+        if (account.type.isRegistered) runCatching { books.investments.holdings(account.id, asOf).cash }.getOrNull() else null
+    }
+    val cashAfter: Money? = cashBefore?.let { before ->
+        runCatching { before - (existing?.takeIf { it.date <= asOf }?.cashEffect ?: Money.zero(c)) + build().cashEffect }.getOrNull()
+    }
+
     FormDialog(
         model.t(if (existing == null) "investments.add" else "investments.edit") + " · " + account.name, model.t("common.save"), model.t("common.cancel"),
         onDismiss = onClose,
         walkId = "investments.txn",
         onSave = {
             // M-26: a change to a transaction whose cash lines are reconciled is asked first, as in the register.
-            fun build(): InvestmentTxn {
-                val zero = Money.zero(c)
-                return InvestmentTxn(
-                    existing?.id.orEmpty(), account.id, dateOf(date), kind, securityId.takeIf { kind != InvestmentKind.FEE || it != null },
-                    if (kind in WITH_QUANTITY) parseDecimal(qty, locale) else null, if (kind in WITH_PRICE) parseDecimal(price, locale) else null,
-                    if (kind in WITH_AMOUNT) parseAmount(amount, c, locale) ?: zero else zero,
-                    if (kind in WITH_FEES) parseAmount(fees, c, locale) ?: zero else zero,
-                    if (kind == InvestmentKind.INCOME) parseAmount(withheld, c, locale) ?: zero else zero,
-                    if (kind in setOf(InvestmentKind.INCOME, InvestmentKind.REINVEST)) incomeType else null,
-                    if (kind in setOf(InvestmentKind.SPLIT, InvestmentKind.MERGER)) parseDecimal(ratio, locale) else null,
-                    if (kind == InvestmentKind.MERGER) otherId else null, existing?.externalId, memo,
-                )
-            }
             val saved = model.act(retryConfirmed = { books.investments.save(build(), confirmReconciled = true).also { onClose() } }) {
                 books.investments.save(build())
             }
@@ -556,6 +578,9 @@ private fun TransactionDialog(model: BooksModel, account: Account, existing: Inv
                 }
             }
             TextInput(model.t("register.memo"), memo) { memo = it }
+            if (cashAfter != null && cashAfter.isNegative) {
+                Text(model.t("investments.negativeCashAfter", model.money(cashAfter)), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
+            }
             if (existing != null) TextButton(onClick = { confirmDelete = true }) { Text(model.t("common.delete"), color = MaterialTheme.colorScheme.error) }
         }
     }

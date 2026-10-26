@@ -1,3 +1,11 @@
+-- File path and name: core/data/src/main/sqldelight/ledger/ca/schippers/hfm/data/ledger/Medical.sq
+-- Modified On Timestamp: 2026-10-26 @ 04:01 EDT
+-- Created On Timestamp: 2026-10-02 @ 21:26 EDT
+-- File Description: Ledger tables and queries. Medical and dental plans, expenses and claims (MED-01 to MED-15).
+-- Uses: SQLDelight; the ledger migrations (<n>.sqm) create the same tables.
+-- Used By: core/books services, through LedgerDatabase.
+-- Purpose: Part of each account group's encrypted ledger database (HH-11).
+
 -- Medical and dental plans, expenses and claims (MED-01 to MED-15). Kept in the ledger of the
 -- account group the user chooses, as for health records, so private ones stay private (HH-11).
 
@@ -128,14 +136,15 @@ clearPlanPeople:
 DELETE FROM med_plan_person WHERE plan_id = ?;
 
 addPlanPerson:
-INSERT OR REPLACE INTO med_plan_person(plan_id, member_id, priority) VALUES (?, ?, ?);
+INSERT INTO med_plan_person(plan_id, member_id, priority) VALUES (?, ?, ?)
+ON CONFLICT(plan_id, member_id) DO UPDATE SET priority = excluded.priority;
 
 coverages:
 SELECT * FROM med_coverage WHERE plan_id = ? ORDER BY service;
 
 upsertCoverage:
-INSERT OR REPLACE INTO med_coverage(id, plan_id, service, percent, deductible_minor, annual_max_minor, per_visit_max_minor, frequency_months, notes)
-VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
+INSERT INTO med_coverage(id, plan_id, service, percent, deductible_minor, annual_max_minor, per_visit_max_minor, frequency_months, notes) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+ON CONFLICT(id) DO UPDATE SET plan_id = excluded.plan_id, service = excluded.service, percent = excluded.percent, deductible_minor = excluded.deductible_minor, annual_max_minor = excluded.annual_max_minor, per_visit_max_minor = excluded.per_visit_max_minor, frequency_months = excluded.frequency_months, notes = excluded.notes;
 
 deleteCoverage:
 DELETE FROM med_coverage WHERE id = ?;
@@ -186,8 +195,8 @@ claimById:
 SELECT * FROM med_claim WHERE id = ?;
 
 upsertClaim:
-INSERT OR REPLACE INTO med_claim(id, expense_id, plan_id, status, submitted_date, claimed_minor, paid_date, paid_minor, reference, transaction_id, notes, created_at, updated_at)
-VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+INSERT INTO med_claim(id, expense_id, plan_id, status, submitted_date, claimed_minor, paid_date, paid_minor, reference, transaction_id, notes, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+ON CONFLICT(id) DO UPDATE SET expense_id = excluded.expense_id, plan_id = excluded.plan_id, status = excluded.status, submitted_date = excluded.submitted_date, claimed_minor = excluded.claimed_minor, paid_date = excluded.paid_date, paid_minor = excluded.paid_minor, reference = excluded.reference, transaction_id = excluded.transaction_id, notes = excluded.notes, created_at = excluded.created_at, updated_at = excluded.updated_at;
 
 deleteClaim:
 DELETE FROM med_claim WHERE id = ?;

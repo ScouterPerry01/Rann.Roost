@@ -1,3 +1,11 @@
+-- File path and name: core/data/src/main/sqldelight/ledger/ca/schippers/hfm/data/ledger/Health.sq
+-- Modified On Timestamp: 2026-10-26 @ 04:01 EDT
+-- Created On Timestamp: 2026-10-02 @ 00:43 EDT
+-- File Description: Ledger tables and queries. Health records per household member (HLT-01 to HLT-07).
+-- Uses: SQLDelight; the ledger migrations (<n>.sqm) create the same tables.
+-- Used By: core/books services, through LedgerDatabase.
+-- Purpose: Part of each account group's encrypted ledger database (HH-11).
+
 -- Health records per household member (HLT-01 to HLT-07). Stored in the ledger of the account
 -- group the user chooses, so a private group keeps them encrypted from other users (CAL-06).
 
@@ -87,7 +95,8 @@ CREATE TABLE immunization (
 -- Providers --------------------------------------------------------------------------------
 
 upsertProvider:
-INSERT OR REPLACE INTO health_provider(id, name, kind, phone, address, notes, archived) VALUES (?, ?, ?, ?, ?, ?, ?);
+INSERT INTO health_provider(id, name, kind, phone, address, notes, archived) VALUES (?, ?, ?, ?, ?, ?, ?)
+ON CONFLICT(id) DO UPDATE SET name = excluded.name, kind = excluded.kind, phone = excluded.phone, address = excluded.address, notes = excluded.notes, archived = excluded.archived;
 
 providers:
 SELECT * FROM health_provider ORDER BY name COLLATE NOCASE;
@@ -128,7 +137,8 @@ SELECT * FROM medication_fill WHERE medication_id = ? ORDER BY fill_date DESC;
 -- Conditions, allergies, tests, immunizations ----------------------------------------------
 
 upsertCondition:
-INSERT OR REPLACE INTO health_condition(id, member_id, name, diagnosed_date, status, provider_id, notes) VALUES (?, ?, ?, ?, ?, ?, ?);
+INSERT INTO health_condition(id, member_id, name, diagnosed_date, status, provider_id, notes) VALUES (?, ?, ?, ?, ?, ?, ?)
+ON CONFLICT(id) DO UPDATE SET member_id = excluded.member_id, name = excluded.name, diagnosed_date = excluded.diagnosed_date, status = excluded.status, provider_id = excluded.provider_id, notes = excluded.notes;
 
 conditions:
 SELECT * FROM health_condition ORDER BY status, name COLLATE NOCASE;
@@ -137,7 +147,8 @@ deleteCondition:
 DELETE FROM health_condition WHERE id = ?;
 
 upsertAllergy:
-INSERT OR REPLACE INTO allergy(id, member_id, substance, reaction, severity, notes) VALUES (?, ?, ?, ?, ?, ?);
+INSERT INTO allergy(id, member_id, substance, reaction, severity, notes) VALUES (?, ?, ?, ?, ?, ?)
+ON CONFLICT(id) DO UPDATE SET member_id = excluded.member_id, substance = excluded.substance, reaction = excluded.reaction, severity = excluded.severity, notes = excluded.notes;
 
 allergies:
 SELECT * FROM allergy ORDER BY substance COLLATE NOCASE;
@@ -146,8 +157,8 @@ deleteAllergy:
 DELETE FROM allergy WHERE id = ?;
 
 upsertTest:
-INSERT OR REPLACE INTO health_test(id, member_id, name, date, result, units, reference_range, provider_id, follow_up_date, notes)
-VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+INSERT INTO health_test(id, member_id, name, date, result, units, reference_range, provider_id, follow_up_date, notes) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+ON CONFLICT(id) DO UPDATE SET member_id = excluded.member_id, name = excluded.name, date = excluded.date, result = excluded.result, units = excluded.units, reference_range = excluded.reference_range, provider_id = excluded.provider_id, follow_up_date = excluded.follow_up_date, notes = excluded.notes;
 
 tests:
 SELECT * FROM health_test ORDER BY date DESC;
@@ -156,7 +167,8 @@ deleteTest:
 DELETE FROM health_test WHERE id = ?;
 
 upsertImmunization:
-INSERT OR REPLACE INTO immunization(id, member_id, vaccine, date, provider_id, next_due_date, notes) VALUES (?, ?, ?, ?, ?, ?, ?);
+INSERT INTO immunization(id, member_id, vaccine, date, provider_id, next_due_date, notes) VALUES (?, ?, ?, ?, ?, ?, ?)
+ON CONFLICT(id) DO UPDATE SET member_id = excluded.member_id, vaccine = excluded.vaccine, date = excluded.date, provider_id = excluded.provider_id, next_due_date = excluded.next_due_date, notes = excluded.notes;
 
 immunizations:
 SELECT * FROM immunization ORDER BY date DESC;

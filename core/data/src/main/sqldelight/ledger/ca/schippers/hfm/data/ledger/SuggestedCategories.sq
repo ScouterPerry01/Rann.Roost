@@ -1,3 +1,11 @@
+-- File path and name: core/data/src/main/sqldelight/ledger/ca/schippers/hfm/data/ledger/SuggestedCategories.sq
+-- Modified On Timestamp: 2026-10-26 @ 04:01 EDT
+-- Created On Timestamp: 2026-10-05 @ 23:44 EDT
+-- File Description: Ledger tables and queries. Categories suggested on statement import from the payee's habits (CAT-03).
+-- Uses: SQLDelight; the ledger migrations (<n>.sqm) create the same tables.
+-- Used By: core/books services, through LedgerDatabase.
+-- Purpose: Part of each account group's encrypted ledger database (HH-11).
+
 -- CAT-03 (version 30): a category filled in on statement import from the payee's habits (its
 -- default category or the one it had last time), not by a rule, waiting for the user to accept it.
 -- Accepting it, or changing the transaction's category, removes the row.
@@ -8,7 +16,8 @@ CREATE TABLE txn_suggested_category (
 );
 
 markSuggested:
-INSERT OR REPLACE INTO txn_suggested_category(txn_id, category_id, created_at) VALUES (?, ?, ?);
+INSERT INTO txn_suggested_category(txn_id, category_id, created_at) VALUES (?, ?, ?)
+ON CONFLICT(txn_id) DO UPDATE SET category_id = excluded.category_id, created_at = excluded.created_at;
 
 suggestionFor:
 SELECT * FROM txn_suggested_category WHERE txn_id = ?;

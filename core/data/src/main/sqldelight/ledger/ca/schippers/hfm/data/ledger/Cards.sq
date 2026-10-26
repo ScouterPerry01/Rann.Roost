@@ -1,3 +1,11 @@
+-- File path and name: core/data/src/main/sqldelight/ledger/ca/schippers/hfm/data/ledger/Cards.sq
+-- Modified On Timestamp: 2026-10-26 @ 04:01 EDT
+-- Created On Timestamp: 2026-10-02 @ 20:34 EDT
+-- File Description: Ledger tables and queries. The people who hold a card on a credit card account, and the card's benefits (CC-05).
+-- Uses: SQLDelight; the ledger migrations (<n>.sqm) create the same tables.
+-- Used By: core/books services, through LedgerDatabase.
+-- Purpose: Part of each account group's encrypted ledger database (HH-11).
+
 -- CC-05: the people who hold a card on the account: the main cardholder and supplementary cards,
 -- which share the account's statement. A transaction can say which card made it.
 CREATE TABLE card_holder (
@@ -35,7 +43,8 @@ CREATE TABLE card_benefit (
 CREATE INDEX card_benefit_account ON card_benefit(account_id);
 
 upsertCardHolder:
-INSERT OR REPLACE INTO card_holder(id, account_id, member_id, name, last_digits, is_primary, archived, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
+INSERT INTO card_holder(id, account_id, member_id, name, last_digits, is_primary, archived, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+ON CONFLICT(id) DO UPDATE SET account_id = excluded.account_id, member_id = excluded.member_id, name = excluded.name, last_digits = excluded.last_digits, is_primary = excluded.is_primary, archived = excluded.archived, created_at = excluded.created_at, updated_at = excluded.updated_at;
 
 cardHolders:
 SELECT * FROM card_holder WHERE account_id = ? ORDER BY is_primary DESC, name;
@@ -50,7 +59,8 @@ cardHolderUseCount:
 SELECT count(*) FROM txn WHERE card_holder_id = ?;
 
 upsertCardBenefit:
-INSERT OR REPLACE INTO card_benefit(id, account_id, kind, description, days, months, max_years, limit_minor, notes, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+INSERT INTO card_benefit(id, account_id, kind, description, days, months, max_years, limit_minor, notes, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+ON CONFLICT(id) DO UPDATE SET account_id = excluded.account_id, kind = excluded.kind, description = excluded.description, days = excluded.days, months = excluded.months, max_years = excluded.max_years, limit_minor = excluded.limit_minor, notes = excluded.notes, created_at = excluded.created_at, updated_at = excluded.updated_at;
 
 cardBenefits:
 SELECT * FROM card_benefit WHERE account_id = ? ORDER BY kind;

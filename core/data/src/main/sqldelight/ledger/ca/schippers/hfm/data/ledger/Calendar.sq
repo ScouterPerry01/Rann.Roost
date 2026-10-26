@@ -1,3 +1,11 @@
+-- File path and name: core/data/src/main/sqldelight/ledger/ca/schippers/hfm/data/ledger/Calendar.sq
+-- Modified On Timestamp: 2026-10-26 @ 04:01 EDT
+-- Created On Timestamp: 2026-10-02 @ 00:43 EDT
+-- File Description: Ledger tables and queries. Calendar events and appointments (CAL-01 to CAL-06).
+-- Uses: SQLDelight; the ledger migrations (<n>.sqm) create the same tables.
+-- Used By: core/books services, through LedgerDatabase.
+-- Purpose: Part of each account group's encrypted ledger database (HH-11).
+
 -- Calendar events and appointments (CAL-01 to CAL-06). Stored in the ledger of the account group
 -- the user chooses, so private events are encrypted from other household users (HH-11).
 
@@ -64,7 +72,8 @@ eventById:
 SELECT * FROM event WHERE id = ?;
 
 setOccurrenceStatus:
-INSERT OR REPLACE INTO event_occurrence(event_id, date, status) VALUES (?, ?, ?);
+INSERT INTO event_occurrence(event_id, date, status) VALUES (?, ?, ?)
+ON CONFLICT(event_id, date) DO UPDATE SET status = excluded.status;
 
 clearOccurrenceStatus:
 DELETE FROM event_occurrence WHERE event_id = ? AND date = ?;

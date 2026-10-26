@@ -1,3 +1,11 @@
+-- File path and name: core/data/src/main/sqldelight/ledger/ca/schippers/hfm/data/ledger/Assets.sq
+-- Modified On Timestamp: 2026-10-26 @ 04:01 EDT
+-- Created On Timestamp: 2026-10-02 @ 21:53 EDT
+-- File Description: Ledger tables and queries. Assets, warranties and insurance (AST-01 to AST-05, WAR-01 to WAR-04, INS-01 to INS-05).
+-- Uses: SQLDelight; the ledger migrations (<n>.sqm) create the same tables.
+-- Used By: core/books services, through LedgerDatabase.
+-- Purpose: Part of each account group's encrypted ledger database (HH-11).
+
 -- Assets, warranties and insurance (AST-01 to AST-05, WAR-01 to WAR-04, INS-01 to INS-05), kept in
 -- the ledger of the account group the user chooses (HH-11).
 
@@ -215,7 +223,8 @@ deleteWarranty:
 DELETE FROM warranty WHERE id = ?;
 
 upsertWarrantyClaim:
-INSERT OR REPLACE INTO warranty_claim(id, warranty_id, date, problem, outcome, covered_minor, paid_minor, notes) VALUES (?, ?, ?, ?, ?, ?, ?, ?);
+INSERT INTO warranty_claim(id, warranty_id, date, problem, outcome, covered_minor, paid_minor, notes) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+ON CONFLICT(id) DO UPDATE SET warranty_id = excluded.warranty_id, date = excluded.date, problem = excluded.problem, outcome = excluded.outcome, covered_minor = excluded.covered_minor, paid_minor = excluded.paid_minor, notes = excluded.notes;
 
 warrantyClaims:
 SELECT * FROM warranty_claim WHERE warranty_id = ? ORDER BY date DESC;
@@ -266,13 +275,15 @@ clearPolicyAssets:
 DELETE FROM policy_asset WHERE policy_id = ?;
 
 addPolicyAsset:
-INSERT OR REPLACE INTO policy_asset(policy_id, asset_id) VALUES (?, ?);
+INSERT INTO policy_asset(policy_id, asset_id) VALUES (?, ?)
+ON CONFLICT(policy_id, asset_id) DO NOTHING;
 
 premiums:
 SELECT * FROM policy_premium WHERE policy_id = ? ORDER BY start_date DESC;
 
 upsertPremium:
-INSERT OR REPLACE INTO policy_premium(id, policy_id, start_date, premium_minor, notes) VALUES (?, ?, ?, ?, ?);
+INSERT INTO policy_premium(id, policy_id, start_date, premium_minor, notes) VALUES (?, ?, ?, ?, ?)
+ON CONFLICT(id) DO UPDATE SET policy_id = excluded.policy_id, start_date = excluded.start_date, premium_minor = excluded.premium_minor, notes = excluded.notes;
 
 deletePremium:
 DELETE FROM policy_premium WHERE id = ?;
@@ -281,7 +292,8 @@ beneficiaries:
 SELECT * FROM policy_beneficiary WHERE policy_id = ? ORDER BY contingent, name;
 
 upsertBeneficiary:
-INSERT OR REPLACE INTO policy_beneficiary(id, policy_id, name, member_id, relationship, share_percent, contingent) VALUES (?, ?, ?, ?, ?, ?, ?);
+INSERT INTO policy_beneficiary(id, policy_id, name, member_id, relationship, share_percent, contingent) VALUES (?, ?, ?, ?, ?, ?, ?)
+ON CONFLICT(id) DO UPDATE SET policy_id = excluded.policy_id, name = excluded.name, member_id = excluded.member_id, relationship = excluded.relationship, share_percent = excluded.share_percent, contingent = excluded.contingent;
 
 deleteBeneficiary:
 DELETE FROM policy_beneficiary WHERE id = ?;
@@ -293,8 +305,8 @@ claimById:
 SELECT * FROM insurance_claim WHERE id = ?;
 
 upsertClaim:
-INSERT OR REPLACE INTO insurance_claim(id, policy_id, asset_id, date, description, claim_number, status, claimed_minor, deductible_minor, paid_minor, paid_date, txn_id, notes, created_at, updated_at)
-VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+INSERT INTO insurance_claim(id, policy_id, asset_id, date, description, claim_number, status, claimed_minor, deductible_minor, paid_minor, paid_date, txn_id, notes, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+ON CONFLICT(id) DO UPDATE SET policy_id = excluded.policy_id, asset_id = excluded.asset_id, date = excluded.date, description = excluded.description, claim_number = excluded.claim_number, status = excluded.status, claimed_minor = excluded.claimed_minor, deductible_minor = excluded.deductible_minor, paid_minor = excluded.paid_minor, paid_date = excluded.paid_date, txn_id = excluded.txn_id, notes = excluded.notes, created_at = excluded.created_at, updated_at = excluded.updated_at;
 
 deleteClaim:
 DELETE FROM insurance_claim WHERE id = ?;

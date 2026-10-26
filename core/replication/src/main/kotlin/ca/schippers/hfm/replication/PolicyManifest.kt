@@ -1,5 +1,5 @@
 // File path and name: core/replication/src/main/kotlin/ca/schippers/hfm/replication/PolicyManifest.kt
-// Modified On Timestamp: 2026-10-26 @ 03:45 EDT
+// Modified On Timestamp: 2026-10-26 @ 04:00 EDT
 // Created On Timestamp: 2026-10-26 @ 03:45 EDT
 // File Description: The merge policy of every table of the core and ledger databases (plan-multi-device 4.3).
 // Uses: Nothing: plain data, checked against the real schemas by PolicyManifestTest.
@@ -51,8 +51,10 @@ data class TablePolicy(
  * a listed table no longer exists, or when a parent or column named here is missing.
  *
  * Known work before change capture (phase 2), from the 2026-10-26 survey:
- * - Tables still saved with INSERT OR REPLACE rewrite every column, so a capture cannot tell which
- *   field changed; they move to INSERT ... ON CONFLICT DO UPDATE first.
+ * - INSERT OR REPLACE rewrites every column, so a capture cannot tell which field changed. All
+ *   queries now update in place except four on tables with a second unique key (inv_txn,
+ *   card_statement, room_entry, tax_slip), where a replace also removes the clashing row; they
+ *   need their own decision (NoReplaceTest lists them).
  * - category_rule is edited by a delete and an insert under the same id; capture must treat that
  *   pair in one transaction as an update.
  * - medication.refills_remaining is lowered in Kotlin (read, subtract, write); it must be captured as

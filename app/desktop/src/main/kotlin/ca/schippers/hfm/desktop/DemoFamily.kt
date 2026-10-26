@@ -1,5 +1,5 @@
 // File path and name: app/desktop/src/main/kotlin/ca/schippers/hfm/desktop/DemoFamily.kt
-// Modified On Timestamp: 2026-10-11 @ 13:05 EDT
+// Modified On Timestamp: 2026-10-25 @ 19:55 EDT
 // Created On Timestamp: 2026-10-11 @ 12:46 EDT
 // File Description: The family sample household: two working parents with good salaries, three
 //   young children (daycare, grade 1, grade 2), a house with a mortgage, an inherited cottage,
@@ -17,6 +17,7 @@ import ca.schippers.hfm.books.Allowance
 import ca.schippers.hfm.books.AllowanceFrequency
 import ca.schippers.hfm.books.AllowanceKind
 import ca.schippers.hfm.books.AmountKind
+import ca.schippers.hfm.books.AreaUnit
 import ca.schippers.hfm.books.Asset
 import ca.schippers.hfm.books.AssetKind
 import ca.schippers.hfm.books.Beneficiary
@@ -49,6 +50,7 @@ import ca.schippers.hfm.books.Institution
 import ca.schippers.hfm.books.InvestmentKind
 import ca.schippers.hfm.books.InvestmentTxn
 import ca.schippers.hfm.books.IncomeType
+import ca.schippers.hfm.books.LengthUnit
 import ca.schippers.hfm.books.LoanDetails
 import ca.schippers.hfm.books.MedCoverage
 import ca.schippers.hfm.books.MedExpense
@@ -65,7 +67,14 @@ import ca.schippers.hfm.books.PolicyBeneficiary
 import ca.schippers.hfm.books.PolicyKind
 import ca.schippers.hfm.books.PremiumFrequency
 import ca.schippers.hfm.books.ProjectStatus
+import ca.schippers.hfm.books.PropertyCustomField
+import ca.schippers.hfm.books.PropertyOwner
+import ca.schippers.hfm.books.PropertyRoom
+import ca.schippers.hfm.books.PropertyStructure
+import ca.schippers.hfm.books.PropertySystem
 import ca.schippers.hfm.books.ProviderKind
+import ca.schippers.hfm.books.RealProperty
+import ca.schippers.hfm.books.ResidenceYear
 import ca.schippers.hfm.books.RoomEntry
 import ca.schippers.hfm.books.RoomPlan
 import ca.schippers.hfm.books.SavingsGoal
@@ -206,7 +215,7 @@ internal class DemoFamily(books: Books, p: DemoPlace) : DemoKit(books, p) {
         )
         // The cottage parent A inherited from a grandmother: no mortgage; its cost for tax is its value at her death.
         val inherited = today.minus(DatePeriod(years = 3, months = 4))
-        books.assets.save(
+        val cottage = books.assets.save(
             Asset(
                 "", group, AssetKind.COTTAGE, p.cottage, purchaseDate = inherited, purchasePrice = cad("365000"), valueMethod = ValueMethod.MANUAL, value = cad("418000"),
                 valueDate = day(-200), location = p.cottageTown,
@@ -218,7 +227,216 @@ internal class DemoFamily(books: Books, p: DemoPlace) : DemoKit(books, p) {
         )
         books.assets.save(Asset("", group, AssetKind.SPORTS, l("Canot et kayaks", "Canoe and kayaks"), purchaseDate = day(-500), purchasePrice = cad("2400"), location = p.cottage))
         upkeepFor(house)
+        addPropertyDetails(house, cottage, mortgage)
         return mortgage
+    }
+
+    /**
+     * AST-06 to AST-17: everything about the house and the cottage, so each tab of Property details has
+     * something in it. Values are stored metric; roll and parcel numbers follow the province's own form.
+     */
+    private fun addPropertyDetails(house: Asset, cottage: Asset, mortgage: Account) {
+        fun cents(s: String) = cad(s).minorUnits.toString()
+        // Sizes as a Canadian listing gives them, in feet and square feet; stored exactly in metres.
+        fun ft(s: String) = LengthUnit.FEET.toMetres(BigDecimal(s))
+        fun sqft(s: String) = AreaUnit.SQUARE_FEET.toSquareMetres(BigDecimal(s))
+        fun feet(s: String) = ft(s).toPlainString()
+        fun squareFeet(s: String) = sqft(s).toPlainString()
+        val province = p.province.name
+        // The first letter of a postal code is the province's (Quebec's are G, H and J).
+        val letter = when (p.province) {
+            Province.NL -> "A"; Province.NS -> "B"; Province.PE -> "C"; Province.NB -> "E"; Province.QC -> "G"; Province.ON -> "K"
+            Province.MB -> "R"; Province.SK -> "S"; Province.AB -> "T"; Province.BC -> "V"; Province.YT -> "Y"; else -> "X"
+        }
+        val (houseRoll, houseParcel, cottageRoll, cottageParcel) = when (p.province) {
+            Province.ON -> listOf("0614 040 120 05300 0000", "04123-0456 (LT)", "4651 000 015 12400 0000", "53210-0118 (LT)")
+            Province.QC -> listOf("1234-56-7890-1-000-0000", "1 234 567", "9821-44-1065-0-000-0000", "5 812 940")
+            Province.BC -> listOf("200-04531-127", "012-345-678", "765-01842-033", "027-114-902")
+            else -> listOf("R-104582-01", "123456789", "R-310877-04", "987654321")
+        }
+        val authority = when (p.province) {
+            Province.ON -> "MPAC"
+            Province.BC -> "BC Assessment"
+            else -> p.municipality
+        }
+        val purchased = house.purchaseDate!!.year
+        val a = parentA.id
+        val b = parentB.id
+
+        books.realProperty.save(
+            RealProperty(
+                house.id,
+                fields = buildMap {
+                    // Identification and address
+                    put("property_type", "DETACHED"); put("building_style", "STOREY_2"); put("use", "PRINCIPAL_RESIDENCE")
+                    put("occupancy", "OWNER"); put("acquired_how", "PURCHASE")
+                    put("street_number", "48"); put("street_name", q("rue des Érables", "Maple Crescent")); put("municipality", p.city)
+                    put("province", province); put("postal_code", "${letter}2B 4N7"); put("country", "CA")
+                    put("latitude", q("46.80330", p.t.home.lat.toString())); put("longitude", q("-71.24280", p.t.home.lon.toString()))
+                    // Legal
+                    put("roll_number", houseRoll); put("parcel_id", houseParcel)
+                    if (p.quebec) {
+                        put("legal_description", "Lot 1 234 567 du cadastre du Québec, circonscription foncière de Québec.")
+                    } else {
+                        put("lot", "27"); put("plan", "4M-1182")
+                        put("legal_description", l("Lot 27, plan 4M-1182, ${p.municipality}.", "Lot 27, Plan 4M-1182, ${p.municipality}."))
+                    }
+                    put("tenure", "FREEHOLD"); put("survey_date", "2004-06-14"); put("surveyor", q("Arpenteurs Rioux inc.", "Annis, O’Sullivan, Vollebekk Ltd."))
+                    put("easements", l("Servitude d’Hydro de 3 m le long de la limite arrière.", "3 m hydro easement along the rear lot line."))
+                    // Land: a 50 by 110 ft lot
+                    put("lot_area", squareFeet("5500")); put("lot_frontage", feet("50")); put("lot_depth", feet("110")); put("lot_shape", "RECTANGULAR")
+                    put("topography", "FLAT"); put("soil_type", "CLAY"); put("drainage", "GOOD"); put("vegetation", "LANDSCAPED"); put("waterfront", "NONE")
+                    put("access", "MUNICIPAL_ROAD"); put("fencing", "FULL"); put("zoning", q("H-1", "R1"))
+                    // Building: 2,150 sq ft above grade, 850 below
+                    put("year_built", "2004"); put("builder", q("Construction Laval", "Minto")); put("storeys", "2"); put("floors_total", "3")
+                    put("finished_area_above_grade", squareFeet("2150")); put("finished_area_below_grade", squareFeet("850"))
+                    put("total_floor_area", squareFeet("3000")); put("footprint_area", squareFeet("1160"))
+                    put("ceiling_height_main", feet("9")); put("bedrooms", "4"); put("bathrooms_full", "2"); put("bathrooms_half", "1"); put("kitchens", "1")
+                    put("construction_type", "WOOD_FRAME"); put("foundation", "POURED_CONCRETE"); put("exterior_finish", "BRICK,VINYL")
+                    put("roof_shape", "HIP"); put("roof_material", "ASPHALT_SHINGLE"); put("roof_year", "2019"); put("window_glazing", "DOUBLE")
+                    put("window_frames", "VINYL"); put("windows_year", "2004"); put("insulation_attic_r", "50"); put("insulation_walls_r", "20")
+                    put("energuide_rating", "78"); put("energuide_scale", "SCORE_0_100"); put("energy_audit_date", "2023-03-08"); put("interior_walls", "DRYWALL")
+                    put("flooring_main", "HARDWOOD,TILE"); put("fireplaces", "1"); put("hazardous_materials", "RADON_TESTED")
+                    put("radon_test_date", "2022-02-15"); put("radon_level_bq", "85")
+                    put("major_renovations", l("2019 : toiture refaite. 2023 : isolation de l’entretoit portée à R-50.", "2019: new roof. 2023: attic insulation raised to R-50."))
+                    // Basement, parking, features
+                    put("basement_type", "FULL"); put("basement_finish", "FINISHED"); put("basement_height", feet("8")); put("waterproofing", "EXTERIOR")
+                    put("sump_pump", "BATTERY_BACKUP"); put("backwater_valve", "1")
+                    put("garage_type", "ATTACHED"); put("garage_spaces", "2"); put("garage_insulated", "1"); put("garage_door_opener", "1")
+                    put("driveway", "ASPHALT"); put("parking_spaces", "2")
+                    put("pool_type", "NONE"); put("deck_material", "COMPOSITE"); put("deck_area", squareFeet("300")); put("patio", "1"); put("porch", "1")
+                    put("play_structure", "1"); put("central_vacuum", "1")
+                    // Value and tax: Ontario still assesses at January 1, 2016 values.
+                    put("assessed_value", cents(if (p.province == Province.ON) "591000" else "655000"))
+                    put("assessment_year", if (p.province == Province.ON) "2016" else (today.year - 1).toString())
+                    put("assessing_authority", authority); put("tax_account_number", "TX-0482-27"); put("annual_property_tax", cents("6850"))
+                    if (p.province == Province.ON) put("school_support", "ENGLISH_PUBLIC")
+                    put("insured_replacement_cost", cents("545000")); put("market_value_estimate", cents("742000")); put("estimate_date", day(-90).toString())
+                    put("estimate_source", l("Ventes comparables de l’agente", "Agent’s comparable sales"))
+                    put("mortgage_account", mortgage.id)
+                },
+                rooms = listOf(
+                    PropertyRoom(type = "FOYER", level = "MAIN", length = ft("8"), width = ft("7"), flooring = "TILE"),
+                    PropertyRoom(type = "LIVING", level = "MAIN", length = ft("17"), width = ft("14"), flooring = "HARDWOOD", features = l("Foyer au gaz", "Gas fireplace"), condition = "GOOD"),
+                    PropertyRoom(type = "DINING", level = "MAIN", length = ft("12"), width = ft("11"), flooring = "HARDWOOD", condition = "GOOD"),
+                    PropertyRoom(type = "KITCHEN", level = "MAIN", length = ft("15"), width = ft("13"), flooring = "TILE", features = l("Îlot, comptoirs de quartz (2021)", "Island, quartz counters (2021)"), condition = "EXCELLENT"),
+                    PropertyRoom(type = "POWDER_ROOM", level = "MAIN", length = ft("6"), width = ft("5"), flooring = "TILE"),
+                    PropertyRoom(type = "MUDROOM", level = "MAIN", length = ft("9"), width = ft("6"), flooring = "TILE"),
+                    PropertyRoom(type = "PRIMARY_BEDROOM", level = "SECOND", length = ft("16"), width = ft("13"), flooring = "HARDWOOD", features = l("Garde-robe de plain-pied", "Walk-in closet"), condition = "GOOD"),
+                    PropertyRoom(type = "ENSUITE", level = "SECOND", length = ft("10"), width = ft("9"), flooring = "TILE", features = l("Douche vitrée, deux lavabos", "Glass shower, double sink")),
+                    PropertyRoom(type = "BEDROOM", name = oldest.displayName, level = "SECOND", length = ft("12"), width = ft("10.5"), flooring = "HARDWOOD"),
+                    PropertyRoom(type = "BEDROOM", name = middle.displayName, level = "SECOND", length = ft("11"), width = ft("10"), flooring = "HARDWOOD"),
+                    PropertyRoom(type = "NURSERY", name = youngest.displayName, level = "SECOND", length = ft("10"), width = ft("9.5"), flooring = "CARPET"),
+                    PropertyRoom(type = "BATHROOM", level = "SECOND", length = ft("9"), width = ft("5.5"), flooring = "TILE"),
+                    PropertyRoom(type = "LAUNDRY", level = "SECOND", length = ft("7"), width = ft("6"), flooring = "TILE"),
+                    PropertyRoom(type = "RECREATION", level = "BASEMENT", length = ft("24"), width = ft("18"), flooring = "VINYL", condition = "GOOD"),
+                    PropertyRoom(type = "DEN_OFFICE", level = "BASEMENT", length = ft("11"), width = ft("10"), flooring = "VINYL", features = l("Bureau de télétravail", "Work-from-home office")),
+                    PropertyRoom(type = "UTILITY", level = "BASEMENT", length = ft("14"), width = ft("10"), flooring = "CONCRETE"),
+                ),
+                systems = listOf(
+                    if (p.quebec) {
+                        PropertySystem(kind = "HEATING", type = "HEAT_PUMP_AIR", fuel = "ELECTRICITY", makeModel = "Mitsubishi Zuba", capacity = "36 000 BTU/h", installYear = 2021, lastInspection = day(-150), ownership = "OWNED")
+                    } else {
+                        PropertySystem(kind = "HEATING", type = "FORCED_AIR", fuel = "NATURAL_GAS", makeModel = "Lennox EL296V", capacity = "80,000 BTU/h", installYear = 2016, lastInspection = day(-150), ownership = "OWNED")
+                    },
+                    PropertySystem(kind = "COOLING", type = "CENTRAL_AIR", fuel = "ELECTRICITY", makeModel = "Lennox ML14XC1", capacity = l("3 tonnes", "3 ton"), installYear = 2016, ownership = "OWNED"),
+                    PropertySystem(
+                        kind = "WATER_HEATING", type = "TANK", fuel = q("ELECTRICITY", "NATURAL_GAS"), capacity = q("227 L", "40 US gal"), installYear = 2018, ownership = "RENTED",
+                        rentalProvider = q("HydroSolution", "Enercare"), rentalMonthly = cad("32.99"),
+                    ),
+                    PropertySystem(kind = "VENTILATION", type = "HRV", makeModel = "Venmar AVS", installYear = 2004, notes = l("Filtres changés chaque trimestre", "Filters changed every quarter")),
+                    PropertySystem(kind = "ELECTRICAL", type = "BREAKERS", capacity = "200 A", installYear = 2004, notes = l("Câblage en cuivre", "Copper wiring")),
+                    PropertySystem(kind = "PLUMBING", type = "PEX", installYear = 2004),
+                    PropertySystem(kind = "WATER_SUPPLY", type = "MUNICIPAL"),
+                    PropertySystem(kind = "SEWAGE", type = "MUNICIPAL"),
+                    PropertySystem(kind = "FIREPLACE", type = "GAS", fuel = q("PROPANE", "NATURAL_GAS"), makeModel = "Napoleon B36", installYear = 2004),
+                    PropertySystem(kind = "EV_CHARGER", makeModel = "Grizzl-E Classic", capacity = "40 A", installYear = 2023, ownership = "OWNED"),
+                    PropertySystem(kind = "SECURITY", type = "MONITORED_ALARM", rentalProvider = q("Alarme Sentinelle", "Alarm Force"), rentalMonthly = cad("29.95"), ownership = "RENTED"),
+                    PropertySystem(kind = "FIRE_PROTECTION", type = "SMOKE_ALARMS", notes = l("Avertisseurs de fumée et de CO à chaque étage", "Smoke and CO alarms on every floor")),
+                ),
+                structures = listOf(
+                    PropertyStructure(type = "SHED", name = l("Remise du jardin", "Garden shed"), area = sqft("100"), yearBuilt = 2020, construction = l("Bois sur blocs", "Wood on blocks"), electricity = true),
+                ),
+                owners = listOf(PropertyOwner(a, 5000, "JOINT_TENANCY"), PropertyOwner(b, 5000, "JOINT_TENANCY")),
+                residenceYears = (purchased..today.year).map { ResidenceYear(a, it) },
+                custom = listOf(
+                    PropertyCustomField(label = l("Couleurs de peinture", "Paint colours"), value = l("Salon : Benjamin Moore Pale Oak OC-20. Cuisine : Chantilly Lace OC-65.", "Living room: Benjamin Moore Pale Oak OC-20. Kitchen: Chantilly Lace OC-65.")),
+                    PropertyCustomField(label = l("Robinet d’arrêt principal", "Main water shut-off"), value = l("Sous-sol, salle mécanique, derrière le chauffe-eau", "Basement utility room, behind the water heater")),
+                ),
+            ),
+        )
+
+        books.realProperty.save(
+            RealProperty(
+                cottage.id,
+                fields = buildMap {
+                    put("property_type", "COTTAGE_CABIN"); put("building_style", "CHALET"); put("use", "SECONDARY_RESIDENCE")
+                    put("occupancy", "OWNER"); put("acquired_how", "INHERITANCE")
+                    put("street_number", "1187"); put("street_name", q("chemin du Lac-Édouard", "Lakeshore Road")); put("municipality", p.cottageTown)
+                    put("province", province); put("postal_code", "${letter}0K 1R0"); put("country", "CA"); put("emergency_civic_number", "1187")
+                    put(
+                        "directions",
+                        l(
+                            "Prendre le chemin privé à gauche après le dépanneur; troisième entrée après le pont. Panneau bleu « Rose ».",
+                            "Take the private road on the left past the general store; third driveway after the bridge. Blue \"Rose\" sign.",
+                        ),
+                    )
+                    put("roll_number", cottageRoll); put("parcel_id", cottageParcel); put("tenure", "FREEHOLD")
+                    if (!p.quebec) { put("lot", "14"); put("concession", "3"); put("geographic_township", l("Canton de ${p.cottageTown}", "Township of ${p.cottageTown}")) }
+                    put("easements", l("Droit de passage partagé sur le chemin privé.", "Shared right-of-way over the private road."))
+                    // Land: about an acre, 150 ft on the lake
+                    put("lot_area", squareFeet("43560")); put("lot_frontage", feet("150")); put("lot_depth", feet("290")); put("lot_shape", "IRREGULAR")
+                    put("topography", "GENTLE_SLOPE"); put("soil_type", "SAND"); put("drainage", "GOOD"); put("vegetation", "PARTLY_WOODED")
+                    put("waterfront", "LAKE"); put("water_frontage", feet("150")); put("shoreline", "MIXED"); put("water_depth_at_dock", feet("6"))
+                    put("view", l("Ouest sur le lac, couchers de soleil", "West over the lake, sunsets"))
+                    put("access", "PRIVATE_ROAD"); put("road_maintained_by", l("Association du chemin (350 $ par année)", "Road association ($350 a year)"))
+                    put("fencing", "NONE"); put("zoning", q("Villégiature", "Shoreline Residential (SR)"))
+                    // Building: about 1,100 sq ft
+                    put("year_built", "1978"); put("year_built_estimated", "1"); put("storeys", "1.5"); put("floors_total", "2"); put("finished_area_above_grade", squareFeet("1100"))
+                    put("bedrooms", "2"); put("bathrooms_full", "1"); put("kitchens", "1"); put("construction_type", "WOOD_FRAME"); put("foundation", "PIERS")
+                    put("exterior_finish", "WOOD"); put("roof_shape", "GABLE"); put("roof_material", "METAL"); put("roof_year", "2016"); put("window_glazing", "DOUBLE")
+                    put("window_frames", "WOOD"); put("interior_walls", "PANELLING"); put("flooring_main", "HARDWOOD"); put("fireplaces", "0")
+                    put("major_renovations", l("2016 : toit de tôle. 2021 : nouvelle installation septique.", "2016: metal roof. 2021: new septic system."))
+                    put("basement_type", "CRAWL_SPACE"); put("garage_type", "NONE"); put("driveway", "GRAVEL"); put("parking_spaces", "3")
+                    put("deck_material", "CEDAR"); put("deck_area", squareFeet("400")); put("porch", "1"); put("fire_pit", "1")
+                    put("assessed_value", cents(if (p.province == Province.ON) "289000" else "341000"))
+                    put("assessment_year", if (p.province == Province.ON) "2016" else (today.year - 1).toString())
+                    put("assessing_authority", if (p.province == Province.ON) "MPAC" else q("Municipalité de ${p.cottageTown}", "${p.t.cottageTown}"))
+                    put("annual_property_tax", cents("3480")); put("insured_replacement_cost", cents("310000"))
+                    put("market_value_estimate", cents("418000")); put("estimate_date", day(-200).toString())
+                    put("estimate_source", l("Évaluation à la succession", "Estate appraisal"))
+                },
+                rooms = listOf(
+                    PropertyRoom(type = "GREAT_ROOM", level = "MAIN", length = ft("22"), width = ft("17"), flooring = "HARDWOOD", features = l("Poêle à bois, plafond cathédrale", "Wood stove, cathedral ceiling"), condition = "GOOD"),
+                    PropertyRoom(type = "KITCHEN", level = "MAIN", length = ft("12"), width = ft("10"), flooring = "VINYL", condition = "FAIR"),
+                    PropertyRoom(type = "PRIMARY_BEDROOM", level = "MAIN", length = ft("12"), width = ft("11"), flooring = "HARDWOOD"),
+                    PropertyRoom(type = "BEDROOM", level = "MAIN", length = ft("10"), width = ft("9"), flooring = "HARDWOOD", features = l("Lits superposés", "Bunk beds")),
+                    PropertyRoom(type = "BATHROOM", level = "MAIN", length = ft("8"), width = ft("5"), flooring = "VINYL"),
+                    PropertyRoom(type = "SCREENED_PORCH", level = "MAIN", length = ft("16"), width = ft("8"), flooring = "OTHER", features = l("Côté lac", "Lake side")),
+                    PropertyRoom(type = "LOFT", level = "LOFT", length = ft("16"), width = ft("12"), flooring = "HARDWOOD", features = l("Deux lits doubles", "Two double beds")),
+                ),
+                systems = listOf(
+                    PropertySystem(kind = "HEATING", type = "WOOD_STOVE", fuel = "WOOD", makeModel = "Jøtul F 500", installYear = 2012, lastInspection = day(-400), ownership = "OWNED", notes = l("Certifié WETT; ramonage chaque automne", "WETT certified; chimney swept every fall")),
+                    PropertySystem(kind = "HEATING", type = "ELECTRIC_BASEBOARD", fuel = "ELECTRICITY", installYear = 1978),
+                    PropertySystem(kind = "WATER_HEATING", type = "TANK", fuel = "ELECTRICITY", capacity = q("151 L", "40 US gal"), installYear = 2017, ownership = "OWNED"),
+                    PropertySystem(kind = "ELECTRICAL", type = "BREAKERS", capacity = "100 A", installYear = 1995),
+                    PropertySystem(kind = "WATER_SUPPLY", type = "LAKE_INTAKE", notes = l("Pompe retirée et purgée à la fermeture", "Pump pulled and drained at closing")),
+                    PropertySystem(kind = "WATER_TREATMENT", type = "UV", makeModel = "Viqua VH410", installYear = 2019, notes = l("Lampe changée chaque printemps", "Lamp replaced every spring")),
+                    PropertySystem(kind = "SEWAGE", type = "SEPTIC", capacity = q("3 400 L", "3,600 L"), installYear = 2021, lastInspection = day(-120), notes = l("Vidange aux deux ans", "Pumped every two years")),
+                ),
+                structures = listOf(
+                    PropertyStructure(type = "BUNKIE", name = l("Camp des enfants", "Kids’ bunkie"), area = sqft("120"), yearBuilt = 1992, construction = l("Bois", "Wood frame"), electricity = true),
+                    PropertyStructure(type = "DOCK_FLOATING", name = l("Quai", "Dock"), area = sqft("240"), yearBuilt = 2018, construction = l("Cèdre sur flotteurs", "Cedar on floats"), notes = l("Retiré à l’automne", "Pulled out in the fall")),
+                    PropertyStructure(type = "SAUNA", area = sqft("60"), yearBuilt = 2005, construction = l("Cèdre", "Cedar"), heated = true, electricity = true),
+                    PropertyStructure(type = "SHED", name = l("Remise à bois", "Woodshed"), area = sqft("80"), yearBuilt = 1985),
+                ),
+                owners = listOf(PropertyOwner(a, 10000, "SOLE")),
+                custom = listOf(
+                    PropertyCustomField(label = l("Gardien des clés", "Key holder"), value = l("Voisins au 1191 (Lise et Paul), ${q("819", p.area)}-555-0147", "Neighbours at 1191 (Lise and Paul), ${q("819", p.area)}-555-0147")),
+                    PropertyCustomField(label = l("Ouverture et fermeture", "Opening and closing"), value = l("Ouverture à la mi-mai, fermeture à l’Action de grâce.", "Open mid-May, close at Thanksgiving.")),
+                ),
+            ),
+        )
     }
 
     private fun upkeepFor(house: Asset) {

@@ -1,5 +1,5 @@
 // File path and name: core/books/src/main/kotlin/ca/schippers/hfm/books/RealPropertyService.kt
-// Modified On Timestamp: 2026-10-25 @ 16:45 EDT
+// Modified On Timestamp: 2026-10-25 @ 20:40 EDT
 // Created On Timestamp: 2026-10-25 @ 16:45 EDT
 // File Description: Real-property details of a house, cottage, condo, land or building (AST-06 to AST-17):
 //   fields from RealPropertyCatalogue, rooms, systems, outbuildings, owners, residence years and custom fields.
@@ -17,7 +17,10 @@ import kotlinx.datetime.LocalDate
 import java.math.BigDecimal
 import java.math.RoundingMode
 
-/** AST-11: one room. Lengths in metres, [area] in square metres; [areaOrComputed] multiplies when only the sides are given. */
+/**
+ * AST-11: one room. Lengths in metres, [area] in square metres; [areaOrComputed] multiplies when only the
+ * sides are given, exactly, so sides typed in feet give back a whole number of square feet when shown.
+ */
 data class PropertyRoom(
     val id: String = "",
     val type: String,
@@ -31,7 +34,7 @@ data class PropertyRoom(
     val features: String? = null,
     val condition: String? = null,
 ) {
-    val areaOrComputed: BigDecimal? get() = area ?: if (length != null && width != null) length.multiply(width).setScale(2, RoundingMode.HALF_UP) else null
+    val areaOrComputed: BigDecimal? get() = area ?: if (length != null && width != null) length.multiply(width) else null
 }
 
 /** AST-12: one system; [type] comes from the list for its [kind] (RealPropertyCatalogue.systemTypes). */

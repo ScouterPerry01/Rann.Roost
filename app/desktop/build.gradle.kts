@@ -245,7 +245,17 @@ tasks.register<JavaExec>("manualScreenshots") {
     // -Ptheme=dark: the same pictures in the app's dark colours, into images/dark, which the manual shows in dark mode.
     val dark = providers.gradleProperty("theme").orNull == "dark"
     if (dark) systemProperty("hfm.shots.theme", "dark")
-    systemProperty("hfm.shots.out", rootProject.file("core/i18n/src/main/resources/hfm/manual/$lang/images" + if (dark) "/dark" else "").absolutePath)
+    // -Pset=property: the Property details pictures of the family sample, for checking by eye, into build/property-images.
+    val property = providers.gradleProperty("set").orNull == "property"
+    if (property) systemProperty("hfm.shots.set", "property")
+    systemProperty(
+        "hfm.shots.out",
+        if (property) {
+            layout.buildDirectory.dir("property-images/$lang" + if (dark) "/dark" else "").get().asFile.absolutePath
+        } else {
+            rootProject.file("core/i18n/src/main/resources/hfm/manual/$lang/images" + if (dark) "/dark" else "").absolutePath
+        },
+    )
     providers.gradleProperty("shot").orNull?.let { systemProperty("hfm.shots.only", it) }
     // Skia draws offscreen without a window; no AWT window is ever opened.
     systemProperty("java.awt.headless", "true")

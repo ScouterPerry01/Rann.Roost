@@ -1,5 +1,5 @@
 // File path and name: core/books/src/test/kotlin/ca/schippers/hfm/books/RealPropertyServiceTest.kt
-// Modified On Timestamp: 2026-10-25 @ 17:05 EDT
+// Modified On Timestamp: 2026-10-25 @ 20:40 EDT
 // Created On Timestamp: 2026-10-25 @ 17:05 EDT
 // File Description: Tests of RealPropertyService and RealPropertyCatalogue (AST-06 to AST-17).
 // Uses: RealPropertyService, RealPropertyCatalogue, AssetService, an encrypted test household.
@@ -195,5 +195,15 @@ class RealPropertyServiceTest {
         val missing = (RealPropertyCatalogue.textKeys() + AssetKind.entries.map { "assetKind.$it" })
             .filter { key -> Language.entries.any { key !in Messages.keys(it) } }
         assertTrue(missing.isEmpty(), "missing texts: $missing")
+    }
+
+    @Test
+    fun `a room measured in feet shows its area in whole square feet`() {
+        // 8 x 7 ft and 17 x 14 ft: rounding the square metres first gave 55.97 and 237.99 sq ft.
+        for ((l, w) in listOf(8 to 7, 17 to 14, 24 to 18)) {
+            val room = PropertyRoom(type = "LIVING", length = LengthUnit.FEET.toMetres(BigDecimal(l)), width = LengthUnit.FEET.toMetres(BigDecimal(w)))
+            assertEquals(BigDecimal(l * w).setScale(2), AreaUnit.SQUARE_FEET.fromSquareMetres(room.areaOrComputed!!))
+        }
+        assertEquals(0, BigDecimal("14.7").compareTo(PropertyRoom(type = "KITCHEN", length = BigDecimal("4.2"), width = BigDecimal("3.5")).areaOrComputed))
     }
 }

@@ -1,5 +1,5 @@
 // File path and name: app/desktop/src/screenshots/kotlin/ca/schippers/hfm/desktop/shots/ManualScreenshots.kt
-// Modified On Timestamp: 2026-10-25 @ 21:15 EDT
+// Modified On Timestamp: 2026-10-25 @ 23:02 EDT
 // Created On Timestamp: 2026-10-05 @ 21:54 EDT
 // File Description: Draws the manual's and the Microsoft Store's pictures of the sample household
 //   offscreen, at a fixed size, in light and dark colours and in English and French.
@@ -413,14 +413,7 @@ private val WEB_SHOTS: List<StoreShot> = listOf(
  * app/desktop/build/property-images/<lang>, never into the manual's folder.
  */
 private val PROPERTY_SHOTS: List<Shot> = buildList {
-    fun ShotScope.open(kind: AssetKind, tab: String?) {
-        section(Section.ASSETS)
-        click(model.books.assets.list().first { it.kind == kind }.name)
-        // Below the fold of the asset dialog.
-        press(t("assets.propertyDetails"))
-        // Most tabs start off the right edge of the row; a click there would land outside the dialog and close it.
-        tab?.let { press(it) }
-    }
+    fun ShotScope.open(kind: AssetKind, tab: String?) = openProperty(kind, tab)
     add(Shot("house-identification") { open(AssetKind.HOME, null) })
     add(Shot("house-address") { open(AssetKind.HOME, t("property.section.ADDRESS")) })
     add(Shot("house-legal") { open(AssetKind.HOME, t("property.section.LEGAL")) })
@@ -437,6 +430,27 @@ private val PROPERTY_SHOTS: List<Shot> = buildList {
     // AST-16: the estate summary lists each property with its address, roll number and parcel.
     add(Shot("estate-properties") { section(Section.ESTATE); reveal(t("estate.medicalPlans")) })
 }
+
+/** Opens the Property details of the family sample's first asset of [kind], on [tab] (null: the first). */
+private fun ShotScope.openProperty(kind: AssetKind, tab: String?) {
+    section(Section.ASSETS)
+    click(model.books.assets.list().first { it.kind == kind }.name)
+    // Below the fold of the asset dialog.
+    press(t("assets.propertyDetails"))
+    // Most tabs start off the right edge of the row; a click there would land outside the dialog and close it.
+    tab?.let { press(it) }
+}
+
+/**
+ * The Property details chapter's pictures, of the family sample's house: `manualScreenshots -Plang=en
+ * -Pset=property-manual` (then fr, and each with -Ptheme=dark) writes them into the manual's folder.
+ */
+private val MANUAL_PROPERTY_SHOTS: List<Shot> = listOf(
+    Shot("property") { openProperty(AssetKind.HOME, null) },
+    Shot("property-rooms") { openProperty(AssetKind.HOME, t("property.tab.ROOMS")) },
+    Shot("property-systems") { openProperty(AssetKind.HOME, t("property.tab.SYSTEMS")) },
+    Shot("property-fact-sheet") { openProperty(AssetKind.HOME, null); press(t("property.factSheet")) },
+)
 
 /** Lets the screen read its data and draw: a few frames, with time for background reads. */
 private fun settle(test: DesktopComposeUiTest) {
@@ -472,6 +486,8 @@ fun main() {
         (if (set == "web") WEB_SHOTS else STORE_SHOTS).map { Shot(if (language == Language.FRENCH) it.fr else it.en, it.prepare) }
     } else if (set == "property") {
         PROPERTY_SHOTS
+    } else if (set == "property-manual") {
+        MANUAL_PROPERTY_SHOTS
     } else {
         SHOTS
     }
@@ -481,7 +497,8 @@ fun main() {
     val app = AppState(prefs = MemoryPreferences())
     app.switchLanguage(language, remember = false)
     // The property pictures show the family sample, whose house and cottage have every detail filled in.
-    val session = if (set == "property") SampleHousehold.FAMILY.create(app.store, language) else DemoHousehold.create(app.store, language)
+    val family = set == "property" || set == "property-manual"
+    val session = if (family) SampleHousehold.FAMILY.create(app.store, language) else DemoHousehold.create(app.store, language)
     val model = BooksModel(session, app)
     app.screen = Screen.Main(model)
     var taken = 0

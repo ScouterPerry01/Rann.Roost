@@ -180,7 +180,7 @@ How it works:
 
 Each property has a card, in name order, with:
 
-- its name, its address and "tag:" with the name of its tag;
+- its name, its address (the linked property's address when it has one in its [property details](property)) and "tag:" with the name of its tag;
 - **Edit**: opens the property dialog;
 - **Income**: the total of the transactions with its tag in income categories, for the year;
 - one line per expense category, with the total spent in it, then **Expenses**: the total of all the expense categories;
@@ -192,6 +192,7 @@ The figures follow your categories: a transaction split between categories count
 ### Add a property dialog {#rental-dialog}
 
 - **Name**: the property's name, such as "Duplex on Bank Street". Required. When you add a property, a tag with this name is created for its transactions; if a tag with that name already exists, that tag is used. Renaming the property later renames its tag too ("The property's tag is renamed with it."), so the tagged transactions keep counting. If another tag already has the new name, the app says "Another tag is already named "name". Choose another name." and nothing is saved.
+- **The property (from Assets)**: the home, condo or building on the [Home and assets](assets) screen that this rental is, or "(none)". Shown when there is at least one home, cottage, condo, land or building in the property's group. When **Address** is still empty, choosing a property fills it with the address from its [property details](property).
 - **Address**: the property's address, shown on its card.
 - **The household's share (%)**: the part of the property the household owns, from 0.01 to 100. 100 by default. For a property owned half with someone else, enter 50: the card then shows the household's share of the net.
 - **Notes**: anything to remember about the property.

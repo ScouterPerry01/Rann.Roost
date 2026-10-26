@@ -1,5 +1,5 @@
 // File path and name: app/desktop/build.gradle.kts
-// Modified On Timestamp: 2026-10-12 @ 09:14 EDT
+// Modified On Timestamp: 2026-10-25 @ 23:02 EDT
 // Created On Timestamp: 2026-10-01 @ 15:53 EDT
 // File Description: Build of the desktop app: packages (MSI, MSIX, deb, rpm), the packaged runtime's
 //   JDK modules, the demo, the sample-household sweep and the manual and Store pictures.
@@ -248,6 +248,8 @@ tasks.register<JavaExec>("manualScreenshots") {
     // -Pset=property: the Property details pictures of the family sample, for checking by eye, into build/property-images.
     val property = providers.gradleProperty("set").orNull == "property"
     if (property) systemProperty("hfm.shots.set", "property")
+    // -Pset=property-manual: the Property details chapter's pictures of the family sample, into the manual's folder.
+    if (providers.gradleProperty("set").orNull == "property-manual") systemProperty("hfm.shots.set", "property-manual")
     systemProperty(
         "hfm.shots.out",
         if (property) {

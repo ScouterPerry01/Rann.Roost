@@ -36,7 +36,7 @@ Quand la liste est vide : « Aucun bien pour l’instant : commencez par la mais
 
 La boîte s’intitule **Ajouter un bien** ou **Bien**.
 
-- **Type** : **Maison**, **Chalet**, **Piscine**, **Terrain et jardin**, **VR**, **Bateau**, **Remorque**, **Électroménager** (par défaut), **Chauffage et climatisation**, **Électronique**, **Ordinateur**, **Mobilier**, **Bijoux**, **Œuvre d’art**, **Outils**, **Équipement sportif**, **Instrument de musique** ou **Autre**. Le type décide quelles tâches d’entretien habituelles sont offertes, quelle catégorie reçoit un paiement d’entretien, et si une maison peut avoir des projets (Maison et Chalet seulement).
+- **Type** : **Maison**, **Chalet**, **Condo**, **Terrain**, **Immeuble**, **Piscine**, **Terrain et jardin**, **VR**, **Bateau**, **Remorque**, **Électroménager** (par défaut), **Chauffage et climatisation**, **Électronique**, **Ordinateur**, **Mobilier**, **Bijoux**, **Œuvre d’art**, **Outils**, **Équipement sportif**, **Instrument de musique** ou **Autre**. Le type décide quelles tâches d’entretien habituelles sont offertes, quelle catégorie reçoit un paiement d’entretien, et s’il peut avoir des projets et une [fiche de la propriété](property) (Maison, Chalet, Condo, Terrain et Immeuble seulement).
 - **Nom** : par exemple « Maison (rue des Érables) » ou « Réfrigérateur de la cuisine ». Obligatoire.
 - **Fait partie de** : un autre bien auquel celui-ci appartient, ou « (aucun) ». La liste le montre en dessous, et une police qui couvre le parent le couvre aussi (une police habitation couvre son contenu). Un bien ne peut pas faire partie de lui-même ni d’une de ses propres parties. Un bien qui a des parties ne peut pas être supprimé tant qu’elles ne sont pas déplacées ou supprimées.
 - **Marque**, **Modèle** et **Numéro de série** : d’après l’étiquette ou la facture. On peut les chercher à l’onglet **Est-ce couvert ?**, et ils sont utiles pour une réclamation de garantie ou d’assurance.
@@ -54,6 +54,7 @@ La boîte s’intitule **Ajouter un bien** ou **Bien**.
 Boutons :
 
 - **Enregistrer** : enregistre le bien. Un nouveau bien doit être enregistré avant qu’on puisse y ajouter des garanties, des documents et de l’entretien ; ils paraissent alors en dessous.
+- **Fiche de la propriété…** (une fois enregistré, pour une maison, un chalet, un condo, un terrain ou un immeuble) : l’adresse, la désignation, le terrain, le bâtiment, les pièces, les systèmes, les propriétaires et le reste, et la fiche descriptive. Voir [Fiche de la propriété](property).
 - **Supprimer** (une fois enregistré) : demande « Supprimer « nom » avec ses garanties, tâches d’entretien, entretiens et lectures du compteur? Les opérations qui y sont liées sont conservées. » et, une fois confirmé, supprime le bien avec tout cela. C’est définitif. Le marquer vendu, donné ou jeté garde plutôt son historique.
 - **Fermer** : ferme la boîte. Les changements non enregistrés avec **Enregistrer** sont perdus.
 
@@ -283,13 +284,13 @@ Les saisons commencent aux dates astronomiques : le printemps le 20 mars, l’é
 
 « Les projets faits ou en cours sur une maison. Les améliorations en capital s’ajoutent à son prix de base, ce qui compte si la maison est vendue et n’a pas été la résidence principale chaque année. »
 
-En haut, **Ajouter un projet**. Pour chaque maison ou chalet qui a un prix payé ou des améliorations, une ligne « Maison : prix de base montant, dont des améliorations de montant », suivie de « moins montant en remises et subventions » quand des remises ont été reçues pour ses projets en capital. Puis les projets, chacun avec son nom, son état, sa maison, « Amélioration en capital » ou « Réparation », « rénovation écoénergétique : type » pour une rénovation écoénergétique, le budget et ce qui a été dépensé, en rouge quand le budget est dépassé, sous les en-têtes **Projet**, **Dépensé** et **Actions**. Cliquez sur un projet pour voir et ajouter ses coûts ; **Modifier** ouvre son formulaire. « Aucun projet pour l’instant. » quand il n’y en a pas.
+En haut, **Ajouter un projet**. Pour chaque maison, chalet, condo, terrain ou immeuble qui a un prix payé ou des améliorations, une ligne « Maison : prix de base montant, dont des améliorations de montant », suivie de « moins montant en remises et subventions » quand des remises ont été reçues pour ses projets en capital. Puis les projets, chacun avec son nom, son état, sa maison, « Amélioration en capital » ou « Réparation », « rénovation écoénergétique : type » pour une rénovation écoénergétique, le budget et ce qui a été dépensé, en rouge quand le budget est dépassé, sous les en-têtes **Projet**, **Dépensé** et **Actions**. Cliquez sur un projet pour voir et ajouter ses coûts ; **Modifier** ouvre son formulaire. « Aucun projet pour l’instant. » quand il n’y en a pas.
 
 ### Ajouter ou modifier un projet {#project-form}
 
 - **Projet** : le nom, par exemple « Nouveau toit » ou « Finir le sous-sol ».
 - **État** : **Prévu** (par défaut), **En cours** ou **Terminé**. Seuls les projets en cours ou terminés comptent dans le prix de base.
-- **Maison** : la maison ou le chalet visé, parmi les biens du type Maison ou Chalet ; ou **Rien en particulier**. La première maison est proposée.
+- **Maison** : la propriété visée, parmi les biens du type Maison, Chalet, Condo, Terrain ou Immeuble ; ou **Rien en particulier**. La première maison est proposée.
 - **Début** et **Fin** : la fin ne peut pas précéder le début.
 - **Budget** : ce que vous prévoyez dépenser.
 - **Rénovation écoénergétique** : **Pas une rénovation écoénergétique** (par défaut), ou le type de rénovation : **Isolation**, **Étanchéité à l’air**, **Thermopompe**, **Portes et fenêtres**, **Chauffe-eau**, **Panneaux solaires**, **Thermostat intelligent** ou **Autre rénovation**. Il désigne le projet comme rénovation écoénergétique dans la liste ; des remises et subventions peuvent être inscrites sur n’importe quel projet.

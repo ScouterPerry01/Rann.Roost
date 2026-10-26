@@ -6,6 +6,12 @@ La section Maison et biens suit la maison et tout ce qui mérite d’être suivi
 
 Dans l’onglet Biens, choisissez Ajouter un bien. Inscrivez le type, le nom, la marque, le modèle, le numéro de série et l’emplacement. Avec Trouver l’achat, liez l’achat inscrit dans vos comptes. Sous Valeur, inscrivez une estimation ou laissez la valeur baisser chaque mois à partir du prix. Cochez Compter dans la valeur nette au besoin. Ajoutez les garanties avec Ajouter une garantie, et les photos sous Photos et documents.
 
+## Fiche de la propriété
+
+Pour une maison, un chalet, un condo, un terrain ou un immeuble, enregistrez le bien, puis choisissez Fiche de la propriété… pour l’ouvrir. Ses onglets gardent l’adresse, la désignation cadastrale et le numéro de rôle, le terrain, le bâtiment, le sous-sol, le stationnement, la piscine, la copropriété, la valeur et les taxes, chaque pièce, les systèmes (fournaise, chauffe-eau, puits, fosse septique), les bâtiments annexes, les propriétaires inscrits au titre, les années de résidence principale et tout autre détail. Tout est facultatif. Choisissez les unités en haut : pieds carrés ou mètres carrés, pieds ou mètres. Choisissez Enregistrer avant de fermer.
+
+Fiche descriptive (PDF)… produit un PDF de ce qui est enregistré, pour un assureur, un acheteur, un liquidateur ou un entrepreneur ; décochez la désignation ou les propriétaires pour les omettre. L’adresse, le numéro de rôle et la parcelle paraissent aussi dans le sommaire d’urgence et l’inventaire du domicile. Les années de résidence principale aident à remplir le formulaire T2091 ; ce n’est pas un conseil fiscal.
+
 ## Entretien
 
 Dans la fiche d’un bien, ajoutez des tâches avec Ajouter les tâches habituelles ou Ajouter une tâche. Une tâche revient après un nombre de mois, d’heures ou de kilomètres à son compteur, ou chaque année à la même saison, au premier terme atteint. L’onglet Entretien liste ce qui est dû pour les véhicules et le reste, pour Ce mois-ci ou les 12 prochains mois.

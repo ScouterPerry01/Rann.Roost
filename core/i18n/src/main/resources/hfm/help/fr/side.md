@@ -14,6 +14,6 @@ Ajoutez un client avec un taux horaire et, si vous voulez, des tâches avec leur
 
 ## Immeubles locatifs
 
-Ajouter un immeuble crée une étiquette à son nom. Mettez cette étiquette sur les loyers et les dépenses de l’immeuble dans les registres, et l’onglet les additionne par catégorie pour l’année choisie : revenus, dépenses et net. Si le ménage ne possède qu’une partie de l’immeuble, entrez sa part, et l’onglet montre la part du net qui revient au ménage.
+Ajouter un immeuble crée une étiquette à son nom. Mettez cette étiquette sur les loyers et les dépenses de l’immeuble dans les registres, et l’onglet les additionne par catégorie pour l’année choisie : revenus, dépenses et net. Si le ménage ne possède qu’une partie de l’immeuble, entrez sa part, et l’onglet montre la part du net qui revient au ménage. Sous La propriété (parmi les biens), liez la location à sa maison ou à son immeuble de l’écran Maison et biens ; une adresse vide prend alors celle de la propriété.
 
 RANN's Roost ne prépare pas le T776 et ne donne pas de conseils fiscaux ; les totaux vous aident, vous ou votre préparateur, à le remplir.

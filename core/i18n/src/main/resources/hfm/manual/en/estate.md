@@ -27,6 +27,7 @@ In this order:
 - **Papers and wishes of name**: one section for each person who has a record on the **Papers and wishes** tab: where the will is (with its date), the power of attorney, the mandate or personal care directive, the safe deposit box and its keys, the online accounts, other papers, whether the person is an organ and tissue donor, funeral wishes, notes, then each person to call with their role, firm, phone, email and notes.
 - **Institutions**: every institution under **Institutions** in the settings, with its branch, phone and website.
 - **Accounts**: every open account, sorted by institution, with its type, institution, masked number, owners, balance, and for a registered plan its beneficiaries and their shares. The section ends with "Balances as of" today's date.
+- **Homes and land**: every home, cottage, condo, land and building from [Home and assets](assets), in name order, with its kind and, when recorded in its [property details](property), its address, assessment roll number and parcel identifier.
 - **Insurance policies**: every active policy from the **Insurance** tab of [Home and assets](assets#insurance-tab): its kind and insurer, policy number, person insured, coverage amount, broker and beneficiaries.
 - **Health and dental plans**: every active plan from [Medical claims](medical): its kind and name, insurer, policy and certificate numbers, the plan member, and the people it covers.
 - **Pensions**: the pension plans recorded under [Registered plans](plans), with their kind, member, administrator and member number.

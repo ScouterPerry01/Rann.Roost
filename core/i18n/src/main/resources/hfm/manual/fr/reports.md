@@ -457,7 +457,7 @@ Une fois deux revenus entrés, une ligne par conjoint indique combien compterait
 Les biens du ménage à la date du jour, dans la devise de base. Ce rapport n’a pas de filtres.
 
 - **Articles**, **Payé** (les prix d’achat additionnés) et **Valeur aujourd’hui** (les valeurs estimées additionnées).
-- **Inventaire du domicile avec photos (PDF)…** : demande où enregistrer, puis produit un PDF pour l’assureur après un sinistre : une ligne de sommaire, puis chaque article trié par emplacement et par nom, avec son type, sa marque, son modèle, son numéro de série, son emplacement ou l’article dont il fait partie, sa date d’achat, son prix, sa valeur aujourd’hui et les photos qui y sont jointes.
+- **Inventaire du domicile avec photos (PDF)…** : demande où enregistrer, puis produit un PDF pour l’assureur après un sinistre : une ligne de sommaire, puis chaque article trié par emplacement et par nom, avec son type, sa marque, son modèle, son numéro de série, pour une propriété son adresse, son numéro de rôle et sa parcelle (de sa [fiche de la propriété](property)), son emplacement ou l’article dont il fait partie, sa date d’achat, son prix, sa valeur aujourd’hui et les photos qui y sont jointes.
 - Le tableau énumère chaque bien avec **Nom**, **Type**, **Fait partie de**, **Emplacement (pièce, garage, chalet)**, **Acheté le**, **Prix payé**, **Valeur estimée** et **Couvert jusqu’au** (la dernière date couverte par une garantie ou une protection active).
 - Les garanties qui se terminent d’ici 90 jours, ou « Aucune. »
 - Non couverts par une police : les biens et véhicules qu’aucune police d’assurance active ne couvre, directement ou comme partie de quelque chose d’assuré, en rouge.

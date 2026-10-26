@@ -14,6 +14,6 @@ Add a client with an hourly rate and, if you like, tasks with their own rate. Ad
 
 ## Rental properties
 
-Add a property creates a tag with its name. Put that tag on the property's rent and expenses in the registers, and the tab adds them up by category for the year you choose: income, expenses and net. If the household owns only part of the property, enter its share, and the tab shows the household's part of the net.
+Add a property creates a tag with its name. Put that tag on the property's rent and expenses in the registers, and the tab adds them up by category for the year you choose: income, expenses and net. If the household owns only part of the property, enter its share, and the tab shows the household's part of the net. Under The property (from Assets), link the rental to its home or building on the Home and assets screen; an empty address then takes the property's.
 
 RANN's Roost does not prepare a T776 or give tax advice; the totals help you or your preparer fill one in.

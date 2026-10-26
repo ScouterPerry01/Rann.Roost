@@ -1,5 +1,5 @@
 // File path and name: app/desktop/src/screenshots/kotlin/ca/schippers/hfm/desktop/shots/ManualScreenshots.kt
-// Modified On Timestamp: 2026-10-25 @ 20:05 EDT
+// Modified On Timestamp: 2026-10-25 @ 21:15 EDT
 // Created On Timestamp: 2026-10-05 @ 21:54 EDT
 // File Description: Draws the manual's and the Microsoft Store's pictures of the sample household
 //   offscreen, at a fixed size, in light and dark colours and in English and French.
@@ -125,6 +125,14 @@ private class ShotScope(val app: AppState, val model: BooksModel, val test: Desk
         runCatching { node.performScrollTo() }
         test.mainClock.autoAdvance = false
         node.performClick()
+    }
+
+    /** Scrolls a plain (not lazy) scrolling column until the text showing [label] is in view. */
+    fun reveal(label: String) {
+        settle(test)
+        test.mainClock.autoAdvance = true
+        test.onAllNodes(hasText(label))[0].performScrollTo()
+        test.mainClock.autoAdvance = false
     }
 
     /** Types [text] into the [index]th field labelled [label], replacing what it shows. */
@@ -426,6 +434,8 @@ private val PROPERTY_SHOTS: List<Shot> = buildList {
     add(Shot("cottage-land") { open(AssetKind.COTTAGE, t("property.section.LAND")) })
     add(Shot("cottage-systems") { open(AssetKind.COTTAGE, t("property.tab.SYSTEMS")) })
     add(Shot("cottage-structures") { open(AssetKind.COTTAGE, t("property.tab.STRUCTURES")) })
+    // AST-16: the estate summary lists each property with its address, roll number and parcel.
+    add(Shot("estate-properties") { section(Section.ESTATE); reveal(t("estate.medicalPlans")) })
 }
 
 /** Lets the screen read its data and draw: a few frames, with time for background reads. */

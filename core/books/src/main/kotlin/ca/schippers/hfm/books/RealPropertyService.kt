@@ -1,5 +1,5 @@
 // File path and name: core/books/src/main/kotlin/ca/schippers/hfm/books/RealPropertyService.kt
-// Modified On Timestamp: 2026-10-25 @ 20:40 EDT
+// Modified On Timestamp: 2026-10-25 @ 21:13 EDT
 // Created On Timestamp: 2026-10-25 @ 16:45 EDT
 // File Description: Real-property details of a house, cottage, condo, land or building (AST-06 to AST-17):
 //   fields from RealPropertyCatalogue, rooms, systems, outbuildings, owners, residence years and custom fields.
@@ -11,6 +11,7 @@ package ca.schippers.hfm.books
 import ca.schippers.hfm.calc.Province
 import ca.schippers.hfm.domain.Ids
 import ca.schippers.hfm.domain.PermissionLevel
+import ca.schippers.hfm.i18n.Language
 import ca.schippers.hfm.money.Currency
 import ca.schippers.hfm.money.Money
 import kotlinx.datetime.LocalDate
@@ -254,6 +255,10 @@ class RealPropertyService internal constructor(private val books: Books) {
             }
         }.sortedBy { it.year }
     }
+
+    /** AST-16: the fact sheet of property [assetId], as saved, in [language]. */
+    fun factSheet(assetId: String, language: Language, options: FactSheetOptions): FactSheet =
+        PropertyFactSheet(books, language, books.today()).build(get(assetId), books.assets.get(assetId), options)
 
     // --- Validation -------------------------------------------------------------------------------
 

@@ -1,3 +1,11 @@
+// File path and name: core/ocr-desktop/src/main/kotlin/ca/schippers/hfm/ocr/desktop/DocumentReader.kt
+// Modified On Timestamp: 2026-10-25 @ 21:13 EDT
+// Created On Timestamp: 2026-10-02 @ 08:02 EDT
+// File Description: Reads documents on the desktop (PDF text and pages, images, HEIC) and writes PDFs:
+//   multi-page captures, the home inventory, the property fact sheet and receipt bundles (PdfPages).
+// Uses: Apache PDFBox, ImageIO, the HEIC helper, core/ocr.
+// Used By: DocumentImport, DocumentViewer, AssetsReport, MedicalReport, PropertyDialog, SyncServer (app/desktop).
+// Purpose: Keep PDF and image handling in one desktop-only module.
 package ca.schippers.hfm.ocr.desktop
 
 import ca.schippers.hfm.ocr.OcrLine
@@ -200,6 +208,86 @@ object PdfPages {
                 }
                 if (photos.isNotEmpty()) y -= 170f
                 y -= 8f
+            }
+        } finally {
+            cs.close()
+        }
+        java.io.ByteArrayOutputStream().also { doc.save(it) }.toByteArray()
+    }
+
+    /**
+     * AST-16: a property fact sheet on letter pages: [title], the [subtitle] lines, then each section's
+     * heading and its label / value lines, labels on the left and values wrapped on the right.
+     */
+    fun factSheet(title: String, subtitle: List<String>, sections: List<Pair<String, List<Pair<String, String>>>>): ByteArray = org.apache.pdfbox.pdmodel.PDDocument().use { doc ->
+        val font = org.apache.pdfbox.pdmodel.font.PDType1Font(org.apache.pdfbox.pdmodel.font.Standard14Fonts.FontName.HELVETICA)
+        val bold = org.apache.pdfbox.pdmodel.font.PDType1Font(org.apache.pdfbox.pdmodel.font.Standard14Fonts.FontName.HELVETICA_BOLD)
+        // French numbers group with no-break spaces, which the standard fonts do not have.
+        fun safe(text: String, f: org.apache.pdfbox.pdmodel.font.PDType1Font) = text.replace(' ', ' ').replace(' ', ' ')
+            .map { c -> if (runCatching { f.encode(c.toString()) }.isSuccess) c else '?' }.joinToString("")
+        fun width(text: String, f: org.apache.pdfbox.pdmodel.font.PDType1Font, size: Float) = f.getStringWidth(safe(text, f)) / 1000f * size
+        /** [text] cut into lines no wider than [max] points, at spaces where it can be. */
+        fun wrap(text: String, f: org.apache.pdfbox.pdmodel.font.PDType1Font, size: Float, max: Float): List<String> = text.split('\n').flatMap { para ->
+            val lines = ArrayList<String>()
+            var current = ""
+            for (word in para.split(' ')) {
+                val tryLine = if (current.isEmpty()) word else "$current $word"
+                if (width(tryLine, f, size) <= max || current.isEmpty() && width(word, f, size) <= max) {
+                    current = tryLine
+                    continue
+                }
+                if (current.isNotEmpty()) lines += current
+                // A word wider than the column is cut wherever it must be.
+                var rest = word
+                while (width(rest, f, size) > max) {
+                    var n = rest.length
+                    while (n > 1 && width(rest.take(n), f, size) > max) n--
+                    lines += rest.take(n)
+                    rest = rest.drop(n)
+                }
+                current = rest
+            }
+            lines + current
+        }
+        val box = org.apache.pdfbox.pdmodel.common.PDRectangle.LETTER
+        val left = 56f
+        val labelWidth = 170f
+        val valueX = left + labelWidth + 10f
+        val valueWidth = box.width - left - valueX
+        var page = org.apache.pdfbox.pdmodel.PDPage(box).also { doc.addPage(it) }
+        var cs = org.apache.pdfbox.pdmodel.PDPageContentStream(doc, page)
+        var y = box.height - 56f
+        fun newPage() {
+            cs.close()
+            page = org.apache.pdfbox.pdmodel.PDPage(box).also { doc.addPage(it) }
+            cs = org.apache.pdfbox.pdmodel.PDPageContentStream(doc, page)
+            y = box.height - 56f
+        }
+        fun text(x: Float, s: String, f: org.apache.pdfbox.pdmodel.font.PDType1Font, size: Float) {
+            cs.beginText(); cs.setFont(f, size); cs.newLineAtOffset(x, y); cs.showText(safe(s, f)); cs.endText()
+        }
+        try {
+            wrap(title, bold, 15f, box.width - 2 * left).forEach { text(left, it, bold, 15f); y -= 19f }
+            subtitle.forEach { s -> wrap(s, font, 10f, box.width - 2 * left).forEach { text(left, it, font, 10f); y -= 14f } }
+            for ((heading, rows) in sections) {
+                // A heading never sits alone at the foot of a page.
+                y -= 8f
+                if (y < 56f + 40f) newPage()
+                text(left, heading, bold, 11.5f)
+                y -= 4f
+                cs.moveTo(left, y); cs.lineTo(box.width - left, y); cs.setLineWidth(0.5f); cs.stroke()
+                y -= 13f
+                for ((label, value) in rows) {
+                    val labels = wrap(label, bold, 9f, labelWidth)
+                    val values = wrap(value, font, 9f, valueWidth)
+                    for (i in 0 until maxOf(labels.size, values.size)) {
+                        if (y < 56f) newPage()
+                        labels.getOrNull(i)?.let { text(left, it, bold, 9f) }
+                        values.getOrNull(i)?.let { text(valueX, it, font, 9f) }
+                        y -= 12f
+                    }
+                    y -= 2f
+                }
             }
         } finally {
             cs.close()

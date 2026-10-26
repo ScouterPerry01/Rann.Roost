@@ -1,3 +1,11 @@
+// File path and name: core/books/src/main/kotlin/ca/schippers/hfm/books/HomeAndSideIncome.kt
+// Modified On Timestamp: 2026-10-25 @ 21:13 EDT
+// Created On Timestamp: 2026-10-05 @ 03:28 EDT
+// File Description: Services for contractors (MNT-08), home projects (MNT-09), invoices (SAL-04), rental
+//   properties linked to their property (SAL-05, AST-16) and card rewards (CC-03).
+// Uses: Books, the ledger's Extras queries, AssetService, the core tags.
+// Used By: Books (contractors, homeProjects, invoices, rentals, rewards); ExtrasScreens.kt on the desktop.
+// Purpose: Keep the household's smaller records in one place.
 package ca.schippers.hfm.books
 
 import ca.schippers.hfm.domain.Ids
@@ -382,6 +390,11 @@ class RentalService internal constructor(private val books: Books) {
         val name = p.name.trim()
         val existing = list().firstOrNull { it.id == p.id }
         val group = books.editable(existing?.groupId ?: p.groupId)
+        // AST-16: the property it is, a house, condo or building of the same group.
+        p.assetId?.let { a ->
+            val asset = books.assets.get(a)
+            validate(asset.kind in REAL_PROPERTY_KINDS && asset.groupId == group.id, "error.propertyKind")
+        }
         val tagId = p.tagId.ifBlank {
             books.core.insertTag(Ids.newId(), name)
             books.core.tagByName(name).executeAsOne().id

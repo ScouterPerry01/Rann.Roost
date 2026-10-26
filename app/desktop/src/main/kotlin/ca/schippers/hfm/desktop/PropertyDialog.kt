@@ -1,10 +1,11 @@
 // File path and name: app/desktop/src/main/kotlin/ca/schippers/hfm/desktop/PropertyDialog.kt
-// Modified On Timestamp: 2026-10-25 @ 19:10 EDT
+// Modified On Timestamp: 2026-10-25 @ 21:13 EDT
 // Created On Timestamp: 2026-10-25 @ 19:10 EDT
 // File Description: The Property details dialog of a house, cottage, condo, land or building: one tab per
 //   catalogue section, then rooms, systems, outbuildings, owners, principal-residence years and custom fields.
-// Uses: RealPropertyService and RealPropertyCatalogue (core/books); Components.kt inputs; core/i18n texts.
-// Used By: AssetDialog (AssetsScreen.kt).
+// Uses: RealPropertyService, RealPropertyCatalogue and the fact sheet (core/books); PdfPages (core/ocr-desktop);
+//   Components.kt inputs; core/i18n texts.
+// Used By: AssetDialog (AssetsScreen.kt); propertyIdentity by the estate summary and home inventory.
 // Purpose: AST-06 to AST-17 on the desktop: record everything about a property in one place.
 package ca.schippers.hfm.desktop
 
@@ -41,6 +42,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import ca.schippers.hfm.books.Asset
+import ca.schippers.hfm.books.FactSheetOptions
 import ca.schippers.hfm.books.AssetKind
 import ca.schippers.hfm.books.AreaUnit
 import ca.schippers.hfm.books.LengthUnit
@@ -57,13 +59,17 @@ import ca.schippers.hfm.books.RealPropertyCatalogue
 import ca.schippers.hfm.books.RealPropertyService
 import ca.schippers.hfm.books.ResidenceYear
 import ca.schippers.hfm.books.ValidationException
+import ca.schippers.hfm.books.yearRanges
 import ca.schippers.hfm.calc.Province
 import ca.schippers.hfm.money.Currency
 import ca.schippers.hfm.money.Money
 import ca.schippers.hfm.money.MoneyFormat
+import ca.schippers.hfm.ocr.desktop.PdfPages
 import kotlinx.datetime.LocalDate
 import java.math.BigDecimal
+import java.io.File
 import java.util.Locale
+import javax.swing.JFileChooser
 import java.util.UUID
 
 /** The tabs after the catalogue sections: the lists of a property. */
@@ -132,23 +138,8 @@ internal fun parseYears(text: String): List<Int> = text.split(',', ';', ' ').map
     (from..to).toList()
 }.distinct().sorted()
 
-/** Years written back as ranges: 2015-2019, 2023. */
-internal fun formatYears(years: List<Int>): String {
-    val out = ArrayList<String>()
-    var start: Int? = null
-    var last = 0
-    for (y in years.sorted().distinct()) {
-        if (start != null && y == last + 1) {
-            last = y
-            continue
-        }
-        start?.let { out += if (it == last) "$it" else "$it-$last" }
-        start = y
-        last = y
-    }
-    start?.let { out += if (it == last) "$it" else "$it-$last" }
-    return out.joinToString(", ")
-}
+/** Years written back as ranges: 2015-2019, 2023 (shared with the fact sheet). */
+internal fun formatYears(years: List<Int>): String = yearRanges(years)
 
 /** AST-06 to AST-17: everything about a house, cottage, condo, land or building. */
 @OptIn(ExperimentalLayoutApi::class)
@@ -288,6 +279,7 @@ fun PropertyDialog(model: BooksModel, asset: Asset, onClose: () -> Unit) {
     val lists = PropertyList.entries.filter { it != PropertyList.ROOMS || asset.kind != AssetKind.LAND }
     val tabs: List<Any> = sections + lists
     var tab by remember { mutableStateOf(0) }
+    var factSheet by remember { mutableStateOf(false) }
 
     WideDialog(model.t("property.title", asset.name), model.t("common.close"), onClose) {
         Column(Modifier.width(820.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -313,8 +305,48 @@ fun PropertyDialog(model: BooksModel, asset: Asset, onClose: () -> Unit) {
                     PropertyList.CUSTOM -> CustomEditor(model, custom)
                 }
             }
-            Button(onClick = { model.act { books.realProperty.save(build()) } }) { Text(model.t("common.save")) }
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                Button(onClick = { model.act { books.realProperty.save(build()) } }) { Text(model.t("common.save")) }
+                OutlinedButton(onClick = { factSheet = true }) { Text(model.t("property.factSheet")) }
+            }
         }
+    }
+    if (factSheet) FactSheetDialog(model, asset, FactSheetOptions(area, length)) { factSheet = false }
+}
+
+/**
+ * AST-16: a property's address, roll number and parcel identifier on one line, for the estate summary and
+ * the home inventory; null when none of them is recorded.
+ */
+internal fun propertyIdentity(model: BooksModel, assetId: String): String? {
+    val p = runCatching { model.books.realProperty.get(assetId) }.getOrNull() ?: return null
+    fun labelled(key: String) = p.text(key)?.let { model.t("property.factSheet.pair", model.t("property.field.$key"), it) }
+    return listOfNotNull(p.addressLines().joinToString(", ").ifBlank { null }, labelled("roll_number"), labelled("parcel_id"))
+        .joinToString(" · ").ifBlank { null }
+}
+
+/** AST-16: asks whether to keep the legal identifiers and owners, then where to save the PDF. */
+@Composable
+private fun FactSheetDialog(model: BooksModel, asset: Asset, units: FactSheetOptions, onClose: () -> Unit) {
+    var legal by remember { mutableStateOf(true) }
+    var owners by remember { mutableStateOf(true) }
+    FormDialog(model.t("property.factSheet"), model.t("common.save"), model.t("common.cancel"), onDismiss = onClose, onSave = {
+        val chooser = JFileChooser().apply {
+            dialogTitle = model.t("property.factSheet")
+            selectedFile = File(model.t("property.factSheet.file", asset.name).replace(Regex("[\\\\/:*?\"<>|]"), "-") + ".pdf")
+        }
+        if (chooser.showSaveDialog(null) == JFileChooser.APPROVE_OPTION) {
+            model.act {
+                val sheet = model.books.realProperty.factSheet(asset.id, model.language, units.copy(legal = legal, owners = owners))
+                val pdf = PdfPages.factSheet(sheet.title, sheet.subtitle, sheet.sections.map { it.title to it.rows })
+                chooser.selectedFile.let { if (it.extension.equals("pdf", true)) it else File(it.path + ".pdf") }.writeBytes(pdf)
+            }
+            onClose()
+        }
+    }) {
+        Text(model.t("property.factSheet.hint"), style = MaterialTheme.typography.bodySmall)
+        LabeledCheckbox(model.t("property.factSheet.includeLegal"), legal) { legal = it }
+        LabeledCheckbox(model.t("property.factSheet.includeOwners"), owners) { owners = it }
     }
 }
 

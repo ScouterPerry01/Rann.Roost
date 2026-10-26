@@ -1,3 +1,11 @@
+// File path and name: core/books/src/test/kotlin/ca/schippers/hfm/books/ExtrasTest.kt
+// Modified On Timestamp: 2026-10-25 @ 21:13 EDT
+// Created On Timestamp: 2026-10-05 @ 03:28 EDT
+// File Description: Tests of the side-income and home services: contractors, home projects, invoices,
+//   rental properties (with their linked property) and card rewards.
+// Uses: HomeAndSideIncome.kt services, a test household (SQLCipher JDBC driver).
+// Used By: ./gradlew :core:books:test
+// Purpose: Keep the household's smaller records correct.
 package ca.schippers.hfm.books
 
 import ca.schippers.hfm.calc.Province
@@ -233,5 +241,15 @@ class ExtrasTest {
         books.rentals.delete(renamed, removeTag = true)
         assertTrue(books.tags().none { it.id == duplex.tagId })
         assertTrue(books.transactions.register(chequing.id).single().transaction.tagIds.isEmpty(), "the transaction stays, without the tag")
+    }
+
+    @Test
+    fun `a rental property links to a house, condo or building of the same group`() {
+        val duplex = books.assets.save(Asset("", group, AssetKind.BUILDING, "Duplex"))
+        val canoe = books.assets.save(Asset("", group, AssetKind.BOAT, "Canoe"))
+        val rental = books.rentals.save(RentalProperty("", group, "Duplex on Elm", "", null, assetId = duplex.id))
+        assertEquals(duplex.id, rental.assetId)
+        assertEquals("error.propertyKind", assertFailsWith<ValidationException> { books.rentals.save(rental.copy(assetId = canoe.id)) }.key)
+        assertEquals(null, books.rentals.save(rental.copy(assetId = null)).assetId, "the link can be removed")
     }
 }

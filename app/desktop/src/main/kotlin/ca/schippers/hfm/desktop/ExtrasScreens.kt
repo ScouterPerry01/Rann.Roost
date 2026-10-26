@@ -1,5 +1,5 @@
 // File path and name: app/desktop/src/main/kotlin/ca/schippers/hfm/desktop/ExtrasScreens.kt
-// Modified On Timestamp: 2026-10-25 @ 17:53 EDT
+// Modified On Timestamp: 2026-10-25 @ 21:13 EDT
 // Created On Timestamp: 2026-10-05 @ 03:52 EDT
 // File Description: The side-income and home screens (OTH-02, MNT-08, MNT-09, SAL-04, SAL-05, CC-03): trips,
 //   contractors, home projects, invoices, rental properties and card rewards.
@@ -987,7 +987,11 @@ private fun RentalsTab(model: BooksModel) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Column(Modifier.weight(1f)) {
                             Text(p.name, fontWeight = FontWeight.Medium)
-                            Text(listOfNotNull(p.address, model.t("rental.tagged", books.tags().firstOrNull { it.id == p.tagId }?.name.orEmpty())).joinToString(" · "), style = MaterialTheme.typography.bodySmall)
+                            // A rental linked to its property shows the property's address (AST-16).
+                            val address = remember(model.revision, p.assetId) {
+                                p.assetId?.let { a -> runCatching { books.realProperty.get(a).addressLines().joinToString(", ") }.getOrNull()?.ifBlank { null } } ?: p.address
+                            }
+                            Text(listOfNotNull(address, model.t("rental.tagged", books.tags().firstOrNull { it.id == p.tagId }?.name.orEmpty())).joinToString(" · "), style = MaterialTheme.typography.bodySmall)
                         }
                         TextButton(onClick = { editing = p }) { Text(model.t("rental.edit")) }
                     }
@@ -1009,14 +1013,26 @@ private fun RentalDialog(model: BooksModel, p: RentalProperty, onClose: () -> Un
     var address by remember { mutableStateOf(p.address.orEmpty()) }
     var share by remember { mutableStateOf(BigDecimal(p.shareBp).movePointLeft(2).stripTrailingZeros().toPlainString()) }
     var notes by remember { mutableStateOf(p.notes.orEmpty()) }
+    var assetId by remember { mutableStateOf(p.assetId) }
     var asking by remember { mutableStateOf(false) }
     var removeTag by remember { mutableStateOf(false) }
     val tag = remember { model.books.tags().firstOrNull { it.id == p.tagId }?.name }
+    // AST-16: the house, condo or building it is, from the Assets screen.
+    val homes = remember { model.books.assets.list().filter { it.kind in REAL_PROPERTY_KINDS && it.groupId == p.groupId }.associate { it.id to it.name } }
     FormDialog(model.t(if (p.id.isBlank()) "rental.add" else "rental.edit"), model.t("common.save"), model.t("common.cancel"), onDismiss = onClose, onSave = {
-        val ok = model.act { model.books.rentals.save(p.copy(name = name, address = address, shareBp = decimal(share, "error.rentalShare").movePointRight(2).toInt(), notes = notes)) }
+        val ok = model.act {
+            model.books.rentals.save(p.copy(name = name, address = address, shareBp = decimal(share, "error.rentalShare").movePointRight(2).toInt(), notes = notes, assetId = assetId))
+        }
         if (ok != null) onClose()
     }) {
         TextInput(model.t("rental.name"), name, supporting = model.t(if (p.id.isBlank()) "rental.nameHint" else "rental.renameHint")) { name = it }
+        if (homes.isNotEmpty() || assetId != null) {
+            Picker(model.t("rental.property"), listOf<String?>(null) + homes.keys, assetId, { id -> id?.let { homes[it] } ?: model.t("common.none") }) { picked ->
+                assetId = picked
+                // An empty address takes the property's.
+                if (address.isBlank() && picked != null) address = model.books.realProperty.get(picked).addressLines().joinToString(", ")
+            }
+        }
         TextInput(model.t("rental.address"), address) { address = it }
         TextInput(model.t("rental.sharePercent"), share) { share = it }
         TextInput(model.t("calendar.notes"), notes, singleLine = false) { notes = it }

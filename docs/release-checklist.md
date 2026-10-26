@@ -1,6 +1,6 @@
 <!--
 File path and name: docs/release-checklist.md
-Modified On Timestamp: 2026-10-21 @ 12:08 EDT
+Modified On Timestamp: 2026-10-26 @ 02:36 EDT
 Created On Timestamp: 2026-10-06 @ 17:12 EDT
 File Description: The owner's release-day checklist for the desktop app (keys, tag, GitHub release, Microsoft Store).
 Uses: .github/workflows/release.yml, docs/store/, branding/store/, docs/releases/.
@@ -20,6 +20,14 @@ Background: [ADR 0008](adr/0008-signed-releases-and-updates.md) (signed releases
 `.github/workflows/release.yml`, the store texts in [`docs/store/`](store), the rann.ca pages in
 [`website/`](../website). Release notes: [`docs/releases/1.0.0.en.md`](releases/1.0.0.en.md) and
 [`.fr.md`](releases/1.0.0.fr.md).
+
+**Microsoft Store identity** (Partner Center > RANN's Roost > Product identity; all public):
+
+- Store ID `9NZC41PQ1BWG`; listing https://apps.microsoft.com/detail/9NZC41PQ1BWG;
+  protocol link `ms-windows-store://pdp/?productid=9NZC41PQ1BWG`.
+- Package identity name `RANN.RannsRoost`; publisher `CN=A48DF0F5-6188-4675-BF5D-92E006CC2E83`;
+  publisher display name `RANN` (kept in `app/desktop/packaging/msix/store-identity.properties`).
+- Package family name `RANN.RannsRoost_9cg7jhsmyye38`.
 
 ## 0. Before the day
 
@@ -238,7 +246,8 @@ The phone app is released from its own repository, Rann.Roost.Mobile: follow its
       app and Google". If the page changes, set its "Effective" date to the day you publish it, in both
       languages and in the files.
 - [ ] **Home pages** (`/rann-roost` and `/rann-roost-fr`): under "Get RANN's Roost", replace each
-      "Coming soon" with a button to the Microsoft Store listing, the GitHub release
+      "Coming soon" with a button to the Microsoft Store listing
+      (https://apps.microsoft.com/detail/9NZC41PQ1BWG), the GitHub release
       (https://github.com/ScouterPerry01/Rann.Roost/releases/latest) and,
       once in production, the Play listing.
 - [ ] **Images:** upload `website/images/` to Google Drive and replace the pictures on both home pages

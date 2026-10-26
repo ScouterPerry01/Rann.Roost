@@ -1,4 +1,12 @@
 <!--
+File path and name: website/rann-roost-fr.md
+Modified On Timestamp: 2026-10-26 @ 02:36 EDT
+Created On Timestamp: 2026-10-04 @ 03:26 EDT
+File Description: Text of the French RANN's Roost home page on rann.ca.
+Uses: website/images/.
+Used By: The owner, pasting into Google Sites.
+Purpose: Keep the live page's text under version control.
+
 Page d'accueil pour https://www.rann.ca/rann-apps/rann-roost/rann-roost-fr, à construire dans l'éditeur Google Sites.
 Les lignes [entre crochets] sont des instructions pour construire la page, pas du texte à coller.
 Les images s'insèrent par Insérer > Images > Sélectionner dans Drive (fichiers de website/images/).
@@ -73,11 +81,11 @@ Le téléphone affiche aussi les budgets du mois, les factures à payer et l'ent
 
 **Windows**
 Dans le Microsoft Store, 19,99 $ CA.
-Bientôt offert.
+[Bouton « Obtenir dans le Microsoft Store » → https://apps.microsoft.com/detail/9NZC41PQ1BWG]
 
 **Linux**
 Paquets .deb, .rpm et AppImage gratuits.
-Bientôt offert.
+[Bouton « Télécharger sur GitHub » → https://github.com/ScouterPerry01/Rann.Roost/releases/latest]
 
 **Compagnon Android**
 4,99 $ CA sur Google Play. Nécessite RANN's Roost sur votre ordinateur.

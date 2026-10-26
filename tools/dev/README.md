@@ -1,6 +1,6 @@
 <!--
 File path and name: tools/dev/README.md
-Modified On Timestamp: 2026-10-25 @ 15:30 EDT
+Modified On Timestamp: 2026-10-25 @ 20:55 EDT
 Created On Timestamp: 2026-10-02 @ 10:27 EDT
 File Description: Index and instructions for the development helper scripts in tools/dev.
 Uses: The scripts in tools/dev; the Gradle screenshot tasks in app/desktop.
@@ -19,7 +19,7 @@ Small scripts used while building and checking the app. They are not part of the
 | `shot.ps1` | `powershell -File tools/dev/shot.ps1 -Out screen.png` waits for the desktop app's window (a `java` process) and saves a picture of it. It also finds the installed app (`RANN's Roost.exe`); either way it captures only the app's own window. |
 | `fake_anthropic.py` | `python tools/dev/fake_anthropic.py [port] [folder]` stands in for Anthropic's Messages API, so the AI reading screens can be tried in the demo (`-PaiUrl=http://127.0.0.1:8765`) without a key or cost; it saves the pictures it receives to the folder, to check what hidden areas look like when sent. |
 | `manual_phone.py` | `python tools/dev/manual_phone.py en capture` saves the emulator's screen as the manual's `phone-capture.png` (see The manual's pictures below). |
-| `folder_sync_probe.py` | 2.0.0 spike: checks that a shared folder (OneDrive, Dropbox, Google Drive, a network share) carries write-once files between two computers. On each computer run `python tools/dev/folder_sync_probe.py write --folder "<shared folder>" --device <this name>` and, in a second window, `read --folder "<shared folder>" --device <other name>`. The read report ends with `RESULT PASS` or `FAIL` (missing, damaged or conflict-copy files) and the delays. See ADR 0011, phase 0. |
+| `folder_sync_probe.py` | 2.0.0 spike: checks that a shared folder (OneDrive, Dropbox, Google Drive, a network share) carries write-once files between two computers. On each computer run `python tools/dev/folder_sync_probe.py write --folder "<shared folder>" --device <this name>` and, in a second window, `read --folder "<shared folder>" --device <other name>`. The read report ends with `RESULT PASS` or `FAIL` (missing, damaged or conflict-copy files) and the delays. Run it as a family would use it: the two computers signed in to **different** members' accounts, the folder shared from the first account to the second (OneDrive: share it, then **Add shortcut to My files** on the second account; Google Drive: shortcut in My Drive; Dropbox: accept the shared folder), or a NAS / Windows share with a login each. Run it once with the second computer's files on demand left on. See ADR 0011, phase 0, and `docs/plan-multi-device.md` §5.3. |
 | `click.ps1` | `powershell -File tools/dev/click.ps1 -X 100 -Y 200 [-Out screen.png]` clicks inside the app's window (coordinates from its top-left corner) and optionally saves a picture; `-Wheel -600` scrolls down there instead (120 per notch, positive scrolls up). |
 
 Typical check of a screen: `./gradlew :app:desktop:runDemo -Plang=en -Psection=DOCUMENTS` in the background, then `shot.ps1`.

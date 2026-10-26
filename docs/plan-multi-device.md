@@ -1,6 +1,6 @@
 <!--
 File path and name: docs/plan-multi-device.md
-Modified On Timestamp: 2026-10-25 @ 15:25 EDT
+Modified On Timestamp: 2026-10-25 @ 20:55 EDT
 Created On Timestamp: 2026-10-25 @ 11:10 EDT
 File Description: Detailed plan for RANN's Roost 2.0.0: one household shared by several computers, upgrade of
   existing households, and the real-property details.
@@ -247,6 +247,13 @@ other's change, the losing value is also added to **Changes to review** (6.2).
   and never changes a finished file.
 - **Works with** OneDrive, Dropbox, Google Drive, Nextcloud, iCloud Drive, a NAS or Windows share, and a USB
   stick carried between computers.
+- **Shared between accounts, not one shared sign-in:** family members keep their own cloud accounts. One
+  person shares a folder from their OneDrive, Google Drive or Dropbox with each member's own account, and each
+  member adds it to their storage (OneDrive: **Add shortcut to My files**; Google Drive: add a shortcut to My
+  Drive; Dropbox: accept the shared folder). A NAS or Windows network share works the same way, each person
+  with their own login. A household that wants no folder at all uses home Wi-Fi instead (5.6). Shortcut folders
+  and files on demand are where OneDrive is most likely to misbehave, so the phase 0 folder probe is run this
+  way: the second computer signed in to **another** member's account, with the folder shared to it.
 - **Files on demand** (OneDrive placeholders, Google Drive streaming): the reader opens the file to force a
   download and retries later. A file that is not available never fails the whole sync.
 - **Visible metadata:** group ids, device ids, sizes and times (no names, amounts or text). The manual says so.

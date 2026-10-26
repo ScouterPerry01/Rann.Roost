@@ -1,3 +1,10 @@
+// File path and name: core/books/src/main/kotlin/ca/schippers/hfm/books/GoalService.kt
+// Modified On Timestamp: 2026-10-26 @ 03:05 EDT
+// Created On Timestamp: 2026-10-02 @ 01:48 EDT
+// File Description: Savings goals (GOAL-01 to GOAL-04): goals, their entries, scheduled set-asides and progress.
+// Uses: The ledger's Goals.sq queries; core/calc schedules; Ids.
+// Used By: The desktop Goals screen, dashboard, MainScreen's hourly posting, demo households.
+// Purpose: Track what the household is saving toward and post the planned set-asides.
 package ca.schippers.hfm.books
 
 import ca.schippers.hfm.calc.schedule.Recurrence
@@ -175,7 +182,7 @@ class GoalService internal constructor(private val books: Books) {
                         val left = goal.target.minorUnits - saved
                         if (left <= 0) break
                         val amount = minOf(per.minorUnits, left)
-                        q.insertGoalEntry(Ids.newId(), goal.id, date.toString(), GoalEntryKind.SCHEDULED.name, amount, null, null, books.now())
+                        q.insertGoalEntry(Ids.nameBased(goal.id, "scheduled", date.toString()), goal.id, date.toString(), GoalEntryKind.SCHEDULED.name, amount, null, null, books.now())
                         saved += amount
                         count++
                     }

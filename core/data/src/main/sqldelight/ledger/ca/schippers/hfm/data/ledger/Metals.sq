@@ -1,3 +1,11 @@
+-- File path and name: core/data/src/main/sqldelight/ledger/ca/schippers/hfm/data/ledger/Metals.sq
+-- Modified On Timestamp: 2026-10-26 @ 04:01 EDT
+-- Created On Timestamp: 2026-10-02 @ 18:39 EDT
+-- File Description: Ledger tables and queries. Precious metals (PM-01 to PM-04), held in a PRECIOUS_METALS account.
+-- Uses: SQLDelight; the ledger migrations (<n>.sqm) create the same tables.
+-- Used By: core/books services, through LedgerDatabase.
+-- Purpose: Part of each account group's encrypted ledger database (HH-11).
+
 -- Precious metals (PM-01 to PM-04), held in a PRECIOUS_METALS account. Amounts in the account's
 -- currency, in minor units; weights, purities and premiums are decimal strings.
 
@@ -33,9 +41,9 @@ CREATE TABLE metal_item (
 CREATE INDEX metal_item_account ON metal_item(account_id);
 
 upsertMetalItem:
-INSERT OR REPLACE INTO metal_item(id, account_id, metal, form, description, weight, weight_unit, purity, quantity, serial_numbers, dealer,
-    purchase_date, cost_minor, premium_percent, storage, storage_detail, insured, insurance_note, disposal_date, proceeds_minor, notes, created_at, updated_at)
-VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+INSERT INTO metal_item(id, account_id, metal, form, description, weight, weight_unit, purity, quantity, serial_numbers, dealer,
+    purchase_date, cost_minor, premium_percent, storage, storage_detail, insured, insurance_note, disposal_date, proceeds_minor, notes, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+ON CONFLICT(id) DO UPDATE SET account_id = excluded.account_id, metal = excluded.metal, form = excluded.form, description = excluded.description, weight = excluded.weight, weight_unit = excluded.weight_unit, purity = excluded.purity, quantity = excluded.quantity, serial_numbers = excluded.serial_numbers, dealer = excluded.dealer, purchase_date = excluded.purchase_date, cost_minor = excluded.cost_minor, premium_percent = excluded.premium_percent, storage = excluded.storage, storage_detail = excluded.storage_detail, insured = excluded.insured, insurance_note = excluded.insurance_note, disposal_date = excluded.disposal_date, proceeds_minor = excluded.proceeds_minor, notes = excluded.notes, created_at = excluded.created_at, updated_at = excluded.updated_at;
 
 metalItems:
 SELECT * FROM metal_item WHERE account_id = ? ORDER BY metal, description;

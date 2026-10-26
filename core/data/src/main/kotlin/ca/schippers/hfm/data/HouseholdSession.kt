@@ -1,3 +1,10 @@
+// File path and name: core/data/src/main/kotlin/ca/schippers/hfm/data/HouseholdSession.kt
+// Modified On Timestamp: 2026-10-26 @ 03:16 EDT
+// Created On Timestamp: 2026-10-01 @ 15:53 EDT
+// File Description: One signed-in user's view of an unlocked household: its databases, keys, audit and groups.
+// Uses: HouseholdStore, the encrypted databases, core/security.
+// Used By: Books (core/books) and the desktop app.
+// Purpose: Hold only the keys this user was granted, and wipe them on lock (HH-11, SEC-02).
 package ca.schippers.hfm.data
 
 import app.cash.sqldelight.TransacterImpl
@@ -29,6 +36,8 @@ class HouseholdSession internal constructor(
     val userId: String,
     private val keys: KeyPair,
     private val partitionKeys: MutableMap<String, ByteArray>,
+    /** This computer's identity for the household (`device.json`, plan-multi-device 5.1). */
+    val device: DeviceIdentity,
 ) : AutoCloseable {
 
     var header: HouseholdHeader = header

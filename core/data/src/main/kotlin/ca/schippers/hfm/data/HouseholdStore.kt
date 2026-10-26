@@ -1,3 +1,10 @@
+// File path and name: core/data/src/main/kotlin/ca/schippers/hfm/data/HouseholdStore.kt
+// Modified On Timestamp: 2026-10-26 @ 03:16 EDT
+// Created On Timestamp: 2026-10-01 @ 15:53 EDT
+// File Description: Creates and unlocks household folders: header, keys, partitions, password and recovery.
+// Uses: HouseholdHeader/HeaderFile, DeviceFile, core/security, the encrypted driver factory.
+// Used By: The desktop app's open, create, unlock and restore screens; core/books tests.
+// Purpose: One place where a household's keys are made, checked and opened (ADR 0002).
 package ca.schippers.hfm.data
 
 import ca.schippers.hfm.domain.Ids
@@ -70,7 +77,7 @@ class HouseholdStore(
         )
         HeaderFile.write(dir, header)
 
-        val session = HouseholdSession(this, dir, header, adminId, keys, mutableMapOf(corePartition.id to coreKey))
+        val session = HouseholdSession(this, dir, header, adminId, keys, mutableMapOf(corePartition.id to coreKey), DeviceFile.readOrCreate(dir, clock()))
         val now = clock()
         session.core.transaction {
             session.core.coreQueries.insertHousehold(householdId, householdName.trim(), baseCurrency, locale, now, province)
@@ -142,7 +149,7 @@ class HouseholdStore(
         for (grant in header.grants.filter { it.userId == user.userId }) {
             partitionKeys[grant.partitionId] = SealedBox.open(keys, grant.sealedKey.unb64(), grantAad(header.householdId, grant.partitionId, user.userId))
         }
-        val session = HouseholdSession(this, dir, header, user.userId, keys, partitionKeys)
+        val session = HouseholdSession(this, dir, header, user.userId, keys, partitionKeys, DeviceFile.readOrCreate(dir, clock()))
         // The header is not encrypted; check the user's public key against the authenticated core database.
         val stored = session.core.coreQueries.userById(user.userId).executeAsOneOrNull()
         if (stored == null || !stored.public_key.contentEquals(keys.publicKey) || stored.active == 0L) {

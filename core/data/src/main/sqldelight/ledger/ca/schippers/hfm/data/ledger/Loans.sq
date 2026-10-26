@@ -1,3 +1,11 @@
+-- File path and name: core/data/src/main/sqldelight/ledger/ca/schippers/hfm/data/ledger/Loans.sq
+-- Modified On Timestamp: 2026-10-26 @ 04:01 EDT
+-- Created On Timestamp: 2026-10-02 @ 11:38 EDT
+-- File Description: Ledger tables and queries. Loans and mortgages (LN-01 to LN-06).
+-- Uses: SQLDelight; the ledger migrations (<n>.sqm) create the same tables.
+-- Used By: core/books services, through LedgerDatabase.
+-- Purpose: Part of each account group's encrypted ledger database (HH-11).
+
 -- Loans and mortgages (LN-01 to LN-06). Amounts are in the loan account's currency, in minor units;
 -- rates are annual fractions as decimal strings.
 
@@ -47,10 +55,10 @@ CREATE TABLE loan_change (
 CREATE INDEX loan_change_account ON loan_change(account_id, date);
 
 upsertLoan:
-INSERT OR REPLACE INTO loan(account_id, principal_minor, annual_rate, rate_type, compounding, amortization_months,
+INSERT INTO loan(account_id, principal_minor, annual_rate, rate_type, compounding, amortization_months,
     frequency, first_payment_date, payment_minor, extra_payment_minor, term_end, renewal_remind_days,
-    property_tax_minor, insurance_minor, payment_account_id, last_paid_date, notes)
-VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+    property_tax_minor, insurance_minor, payment_account_id, last_paid_date, notes) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+ON CONFLICT(account_id) DO UPDATE SET principal_minor = excluded.principal_minor, annual_rate = excluded.annual_rate, rate_type = excluded.rate_type, compounding = excluded.compounding, amortization_months = excluded.amortization_months, frequency = excluded.frequency, first_payment_date = excluded.first_payment_date, payment_minor = excluded.payment_minor, extra_payment_minor = excluded.extra_payment_minor, term_end = excluded.term_end, renewal_remind_days = excluded.renewal_remind_days, property_tax_minor = excluded.property_tax_minor, insurance_minor = excluded.insurance_minor, payment_account_id = excluded.payment_account_id, last_paid_date = excluded.last_paid_date, notes = excluded.notes;
 
 loan:
 SELECT * FROM loan WHERE account_id = ?;

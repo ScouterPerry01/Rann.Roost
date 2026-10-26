@@ -1,3 +1,11 @@
+-- File path and name: core/data/src/main/sqldelight/ledger/ca/schippers/hfm/data/ledger/BroughtInCalendar.sq
+-- Modified On Timestamp: 2026-10-26 @ 04:01 EDT
+-- Created On Timestamp: 2026-10-06 @ 08:47 EDT
+-- File Description: Ledger tables and queries. Calendars brought in from a person's phone (CSY-01 to CSY-04).
+-- Uses: SQLDelight; the ledger migrations (<n>.sqm) create the same tables.
+-- Used By: core/books services, through LedgerDatabase.
+-- Purpose: Part of each account group's encrypted ledger database (HH-11).
+
 -- CSY-01 to CSY-04 (version 31): calendars a person brought in from their phone, with their coming
 -- items, read-only. The phone sends each chosen calendar whole; the desktop replaces its items.
 -- The owner's private group keeps the calendar with every private and busy-only item in full;
@@ -68,8 +76,8 @@ pruneBroughtInItems:
 DELETE FROM brought_in_item WHERE calendar_id = ? AND end_date < ?;
 
 insertBroughtInItem:
-INSERT OR REPLACE INTO brought_in_item(id, calendar_id, event_id, visibility, title, location, start_date, start_time, end_date, end_time, updated_at)
-VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+INSERT INTO brought_in_item(id, calendar_id, event_id, visibility, title, location, start_date, start_time, end_date, end_time, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+ON CONFLICT(id) DO UPDATE SET calendar_id = excluded.calendar_id, event_id = excluded.event_id, visibility = excluded.visibility, title = excluded.title, location = excluded.location, start_date = excluded.start_date, start_time = excluded.start_time, end_date = excluded.end_date, end_time = excluded.end_time, updated_at = excluded.updated_at;
 
 broughtInItemsBetween:
 SELECT * FROM brought_in_item WHERE start_date <= :to AND end_date >= :from ORDER BY start_date, start_time;

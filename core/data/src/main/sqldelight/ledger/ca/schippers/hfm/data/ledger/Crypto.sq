@@ -1,3 +1,11 @@
+-- File path and name: core/data/src/main/sqldelight/ledger/ca/schippers/hfm/data/ledger/Crypto.sq
+-- Modified On Timestamp: 2026-10-26 @ 04:01 EDT
+-- Created On Timestamp: 2026-10-02 @ 18:29 EDT
+-- File Description: Ledger tables and queries. Crypto-asset wallets (CR-01 to CR-06). A wallet is a CRYPTO_WALLET account held in its coin.
+-- Uses: SQLDelight; the ledger migrations (<n>.sqm) create the same tables.
+-- Used By: core/books services, through LedgerDatabase.
+-- Purpose: Part of each account group's encrypted ledger database (HH-11).
+
 -- Crypto-asset wallets (CR-01 to CR-06). A wallet is a CRYPTO_WALLET account held in its coin.
 
 -- What the books need beyond the account: the cost (in the base currency) of the coins already in
@@ -13,7 +21,8 @@ CREATE TABLE wallet (
 );
 
 upsertWallet:
-INSERT OR REPLACE INTO wallet(account_id, opening_cost_minor, watch, watch_kind, last_sync, notes) VALUES (?, ?, ?, ?, ?, ?);
+INSERT INTO wallet(account_id, opening_cost_minor, watch, watch_kind, last_sync, notes) VALUES (?, ?, ?, ?, ?, ?)
+ON CONFLICT(account_id) DO UPDATE SET opening_cost_minor = excluded.opening_cost_minor, watch = excluded.watch, watch_kind = excluded.watch_kind, last_sync = excluded.last_sync, notes = excluded.notes;
 
 wallet:
 SELECT * FROM wallet WHERE account_id = ?;

@@ -1,3 +1,13 @@
+<!--
+File path and name: docs/adr/0005-backups.md
+Modified On Timestamp: 2026-10-26 @ 04:06 EDT
+Created On Timestamp: 2026-10-01 @ 22:49 EDT
+File Description: ADR 0005: backups, restore and full export, with the 2.0.0 addendum on this computer's identity.
+Uses: ADR 0002 (storage and keys), ADR 0011 (several computers); requirements BAK-01 to BAK-04, EXP-01.
+Used By: core/data Backups, core/books BackupService, the desktop Backups screen.
+Purpose: Record how households are backed up and restored, and why.
+-->
+
 # ADR 0005: Backups, restore and full export
 
 Status: Accepted (Phase 1, 2026-10-01)
@@ -55,3 +65,19 @@ Old versions beyond the number to keep are deleted only after a backup passes th
 
 - Backups grow with the document vault (Phase 2). Incremental backups can be added later without changing the format: the manifest already lists files with their checksums.
 - A household's folder name is part of the backup file name.
+
+## Addendum (2026-10-26): several computers, 2.0.0
+
+ADR 0011 gives each copy of a household its own identity. The rules for backups:
+
+- **Not backed up:** `device.json`, the file beside `household.json` that says which computer this copy is
+  on. Backups take only `household.json`, the databases and the vault.
+- **A restore is a new computer:** the restored copy makes a new `device.json` the first time it is opened.
+  Change numbers of the original computer are therefore never reused, and the other computers see the
+  restored copy as a new member of the household.
+- **Backup settings belong to each computer:** the folder, frequency, versions kept and the last result are
+  kept in `repl_local_setting` (core migration 8), never sent to the other computers. Each computer backs
+  up its own copy on its own schedule.
+- **Still to decide in phase 4:** the backup of a household shared between computers holds the local-only
+  tables (phone pairing, this computer's settings). They must stay out of the snapshots given to a joining
+  computer.

@@ -1,3 +1,11 @@
+-- File path and name: core/data/src/main/sqldelight/core/ca/schippers/hfm/data/core/Core.sq
+-- Modified On Timestamp: 2026-10-26 @ 04:00 EDT
+-- Created On Timestamp: 2026-10-01 @ 15:53 EDT
+-- File Description: Core database tables and queries: household, users, groups, categories, settings, rates, phones.
+-- Uses: SQLDelight; migrations core/<n>.sqm create the same tables.
+-- Used By: core/data (HouseholdSession), core/books services.
+-- Purpose: Household-wide data every signed-in user can open.
+
 -- Core database: household-wide data every signed-in user can open.
 -- Amounts never appear here; they live in the ledger partitions.
 
@@ -208,6 +216,14 @@ CREATE TABLE setting (
     value TEXT NOT NULL
 );
 
+-- Settings of this computer only (plan-multi-device 5.1, LOCAL_ONLY): the phone-pairing identity, the
+-- transfer, watch and backup folders. Never sent to another computer. The keys are listed in
+-- LocalSettings (core/books); Books.setting and putSetting choose the table. Version 9.
+CREATE TABLE repl_local_setting (
+    key TEXT NOT NULL PRIMARY KEY,
+    value TEXT NOT NULL
+);
+
 -- Activity log (HH-13) for household-level changes. Ledger changes are logged in each ledger.
 CREATE TABLE audit_log (
     id TEXT NOT NULL PRIMARY KEY,
@@ -350,16 +366,25 @@ groups:
 SELECT * FROM account_group ORDER BY sort_order, name;
 
 setPermission:
-INSERT OR REPLACE INTO group_permission(group_id, user_id, level) VALUES (?, ?, ?);
+INSERT INTO group_permission(group_id, user_id, level) VALUES (?, ?, ?)
+ON CONFLICT(group_id, user_id) DO UPDATE SET level = excluded.level;
 
 permissionsForGroup:
 SELECT * FROM group_permission WHERE group_id = ?;
 
 putSetting:
-INSERT OR REPLACE INTO setting(key, value) VALUES (?, ?);
+INSERT INTO setting(key, value) VALUES (?, ?)
+ON CONFLICT(key) DO UPDATE SET value = excluded.value;
 
 getSetting:
 SELECT value FROM setting WHERE key = ?;
+
+-- The key is the primary key and nothing refers to this table, so a replace is safe here.
+putLocalSetting:
+INSERT OR REPLACE INTO repl_local_setting(key, value) VALUES (?, ?);
+
+getLocalSetting:
+SELECT value FROM repl_local_setting WHERE key = ?;
 
 insertAudit:
 INSERT INTO audit_log(id, at, user_id, action, entity, entity_id, details) VALUES (?, ?, ?, ?, ?, ?, ?);
@@ -418,7 +443,8 @@ deleteSpot:
 DELETE FROM spot_price WHERE metal = ? AND date = ?;
 
 upsertManualRate:
-INSERT OR REPLACE INTO fx_rate(currency, date, cad_per_unit, source) VALUES (?, ?, ?, 'MANUAL');
+INSERT INTO fx_rate(currency, date, cad_per_unit, source) VALUES (?, ?, ?, 'MANUAL')
+ON CONFLICT(currency, date) DO UPDATE SET cad_per_unit = excluded.cad_per_unit, source = excluded.source;
 
 deleteRate:
 DELETE FROM fx_rate WHERE currency = ? AND date = ?;
@@ -449,10 +475,10 @@ budgets:
 SELECT * FROM budget;
 
 upsertPet:
-INSERT OR REPLACE INTO pet(id, name, species, breed, sex, birth_date, birth_date_estimated, colour, microchip, neutered,
+INSERT INTO pet(id, name, species, breed, sex, birth_date, birth_date_estimated, colour, microchip, neutered,
     licence_number, licence_municipality, licence_expiry, insurer, policy_number, insurance_renewal, owner_member_id,
-    notes, archived, created_at, updated_at)
-VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+    notes, archived, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+ON CONFLICT(id) DO UPDATE SET name = excluded.name, species = excluded.species, breed = excluded.breed, sex = excluded.sex, birth_date = excluded.birth_date, birth_date_estimated = excluded.birth_date_estimated, colour = excluded.colour, microchip = excluded.microchip, neutered = excluded.neutered, licence_number = excluded.licence_number, licence_municipality = excluded.licence_municipality, licence_expiry = excluded.licence_expiry, insurer = excluded.insurer, policy_number = excluded.policy_number, insurance_renewal = excluded.insurance_renewal, owner_member_id = excluded.owner_member_id, notes = excluded.notes, archived = excluded.archived, created_at = excluded.created_at, updated_at = excluded.updated_at;
 
 pets:
 SELECT * FROM pet ORDER BY archived, name;
@@ -460,9 +486,13 @@ SELECT * FROM pet ORDER BY archived, name;
 deletePet:
 DELETE FROM pet WHERE id = ?;
 
+-- Updates in place (plan-multi-device P14): pairing the same phone again takes the new keys, user and
+-- group and lifts a revocation, but keeps when it was last seen and how many items it sent.
 insertDevice:
-INSERT OR REPLACE INTO sync_device(id, name, public_key, pair_key, user_id, group_id, paired_at, last_seen, items_received, revoked_at)
-VALUES (?, ?, ?, ?, ?, ?, ?, NULL, 0, NULL);
+INSERT INTO sync_device(id, name, public_key, pair_key, user_id, group_id, paired_at, last_seen, items_received, revoked_at)
+VALUES (?, ?, ?, ?, ?, ?, ?, NULL, 0, NULL)
+ON CONFLICT(id) DO UPDATE SET name = excluded.name, public_key = excluded.public_key, pair_key = excluded.pair_key,
+    user_id = excluded.user_id, group_id = excluded.group_id, paired_at = excluded.paired_at, revoked_at = NULL;
 
 devices:
 SELECT * FROM sync_device ORDER BY revoked_at IS NOT NULL, paired_at DESC;

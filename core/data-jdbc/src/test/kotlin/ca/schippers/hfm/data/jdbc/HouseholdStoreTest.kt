@@ -1,3 +1,10 @@
+// File path and name: core/data-jdbc/src/test/kotlin/ca/schippers/hfm/data/jdbc/HouseholdStoreTest.kt
+// Modified On Timestamp: 2026-10-26 @ 03:16 EDT
+// Created On Timestamp: 2026-10-01 @ 15:53 EDT
+// File Description: Creating, unlocking and locking households; passwords, encryption on disk, the computer identity.
+// Uses: HouseholdStore with the SQLCipher driver.
+// Used By: ./gradlew :core:data-jdbc:test.
+// Purpose: Guard the household's keys and files (ADR 0002).
 package ca.schippers.hfm.data.jdbc
 
 import ca.schippers.hfm.data.AccessDeniedException
@@ -29,6 +36,19 @@ class HouseholdStoreTest {
 
     private fun createHousehold() =
         store.create(dir, "Schippers", "perry", "Perry", "admin-pass".toCharArray())
+
+    @Test
+    fun `each copy has its own computer identity, kept from one unlock to the next`() {
+        val id = createHousehold().session.use { it.device.deviceId }
+        assertTrue(Ids.isValid(id))
+        assertTrue(Files.exists(dir.resolve("device.json")))
+        store.unlock(dir, "perry", "admin-pass".toCharArray()).use { assertEquals(id, it.device.deviceId) }
+
+        // A damaged file is set aside and replaced: the copy simply becomes a new computer.
+        Files.writeString(dir.resolve("device.json"), "{ not json")
+        store.unlock(dir, "perry", "admin-pass".toCharArray()).use { assertTrue(it.device.deviceId != id) }
+        assertTrue(Files.exists(dir.resolve("device.json.bad")))
+    }
 
     @Test
     fun `create, lock and unlock with the password`() {

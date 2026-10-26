@@ -1,3 +1,11 @@
+-- File path and name: core/data/src/main/sqldelight/ledger/ca/schippers/hfm/data/ledger/Plans.sq
+-- Modified On Timestamp: 2026-10-26 @ 04:01 EDT
+-- Created On Timestamp: 2026-10-02 @ 15:20 EDT
+-- File Description: Ledger tables and queries. Registered plans and pensions (INV-09 to INV-11). Amounts in minor units of the plan's currency.
+-- Uses: SQLDelight; the ledger migrations (<n>.sqm) create the same tables.
+-- Used By: core/books services, through LedgerDatabase.
+-- Purpose: Part of each account group's encrypted ledger database (HH-11).
+
 -- Registered plans and pensions (INV-09 to INV-11). Amounts in minor units of the plan's currency.
 
 -- Details of one registered plan account: who contributes (spousal RRSP, RESP subscriber), whose
@@ -109,7 +117,8 @@ CREATE TABLE pension_statement (
 CREATE INDEX pension_statement_pension ON pension_statement(pension_id, year);
 
 upsertPlan:
-INSERT OR REPLACE INTO registered_plan(account_id, contributor_member_id, minimum_age_member_id, lif_reference_rate, notes, jurisdiction) VALUES (?, ?, ?, ?, ?, ?);
+INSERT INTO registered_plan(account_id, contributor_member_id, minimum_age_member_id, lif_reference_rate, notes, jurisdiction) VALUES (?, ?, ?, ?, ?, ?)
+ON CONFLICT(account_id) DO UPDATE SET contributor_member_id = excluded.contributor_member_id, minimum_age_member_id = excluded.minimum_age_member_id, lif_reference_rate = excluded.lif_reference_rate, notes = excluded.notes, jurisdiction = excluded.jurisdiction;
 
 plan:
 SELECT * FROM registered_plan WHERE account_id = ?;
@@ -118,13 +127,15 @@ beneficiaries:
 SELECT * FROM plan_beneficiary WHERE account_id = ? ORDER BY kind, name;
 
 upsertBeneficiary:
-INSERT OR REPLACE INTO plan_beneficiary(id, account_id, kind, member_id, name, relationship, share_percent, notes) VALUES (?, ?, ?, ?, ?, ?, ?, ?);
+INSERT INTO plan_beneficiary(id, account_id, kind, member_id, name, relationship, share_percent, notes) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+ON CONFLICT(id) DO UPDATE SET account_id = excluded.account_id, kind = excluded.kind, member_id = excluded.member_id, name = excluded.name, relationship = excluded.relationship, share_percent = excluded.share_percent, notes = excluded.notes;
 
 deleteBeneficiary:
 DELETE FROM plan_beneficiary WHERE id = ?;
 
 putPlanValue:
-INSERT OR REPLACE INTO plan_value(account_id, year, value_minor, last_year_earnings_minor) VALUES (?, ?, ?, ?);
+INSERT INTO plan_value(account_id, year, value_minor, last_year_earnings_minor) VALUES (?, ?, ?, ?)
+ON CONFLICT(account_id, year) DO UPDATE SET value_minor = excluded.value_minor, last_year_earnings_minor = excluded.last_year_earnings_minor;
 
 planValue:
 SELECT * FROM plan_value WHERE account_id = ? AND year = ?;
@@ -187,9 +198,9 @@ deletePension:
 DELETE FROM pension WHERE id = ?;
 
 upsertPensionStatement:
-INSERT OR REPLACE INTO pension_statement(id, pension_id, year, pension_adjustment_minor, accrued_annual_minor, projected_annual_minor,
-    value_minor, contributions_minor, notes)
-VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
+INSERT INTO pension_statement(id, pension_id, year, pension_adjustment_minor, accrued_annual_minor, projected_annual_minor,
+    value_minor, contributions_minor, notes) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+ON CONFLICT(id) DO UPDATE SET pension_id = excluded.pension_id, year = excluded.year, pension_adjustment_minor = excluded.pension_adjustment_minor, accrued_annual_minor = excluded.accrued_annual_minor, projected_annual_minor = excluded.projected_annual_minor, value_minor = excluded.value_minor, contributions_minor = excluded.contributions_minor, notes = excluded.notes;
 
 pensionStatements:
 SELECT * FROM pension_statement WHERE pension_id = ? ORDER BY year DESC;

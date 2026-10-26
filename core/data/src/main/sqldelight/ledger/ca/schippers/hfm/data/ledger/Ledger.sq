@@ -1,3 +1,11 @@
+-- File path and name: core/data/src/main/sqldelight/ledger/ca/schippers/hfm/data/ledger/Ledger.sq
+-- Modified On Timestamp: 2026-10-26 @ 04:01 EDT
+-- Created On Timestamp: 2026-10-01 @ 15:53 EDT
+-- File Description: Ledger tables and queries. Ledger database: the accounts and transactions of one account group.
+-- Uses: SQLDelight; the ledger migrations (<n>.sqm) create the same tables.
+-- Used By: core/books services, through LedgerDatabase.
+-- Purpose: Part of each account group's encrypted ledger database (HH-11).
+
 -- Ledger database: the accounts and transactions of one account group.
 -- Money is stored as INTEGER minor units plus a currency code, never as REAL (NFR-04).
 -- Ids are UUIDv7 text, unique across every device (SYNC-02).
@@ -364,9 +372,9 @@ GROUP BY a.id;
 -- Credit cards ------------------------------------------------------------------------------
 
 upsertCreditCard:
-INSERT OR REPLACE INTO credit_card(account_id, credit_limit_minor, purchase_rate, cash_advance_rate, promo_rate,
-    promo_ends, statement_day, due_day, min_payment_percent, min_payment_floor_minor, annual_fee_minor, primary_account_id, annual_fee_date)
-VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, ?);
+INSERT INTO credit_card(account_id, credit_limit_minor, purchase_rate, cash_advance_rate, promo_rate,
+    promo_ends, statement_day, due_day, min_payment_percent, min_payment_floor_minor, annual_fee_minor, primary_account_id, annual_fee_date) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, ?)
+ON CONFLICT(account_id) DO UPDATE SET credit_limit_minor = excluded.credit_limit_minor, purchase_rate = excluded.purchase_rate, cash_advance_rate = excluded.cash_advance_rate, promo_rate = excluded.promo_rate, promo_ends = excluded.promo_ends, statement_day = excluded.statement_day, due_day = excluded.due_day, min_payment_percent = excluded.min_payment_percent, min_payment_floor_minor = excluded.min_payment_floor_minor, annual_fee_minor = excluded.annual_fee_minor, primary_account_id = excluded.primary_account_id, annual_fee_date = excluded.annual_fee_date;
 
 creditCard:
 SELECT * FROM credit_card WHERE account_id = ?;

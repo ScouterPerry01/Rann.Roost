@@ -1,3 +1,11 @@
+-- File path and name: core/data/src/main/sqldelight/ledger/ca/schippers/hfm/data/ledger/Investments.sq
+-- Modified On Timestamp: 2026-10-26 @ 04:01 EDT
+-- Created On Timestamp: 2026-10-02 @ 14:06 EDT
+-- File Description: Ledger tables and queries. Investments (INV-01 to INV-05, REC-08).
+-- Uses: SQLDelight; the ledger migrations (<n>.sqm) create the same tables.
+-- Used By: core/books services, through LedgerDatabase.
+-- Purpose: Part of each account group's encrypted ledger database (HH-11).
+
 -- Investments (INV-01 to INV-05, REC-08). Securities and prices are kept in each group's ledger, so
 -- a private group's holdings stay unreadable to other users (HH-11). Quantities and prices are
 -- decimal strings; amounts are in the account's currency, in minor units.
@@ -118,7 +126,8 @@ securityUseCount:
 SELECT count(*) FROM inv_txn WHERE security_id = :id OR other_security_id = :id;
 
 putPrice:
-INSERT OR REPLACE INTO security_price(security_id, date, price, source) VALUES (?, ?, ?, ?);
+INSERT INTO security_price(security_id, date, price, source) VALUES (?, ?, ?, ?)
+ON CONFLICT(security_id, date) DO UPDATE SET price = excluded.price, source = excluded.source;
 
 priceOnOrBefore:
 SELECT * FROM security_price WHERE security_id = ? AND date <= ? ORDER BY date DESC LIMIT 1;
@@ -154,8 +163,8 @@ DELETE FROM inv_txn WHERE id = ?;
 -- Statements ---------------------------------------------------------------------------------------
 
 insertInvStatement:
-INSERT OR REPLACE INTO inv_statement(id, account_id, date, cash_minor, positions, status, source, created_at, reconciled_at, reconciled_by)
-VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+INSERT INTO inv_statement(id, account_id, date, cash_minor, positions, status, source, created_at, reconciled_at, reconciled_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+ON CONFLICT(id) DO UPDATE SET account_id = excluded.account_id, date = excluded.date, cash_minor = excluded.cash_minor, positions = excluded.positions, status = excluded.status, source = excluded.source, created_at = excluded.created_at, reconciled_at = excluded.reconciled_at, reconciled_by = excluded.reconciled_by;
 
 invStatements:
 SELECT * FROM inv_statement WHERE account_id = ? ORDER BY date DESC;

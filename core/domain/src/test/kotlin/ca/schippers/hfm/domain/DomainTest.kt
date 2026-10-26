@@ -1,3 +1,10 @@
+// File path and name: core/domain/src/test/kotlin/ca/schippers/hfm/domain/DomainTest.kt
+// Modified On Timestamp: 2026-10-26 @ 03:06 EDT
+// Created On Timestamp: 2026-10-01 @ 15:53 EDT
+// File Description: Tests of the domain module: record ids, access policy and the other shared types.
+// Uses: core/domain, kotlin.test.
+// Used By: ./gradlew :core:domain:test.
+// Purpose: Guard the rules every other module relies on.
 package ca.schippers.hfm.domain
 
 import java.util.UUID
@@ -21,6 +28,20 @@ class IdsTest {
         val a = Ids.newUuid(nowMillis = 2_000_000_000_000)
         val b = Ids.newUuid(nowMillis = 1_000_000_000_000)
         assertTrue(a.toString() < b.toString())
+    }
+
+    @Test
+    fun `name-based ids are version 5 and match the RFC 9562 example`() {
+        // RFC 9562 appendix A.4: the DNS namespace and "www.example.com".
+        assertEquals("2ed6657d-e927-568b-95e1-2665a8aea6a2", Ids.nameBased("6ba7b810-9dad-11d1-80b4-00c04fd430c8", "www.example.com"))
+        val household = Ids.newId()
+        val id = Ids.nameBased(household, "food.groceries")
+        assertEquals(id, Ids.nameBased(household, "food.groceries"))
+        assertTrue(Ids.isValid(id))
+        assertEquals(5, UUID.fromString(id).version())
+        assertEquals(2, UUID.fromString(id).variant())
+        assertFalse(id == Ids.nameBased(Ids.newId(), "food.groceries"))
+        assertFalse(Ids.nameBased(household, "a", "bc") == Ids.nameBased(household, "ab", "c"))
     }
 
     @Test

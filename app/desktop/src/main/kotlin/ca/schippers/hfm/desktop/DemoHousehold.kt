@@ -1,5 +1,5 @@
 // File path and name: app/desktop/src/main/kotlin/ca/schippers/hfm/desktop/DemoHousehold.kt
-// Modified On Timestamp: 2026-10-11 @ 13:05 EDT
+// Modified On Timestamp: 2026-10-26 @ 00:10 EDT
 // Created On Timestamp: 2026-10-01 @ 18:22 EDT
 // File Description: The Alex & Sam sample household: a few months of made-up activity across
 //   every feature, built in a temporary folder.
@@ -1092,7 +1092,7 @@ object DemoHousehold {
         val house = assets.save(
             Asset(
                 "", group, AssetKind.HOME, l("Maison", "House") + " (" + q("rue des Érables", l("rue Maple", "Maple Street")) + ")", purchaseDate = LocalDate(2018, 6, 29), purchasePrice = cad("389000"),
-                valueMethod = ValueMethod.MANUAL, value = cad("515000"), valueDate = day(-60), location = q("Québec", p.city),
+                valueMethod = ValueMethod.MANUAL, value = cad("515000"), valueDate = day(-60), inNetWorth = true, location = q("Québec", p.city),
                 notes = if (p.quebec) l("Évaluation municipale 2025 : 498 300 $", "2025 municipal assessment: $498,300") else l("Évaluation (${p.t.assessor}) : 498 300 $", "${p.t.assessor} assessment: $498,300"),
             ),
         )

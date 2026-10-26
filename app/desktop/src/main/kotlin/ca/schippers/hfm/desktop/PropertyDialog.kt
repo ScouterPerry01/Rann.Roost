@@ -1,5 +1,5 @@
 // File path and name: app/desktop/src/main/kotlin/ca/schippers/hfm/desktop/PropertyDialog.kt
-// Modified On Timestamp: 2026-10-25 @ 21:13 EDT
+// Modified On Timestamp: 2026-10-26 @ 00:10 EDT
 // Created On Timestamp: 2026-10-25 @ 19:10 EDT
 // File Description: The Property details dialog of a house, cottage, condo, land or building: one tab per
 //   catalogue section, then rooms, systems, outbuildings, owners, principal-residence years and custom fields.
@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
@@ -25,8 +26,7 @@ import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.PrimaryScrollableTabRow
-import androidx.compose.material3.Tab
+import androidx.compose.material3.NavigationDrawerItem
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -61,6 +61,7 @@ import ca.schippers.hfm.books.ResidenceYear
 import ca.schippers.hfm.books.ValidationException
 import ca.schippers.hfm.books.yearRanges
 import ca.schippers.hfm.calc.Province
+import ca.schippers.hfm.domain.MemberKind
 import ca.schippers.hfm.money.Currency
 import ca.schippers.hfm.money.Money
 import ca.schippers.hfm.money.MoneyFormat
@@ -78,6 +79,9 @@ private enum class PropertyList { ROOMS, SYSTEMS, STRUCTURES, OWNERS, RESIDENCE,
 private const val AREA_UNIT_SETTING = "property.areaUnit"
 private const val LENGTH_UNIT_SETTING = "property.lengthUnit"
 private const val OTHER = RealPropertyCatalogue.OTHER
+
+/** Every box of the dialog is this wide, three to a row, so long French labels and values fit. */
+private val FIELD = Modifier.width(270.dp)
 
 /** How amounts, decimals, areas and lengths are shown and read back in this dialog. */
 private class PropertyUnits(val locale: Locale, val currency: Currency, val area: AreaUnit, val length: LengthUnit) {
@@ -281,28 +285,36 @@ fun PropertyDialog(model: BooksModel, asset: Asset, onClose: () -> Unit) {
     var tab by remember { mutableStateOf(0) }
     var factSheet by remember { mutableStateOf(false) }
 
-    WideDialog(model.t("property.title", asset.name), model.t("common.close"), onClose) {
-        Column(Modifier.width(820.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+    WideDialog(model.t("property.title", asset.name), model.t("common.close"), onClose, maxWidth = 1180.dp) {
+        Column(Modifier.width(1084.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
                 Picker(model.t("property.areaUnit"), AreaUnit.entries, area, { model.t("areaUnit.$it") }, Modifier.width(200.dp)) { reunit(it, length) }
                 Picker(model.t("property.lengthUnit"), LengthUnit.entries, length, { model.t("lengthUnit.$it") }, Modifier.width(200.dp)) { reunit(area, it) }
             }
-            PrimaryScrollableTabRow(selectedTabIndex = tab, edgePadding = 0.dp) {
-                tabs.forEachIndexed { i, t ->
-                    Tab(selected = tab == i, onClick = { tab = i }, text = { Text(if (t is PropertySection) model.t("property.section.$t") else model.t("property.tab.$t")) })
-                }
-            }
-            Column(Modifier.fillMaxWidth().heightIn(max = 520.dp).verticalScroll(rememberScrollState()).padding(vertical = 6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                when (val t = tabs[tab.coerceIn(tabs.indices)]) {
-                    is PropertySection -> FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                        for (f in RealPropertyCatalogue.inSection(t)) FieldEditor(model, f, fields, units)
+            // The tabs down the left side, so all of them are always in view.
+            Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                Column(Modifier.width(232.dp).heightIn(max = 520.dp).verticalScroll(rememberScrollState())) {
+                    tabs.forEachIndexed { i, t ->
+                        NavigationDrawerItem(
+                            label = { Text(if (t is PropertySection) model.t("property.section.$t") else model.t("property.tab.$t"), style = MaterialTheme.typography.bodyMedium) },
+                            selected = tab == i,
+                            onClick = { tab = i },
+                            modifier = Modifier.height(34.dp),
+                        )
                     }
-                    PropertyList.ROOMS -> RoomsEditor(model, rooms, units)
-                    PropertyList.SYSTEMS -> SystemsEditor(model, systems, units, children)
-                    PropertyList.STRUCTURES -> StructuresEditor(model, structures, units, children)
-                    PropertyList.OWNERS -> OwnersEditor(model, owners, members)
-                    PropertyList.RESIDENCE -> ResidenceEditor(model, asset, residence, members)
-                    PropertyList.CUSTOM -> CustomEditor(model, custom)
+                }
+                Column(Modifier.weight(1f).heightIn(max = 520.dp).verticalScroll(rememberScrollState()).padding(vertical = 6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    when (val t = tabs[tab.coerceIn(tabs.indices)]) {
+                        is PropertySection -> FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                            for (f in RealPropertyCatalogue.inSection(t)) FieldEditor(model, f, fields, units)
+                        }
+                        PropertyList.ROOMS -> RoomsEditor(model, rooms, units)
+                        PropertyList.SYSTEMS -> SystemsEditor(model, systems, units, children)
+                        PropertyList.STRUCTURES -> StructuresEditor(model, structures, units, children)
+                        PropertyList.OWNERS -> OwnersEditor(model, owners, members)
+                        PropertyList.RESIDENCE -> ResidenceEditor(model, asset, residence, members, owners.map { it.memberId })
+                        PropertyList.CUSTOM -> CustomEditor(model, custom)
+                    }
                 }
             }
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -365,19 +377,19 @@ private fun FieldEditor(model: BooksModel, f: PropertyField, values: SnapshotSta
     }
     val list = f.choices.orEmpty()
     val wide = f.type == PropertyFieldType.LONG_TEXT || f.type == PropertyFieldType.MULTI_CHOICE
-    Column(if (wide) Modifier.fillMaxWidth() else Modifier.width(260.dp)) {
+    Column(if (wide) Modifier.fillMaxWidth() else FIELD) {
         val full = Modifier.fillMaxWidth()
         when (f.type) {
             PropertyFieldType.LONG_TEXT -> TextInput(label, value, full, singleLine = false) { set(it) }
             PropertyFieldType.MONEY -> AmountInput(label, value, units.currency, units.locale, full, model::money) { set(it) }
             PropertyFieldType.DATE -> DateInput(label, value, full) { set(it) }
-            PropertyFieldType.YES_NO -> Picker(label, listOf(null, "1", "0"), value.ifEmpty { null }, { yesNo(model, it) }, full) { set(it.orEmpty()) }
+            PropertyFieldType.YES_NO -> Picker(label, listOf(null, "1", "0"), value.ifEmpty { null }, { yesNo(model, it) }, full, wrap = true) { set(it.orEmpty()) }
             PropertyFieldType.PROVINCE -> {
                 val provinces = listOf<Province?>(null) + Province.entries.sortedBy { model.t("province.$it") }
-                Picker(label, provinces, Province.of(value), { it?.let { p -> model.t("province.$p") } ?: model.t("common.none") }, full) { set(it?.name.orEmpty()) }
+                Picker(label, provinces, Province.of(value), { it?.let { p -> model.t("province.$p") } ?: model.t("common.none") }, full, wrap = true) { set(it?.name.orEmpty()) }
             }
             PropertyFieldType.CHOICE -> {
-                Picker(label, listOf<String?>(null) + RealPropertyCatalogue.choiceList(list), value.ifEmpty { null }, { choice(model, list, it) }, full) { set(it.orEmpty()) }
+                Picker(label, listOf<String?>(null) + RealPropertyCatalogue.choiceList(list), value.ifEmpty { null }, { choice(model, list, it) }, full, wrap = true) { set(it.orEmpty()) }
             }
             PropertyFieldType.MULTI_CHOICE -> {
                 val keys = RealPropertyCatalogue.choiceList(list)
@@ -413,7 +425,7 @@ private fun choice(model: BooksModel, list: String, key: String?): String = key?
 /** A choice among the household's bills, accounts or contacts, kept as the id. */
 @Composable
 private fun RefPicker(model: BooksModel, label: String, value: String, names: Map<String, String>, onSelect: (String) -> Unit) {
-    Picker(label, listOf<String?>(null) + names.keys.sortedBy { names.getValue(it).lowercase() }, value.ifEmpty { null }, { it?.let(names::get) ?: model.t("common.none") }, Modifier.fillMaxWidth()) {
+    Picker(label, listOf<String?>(null) + names.keys.sortedBy { names.getValue(it).lowercase() }, value.ifEmpty { null }, { it?.let(names::get) ?: model.t("common.none") }, Modifier.fillMaxWidth(), wrap = true) {
         onSelect(it.orEmpty())
     }
 }
@@ -421,12 +433,12 @@ private fun RefPicker(model: BooksModel, label: String, value: String, names: Ma
 @Composable
 private fun ChoicePicker(model: BooksModel, label: String, list: String, value: String?, modifier: Modifier, optional: Boolean = true, onSelect: (String?) -> Unit) {
     val keys = RealPropertyCatalogue.choiceList(list)
-    Picker(label, if (optional) listOf<String?>(null) + keys else keys, value, { choice(model, list, it) }, modifier) { onSelect(it) }
+    Picker(label, if (optional) listOf<String?>(null) + keys else keys, value, { choice(model, list, it) }, modifier, wrap = true) { onSelect(it) }
 }
 
 @Composable
 private fun ChildAssetPicker(model: BooksModel, value: String?, children: List<Asset>, modifier: Modifier, onSelect: (String?) -> Unit) {
-    Picker(model.t("property.childAsset"), listOf<Asset?>(null) + children, children.firstOrNull { it.id == value }, { it?.name ?: model.t("common.none") }, modifier) { onSelect(it?.id) }
+    Picker(model.t("property.childAsset"), listOf<Asset?>(null) + children, children.firstOrNull { it.id == value }, { it?.name ?: model.t("common.none") }, modifier, wrap = true) { onSelect(it?.id) }
 }
 
 // --- AST-11: rooms -------------------------------------------------------------------------------
@@ -444,17 +456,17 @@ private fun RoomsEditor(model: BooksModel, rooms: MutableList<RoomRow>, units: P
                 rooms[i] = change(rooms[i])
             }
             FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(4.dp), itemVerticalAlignment = Alignment.CenterVertically) {
-                ChoicePicker(model, model.t("property.room.type"), "roomType", r.type, Modifier.width(200.dp), optional = false) { v -> up { it.copy(type = v ?: it.type) } }
-                TextInput(model.t("property.room.name"), r.name, Modifier.width(180.dp)) { v -> up { it.copy(name = v) } }
-                ChoicePicker(model, model.t("property.room.level"), "roomLevel", r.level, Modifier.width(170.dp)) { v -> up { it.copy(level = v) } }
-                ChoicePicker(model, model.t("property.room.condition"), "roomCondition", r.condition, Modifier.width(170.dp)) { v -> up { it.copy(condition = v) } }
-                TextInput("${model.t("property.room.length")} ($l)", r.length, Modifier.width(120.dp)) { v -> up { it.copy(length = v) } }
-                TextInput("${model.t("property.room.width")} ($l)", r.width, Modifier.width(120.dp)) { v -> up { it.copy(width = v) } }
+                ChoicePicker(model, model.t("property.room.type"), "roomType", r.type, FIELD, optional = false) { v -> up { it.copy(type = v ?: it.type) } }
+                TextInput(model.t("property.room.name"), r.name, FIELD) { v -> up { it.copy(name = v) } }
+                ChoicePicker(model, model.t("property.room.level"), "roomLevel", r.level, FIELD) { v -> up { it.copy(level = v) } }
+                ChoicePicker(model, model.t("property.room.condition"), "roomCondition", r.condition, FIELD) { v -> up { it.copy(condition = v) } }
+                TextInput("${model.t("property.room.length")} ($l)", r.length, FIELD) { v -> up { it.copy(length = v) } }
+                TextInput("${model.t("property.room.width")} ($l)", r.width, FIELD) { v -> up { it.copy(width = v) } }
                 val computed = if (r.area.isBlank()) runCatching { roomArea(r, units) }.getOrNull() else null
-                TextInput("${model.t("property.room.area")} ($a)", r.area, Modifier.width(150.dp), supporting = computed?.let { units.showArea(it) }) { v -> up { it.copy(area = v) } }
-                TextInput("${model.t("property.room.ceiling")} ($l)", r.ceiling, Modifier.width(150.dp)) { v -> up { it.copy(ceiling = v) } }
-                ChoicePicker(model, model.t("property.room.flooring"), "flooring", r.flooring, Modifier.width(190.dp)) { v -> up { it.copy(flooring = v) } }
-                TextInput(model.t("property.room.features"), r.features, Modifier.width(300.dp)) { v -> up { it.copy(features = v) } }
+                TextInput("${model.t("property.room.area")} ($a)", r.area, FIELD, supporting = computed?.let { units.showArea(it) }) { v -> up { it.copy(area = v) } }
+                TextInput("${model.t("property.room.ceiling")} ($l)", r.ceiling, FIELD) { v -> up { it.copy(ceiling = v) } }
+                ChoicePicker(model, model.t("property.room.flooring"), "flooring", r.flooring, FIELD) { v -> up { it.copy(flooring = v) } }
+                TextInput(model.t("property.room.features"), r.features, FIELD) { v -> up { it.copy(features = v) } }
                 TextButton(onClick = { rooms.removeAt(i) }) { Text(model.t("common.remove")) }
             }
             HorizontalDivider()
@@ -478,24 +490,24 @@ private fun SystemsEditor(model: BooksModel, systems: MutableList<SystemRow>, un
                 systems[i] = change(systems[i])
             }
             FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(4.dp), itemVerticalAlignment = Alignment.CenterVertically) {
-                ChoicePicker(model, model.t("property.system.kind"), "systemKind", s.kind, Modifier.width(200.dp), optional = false) { v ->
+                ChoicePicker(model, model.t("property.system.kind"), "systemKind", s.kind, FIELD, optional = false) { v ->
                     up { if (v == null || v == it.kind) it else it.copy(kind = v, type = null) }
                 }
                 RealPropertyCatalogue.systemTypes[s.kind]?.let { list ->
-                    ChoicePicker(model, model.t("property.system.type"), list, s.type, Modifier.width(220.dp)) { v -> up { it.copy(type = v) } }
+                    ChoicePicker(model, model.t("property.system.type"), list, s.type, FIELD) { v -> up { it.copy(type = v) } }
                 }
-                ChoicePicker(model, model.t("property.system.fuel"), "fuel", s.fuel, Modifier.width(180.dp)) { v -> up { it.copy(fuel = v) } }
-                TextInput(model.t("property.system.makeModel"), s.makeModel, Modifier.width(220.dp)) { v -> up { it.copy(makeModel = v) } }
-                TextInput(model.t("property.system.capacity"), s.capacity, Modifier.width(160.dp)) { v -> up { it.copy(capacity = v) } }
-                TextInput(model.t("property.system.installYear"), s.installYear, Modifier.width(130.dp)) { v -> up { it.copy(installYear = v) } }
-                DateInput(model.t("property.system.lastInspection"), s.lastInspection, Modifier.width(170.dp)) { v -> up { it.copy(lastInspection = v) } }
-                ChoicePicker(model, model.t("property.system.ownership"), "systemOwnership", s.ownership, Modifier.width(170.dp)) { v -> up { it.copy(ownership = v) } }
+                ChoicePicker(model, model.t("property.system.fuel"), "fuel", s.fuel, FIELD) { v -> up { it.copy(fuel = v) } }
+                TextInput(model.t("property.system.makeModel"), s.makeModel, FIELD) { v -> up { it.copy(makeModel = v) } }
+                TextInput(model.t("property.system.capacity"), s.capacity, FIELD) { v -> up { it.copy(capacity = v) } }
+                TextInput(model.t("property.system.installYear"), s.installYear, FIELD) { v -> up { it.copy(installYear = v) } }
+                DateInput(model.t("property.system.lastInspection"), s.lastInspection, FIELD) { v -> up { it.copy(lastInspection = v) } }
+                ChoicePicker(model, model.t("property.system.ownership"), "systemOwnership", s.ownership, FIELD) { v -> up { it.copy(ownership = v) } }
                 if (s.ownership == "RENTED" || s.ownership == "LEASED") {
-                    TextInput(model.t("property.system.rentalProvider"), s.rentalProvider, Modifier.width(200.dp)) { v -> up { it.copy(rentalProvider = v) } }
-                    AmountInput(model.t("property.system.rentalMonthly"), s.rentalMonthly, units.currency, units.locale, Modifier.width(160.dp), model::money) { v -> up { it.copy(rentalMonthly = v) } }
+                    TextInput(model.t("property.system.rentalProvider"), s.rentalProvider, FIELD) { v -> up { it.copy(rentalProvider = v) } }
+                    AmountInput(model.t("property.system.rentalMonthly"), s.rentalMonthly, units.currency, units.locale, FIELD, model::money) { v -> up { it.copy(rentalMonthly = v) } }
                 }
-                ChildAssetPicker(model, s.childAssetId, children, Modifier.width(220.dp)) { v -> up { it.copy(childAssetId = v) } }
-                TextInput(model.t("account.notes"), s.notes, Modifier.width(300.dp)) { v -> up { it.copy(notes = v) } }
+                ChildAssetPicker(model, s.childAssetId, children, FIELD) { v -> up { it.copy(childAssetId = v) } }
+                TextInput(model.t("account.notes"), s.notes, FIELD) { v -> up { it.copy(notes = v) } }
                 TextButton(onClick = { systems.removeAt(i) }) { Text(model.t("common.remove")) }
             }
             HorizontalDivider()
@@ -516,16 +528,16 @@ private fun StructuresEditor(model: BooksModel, structures: MutableList<Structur
                 structures[i] = change(structures[i])
             }
             FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(4.dp), itemVerticalAlignment = Alignment.CenterVertically) {
-                ChoicePicker(model, model.t("property.structure.type"), "structureType", s.type, Modifier.width(200.dp), optional = false) { v -> up { it.copy(type = v ?: it.type) } }
-                TextInput(model.t("property.structure.name"), s.name, Modifier.width(180.dp)) { v -> up { it.copy(name = v) } }
-                TextInput("${model.t("property.structure.area")} ($a)", s.area, Modifier.width(140.dp)) { v -> up { it.copy(area = v) } }
-                TextInput(model.t("property.structure.yearBuilt"), s.yearBuilt, Modifier.width(130.dp)) { v -> up { it.copy(yearBuilt = v) } }
-                TextInput(model.t("property.structure.construction"), s.construction, Modifier.width(200.dp)) { v -> up { it.copy(construction = v) } }
+                ChoicePicker(model, model.t("property.structure.type"), "structureType", s.type, FIELD, optional = false) { v -> up { it.copy(type = v ?: it.type) } }
+                TextInput(model.t("property.structure.name"), s.name, FIELD) { v -> up { it.copy(name = v) } }
+                TextInput("${model.t("property.structure.area")} ($a)", s.area, FIELD) { v -> up { it.copy(area = v) } }
+                TextInput(model.t("property.structure.yearBuilt"), s.yearBuilt, FIELD) { v -> up { it.copy(yearBuilt = v) } }
+                TextInput(model.t("property.structure.construction"), s.construction, FIELD) { v -> up { it.copy(construction = v) } }
                 LabeledCheckbox(model.t("property.structure.heated"), s.heated) { v -> up { it.copy(heated = v) } }
                 LabeledCheckbox(model.t("property.structure.electricity"), s.electricity) { v -> up { it.copy(electricity = v) } }
                 LabeledCheckbox(model.t("property.structure.water"), s.water) { v -> up { it.copy(water = v) } }
-                ChildAssetPicker(model, s.childAssetId, children, Modifier.width(220.dp)) { v -> up { it.copy(childAssetId = v) } }
-                TextInput(model.t("account.notes"), s.notes, Modifier.width(300.dp)) { v -> up { it.copy(notes = v) } }
+                ChildAssetPicker(model, s.childAssetId, children, FIELD) { v -> up { it.copy(childAssetId = v) } }
+                TextInput(model.t("account.notes"), s.notes, FIELD) { v -> up { it.copy(notes = v) } }
                 TextButton(onClick = { structures.removeAt(i) }) { Text(model.t("common.remove")) }
             }
             HorizontalDivider()
@@ -545,9 +557,9 @@ private fun OwnersEditor(model: BooksModel, owners: MutableList<OwnerRow>, membe
                 owners[i] = change(owners[i])
             }
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-                Picker(model.t("property.owner.member"), members, members.firstOrNull { it.id == o.memberId }, { it.displayName }, Modifier.width(220.dp)) { m -> up { it.copy(memberId = m.id) } }
-                TextInput(model.t("property.owner.share"), o.share, Modifier.width(130.dp)) { v -> up { it.copy(share = v) } }
-                ChoicePicker(model, model.t("property.owner.tenancy"), "tenancy", o.tenancy, Modifier.width(220.dp)) { v -> up { it.copy(tenancy = v) } }
+                Picker(model.t("property.owner.member"), members, members.firstOrNull { it.id == o.memberId }, { it.displayName }, FIELD, wrap = true) { m -> up { it.copy(memberId = m.id) } }
+                TextInput(model.t("property.owner.share"), o.share, FIELD) { v -> up { it.copy(share = v) } }
+                ChoicePicker(model, model.t("property.owner.tenancy"), "tenancy", o.tenancy, FIELD) { v -> up { it.copy(tenancy = v) } }
                 TextButton(onClick = { owners.removeAt(i) }) { Text(model.t("common.remove")) }
             }
         }
@@ -559,9 +571,14 @@ private fun OwnersEditor(model: BooksModel, owners: MutableList<OwnerRow>, membe
 // --- AST-17: principal-residence years -----------------------------------------------------------
 
 @Composable
-private fun ResidenceEditor(model: BooksModel, asset: Asset, years: SnapshotStateMap<String, String>, members: List<ca.schippers.hfm.books.Member>) {
+private fun ResidenceEditor(model: BooksModel, asset: Asset, years: SnapshotStateMap<String, String>, members: List<ca.schippers.hfm.books.Member>, owners: List<String>) {
     Text(model.t("property.residence.hint", RealPropertyService.FAMILY_UNIT_FROM.toString()), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.outline)
-    for (m in members) {
+    // Only an owner designates a property: the people on the Owners tab, or the adults when it is empty,
+    // and anyone who already has years here, so nothing recorded is hidden.
+    val shown = members.filter { m ->
+        (if (owners.isNotEmpty()) m.id in owners else m.kind == MemberKind.ADULT) || !years[m.id].isNullOrBlank()
+    }
+    for (m in shown) {
         TextInput(model.t("property.residence.years", m.displayName), years[m.id].orEmpty(), Modifier.width(420.dp), supporting = model.t("property.residence.example")) { years[m.id] = it }
     }
     // The years another property was also designated (saved values; the check runs again after Save).

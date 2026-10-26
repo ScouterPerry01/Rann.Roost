@@ -19,7 +19,7 @@ La boîte s’intitule « Fiche de la propriété : » suivi du nom du bien. Il 
 - **Superficies en** : **Pieds carrés** (par défaut), **Mètres carrés**, **Acres** ou **Hectares**. Chaque champ de superficie montre son unité dans son libellé, par exemple « Superficie du terrain (pi²) ».
 - **Longueurs en** : **Pieds** (par défaut) ou **Mètres**, pour chaque longueur, largeur et hauteur.
   Changer d’unité convertit les nombres déjà tapés, dans chaque onglet, et le ménage garde votre choix pour chaque propriété et chaque utilisateur. L’application garde les dimensions en système métrique en coulisse : rien ne se perd à passer d’une unité à l’autre, et une dimension tapée en pieds revient exactement en pieds.
-- Les onglets : **Type et usage**, **Adresse**, **Désignation et titre**, **Terrain**, **Bâtiment**, **Sous-sol**, **Garage et stationnement**, **Piscine et caractéristiques**, **Copropriété ou coopérative**, **Valeur et taxes**, **Pièces**, **Systèmes**, **Bâtiments annexes**, **Propriétaires**, **Résidence principale** et **Autres détails**. La rangée défile de côté quand ils ne tiennent pas tous. **Copropriété ou coopérative** n’apparaît que pour un condo. Un terrain n’a pas d’onglet **Bâtiment**, **Sous-sol** ni **Pièces**.
+- Les onglets : **Type et usage**, **Adresse**, **Désignation et titre**, **Terrain**, **Bâtiment**, **Sous-sol**, **Garage et stationnement**, **Piscine et caractéristiques**, **Copropriété ou coopérative**, **Valeur et taxes**, **Pièces**, **Systèmes**, **Bâtiments annexes**, **Propriétaires**, **Résidence principale** et **Autres détails**. Ils sont listés à gauche ; cliquez sur l’un d’eux pour l’afficher. **Copropriété ou coopérative** n’apparaît que pour un condo. Un terrain n’a pas d’onglet **Bâtiment**, **Sous-sol** ni **Pièces**.
 - **Enregistrer** : enregistre tous les onglets d’un coup et laisse la boîte ouverte. Quand une valeur ne convient pas, un message dit ce qui ne va pas et rien n’est enregistré.
 - **Fiche descriptive (PDF)…** : voir [La fiche descriptive](property#fact-sheet).
 - **Fermer** : ferme la boîte. Les changements non enregistrés avec **Enregistrer** sont perdus.
@@ -273,9 +273,9 @@ Les propriétaires sont un registre pour la fiche descriptive et vos papiers de 
 
 @index: exemption pour résidence principale; T2091; gain en capital; désignation
 
-Les années où chaque personne a désigné cette propriété comme sa résidence principale, pour aider à remplir le formulaire T2091 de l’ARC à la vente. Depuis {0}, une unité familiale ne peut désigner qu’une propriété par année.
+Les années où chaque personne a désigné cette propriété comme sa résidence principale, pour aider à remplir le formulaire T2091 de l’ARC à la vente. Depuis 1982, une unité familiale ne peut désigner qu’une propriété par année.
 
-- Une case **Années désignées par {0}** pour chaque membre du ménage, avec son nom. Tapez les années seules ou en plages, séparées par des virgules : « 2015-2019, 2023 ». Après l’enregistrement, elles reviennent triées et regroupées en plages. Laissez la case vide pour une personne qui n’a pas désigné cette propriété.
+- Une case **Années désignées par** suivi du nom de la personne, pour chaque personne de l’onglet [Propriétaires](property#owners) ; quand cet onglet est vide, pour chaque adulte du ménage. Une personne qui a déjà des années ici garde sa case. Tapez les années seules ou en plages, séparées par des virgules : « 2015-2019, 2023 ». Après l’enregistrement, elles reviennent triées et regroupées en plages. Laissez la case vide pour une personne qui n’a pas désigné cette propriété.
 
 Après l’enregistrement, l’onglet avertit en rouge quand le ménage a désigné une autre propriété pour la même année : « En 2023, la famille a aussi désigné : Chalet ». À partir de 1982, la vérification vaut pour toute la famille ; pour les années antérieures, pour chaque personne. Voyez avec la personne qui prépare votre déclaration quelle propriété désigner.
 
@@ -301,7 +301,7 @@ La fiche descriptive est un PDF de tous les détails notés sur la propriété, 
 
 1. Enregistrez d’abord vos changements : la fiche montre ce qui est enregistré, pas ce qui est tapé.
 2. Cliquez sur **Fiche descriptive (PDF)…**.
-3. Choisissez ce qu’elle comprend (voir plus bas), cliquez sur **Enregistrer** et choisissez où enregistrer le fichier. Il est nommé « Fiche descriptive - {0} », avec le nom du bien. **Annuler** ferme sans la faire.
+3. Choisissez ce qu’elle comprend (voir plus bas), cliquez sur **Enregistrer** et choisissez où enregistrer le fichier. Il est nommé « Fiche descriptive - » suivi du nom du bien. **Annuler** ferme sans la faire.
 
 La boîte rappelle : « La fiche montre ce qui est enregistré. Enregistrez d’abord vos modifications. » Les deux cases sont cochées par défaut :
 

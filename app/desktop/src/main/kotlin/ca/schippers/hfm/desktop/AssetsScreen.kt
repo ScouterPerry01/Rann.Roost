@@ -1,5 +1,5 @@
 // File path and name: app/desktop/src/main/kotlin/ca/schippers/hfm/desktop/AssetsScreen.kt
-// Modified On Timestamp: 2026-10-25 @ 19:15 EDT
+// Modified On Timestamp: 2026-10-26 @ 00:10 EDT
 // Created On Timestamp: 2026-10-02 @ 21:53 EDT
 // File Description: The Assets screen: assets and their dialog, upkeep, seasonal checklist, projects,
 //   contractors, what covers each asset, and insurance policies.
@@ -179,6 +179,8 @@ private fun AssetDialog(model: BooksModel, existing: Asset, onClose: () -> Unit)
     var years by remember { mutableStateOf((existing.depreciationYears ?: Thresholds.depreciationYears(today())).toString()) }
     var residual by remember { mutableStateOf((existing.residualPercent ?: Thresholds.depreciationResidualPercent(today())).stripTrailingZeros().toPlainString()) }
     var inNetWorth by remember { mutableStateOf(existing.inNetWorth) }
+    // A new home, cottage, condo, land or building counts in net worth unless the box is unticked.
+    var netWorthChosen by remember { mutableStateOf(existing.id.isNotBlank()) }
     var status by remember { mutableStateOf(existing.status) }
     var disposalDate by remember { mutableStateOf(existing.disposalDate?.toString().orEmpty()) }
     var disposalPrice by remember { mutableStateOf(amt(existing.disposalPrice)) }
@@ -196,7 +198,10 @@ private fun AssetDialog(model: BooksModel, existing: Asset, onClose: () -> Unit)
     WideDialog(model.t(if (existing.id.isBlank()) "assets.add" else "assets.asset"), model.t("common.close"), onClose) {
         Column(Modifier.width(780.dp).heightIn(max = 640.dp).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(6.dp)) {
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Picker(model.t("assets.kind"), AssetKind.entries, kind, { model.t("assetKind.$it") }, Modifier.weight(1f)) { kind = it }
+                Picker(model.t("assets.kind"), AssetKind.entries, kind, { model.t("assetKind.$it") }, Modifier.weight(1f)) {
+                    kind = it
+                    if (!netWorthChosen) inNetWorth = it in REAL_PROPERTY_KINDS
+                }
                 TextInput(model.t("assets.name"), name, Modifier.weight(1f)) { name = it }
                 Picker(model.t("assets.partOf"), listOf(null) + others, others.firstOrNull { it.id == parentId }, { it?.name ?: model.t("common.none") }, Modifier.weight(1f)) { parentId = it?.id }
             }
@@ -245,7 +250,10 @@ private fun AssetDialog(model: BooksModel, existing: Asset, onClose: () -> Unit)
                     }
                     ValueMethod.NONE -> Unit
                 }
-                if (method != ValueMethod.NONE) LabeledCheckbox(model.t("assets.inNetWorth"), inNetWorth) { inNetWorth = it }
+                if (method != ValueMethod.NONE) LabeledCheckbox(model.t("assets.inNetWorth"), inNetWorth) {
+                    inNetWorth = it
+                    netWorthChosen = true
+                }
             }
             // AST-05: sold, given away or thrown out.
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {

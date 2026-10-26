@@ -1,5 +1,5 @@
 // File path and name: app/desktop/src/main/kotlin/ca/schippers/hfm/desktop/DemoFamily.kt
-// Modified On Timestamp: 2026-10-25 @ 19:55 EDT
+// Modified On Timestamp: 2026-10-26 @ 00:10 EDT
 // Created On Timestamp: 2026-10-11 @ 12:46 EDT
 // File Description: The family sample household: two working parents with good salaries, three
 //   young children (daycare, grade 1, grade 2), a house with a mortgage, an inherited cottage,
@@ -200,7 +200,7 @@ internal class DemoFamily(books: Books, p: DemoPlace) : DemoKit(books, p) {
         val house = books.assets.save(
             Asset(
                 "", group, AssetKind.HOME, l("Maison familiale", "Family home"), purchaseDate = today.minus(DatePeriod(years = 5, months = 2)), purchasePrice = cad("685000"),
-                valueMethod = ValueMethod.MANUAL, value = cad("742000"), valueDate = day(-90), location = p.city,
+                valueMethod = ValueMethod.MANUAL, value = cad("742000"), valueDate = day(-90), inNetWorth = true, location = p.city,
             ),
         )
         val firstPayment = LocalDate(start.year, start.month, 1).minus(DatePeriod(months = 16))
@@ -218,7 +218,7 @@ internal class DemoFamily(books: Books, p: DemoPlace) : DemoKit(books, p) {
         val cottage = books.assets.save(
             Asset(
                 "", group, AssetKind.COTTAGE, p.cottage, purchaseDate = inherited, purchasePrice = cad("365000"), valueMethod = ValueMethod.MANUAL, value = cad("418000"),
-                valueDate = day(-200), location = p.cottageTown,
+                valueDate = day(-200), inNetWorth = true, location = p.cottageTown,
                 notes = l(
                     "Héritage de grand-maman Rose (${inherited.year}). Coût fiscal : la juste valeur marchande au décès, 365 000 $.",
                     "Inherited from Grandma Rose (${inherited.year}). Tax cost: fair market value at her death, $365,000.",
@@ -568,7 +568,7 @@ internal class DemoFamily(books: Books, p: DemoPlace) : DemoKit(books, p) {
         val joint = account(l("Placements conjoints", "Joint investments"), AccountType.BROKERAGE, setOf(parentA.id, parentB.id), "J-55017", "150000")
 
         buy(rrspA, xeqt, 70, "1800", "24.10"); buy(rrspA, zag, 60, "1500", "15.20"); buy(rrspA, xeqt, 30, "1200", "27.40")
-        buy(tfsaA, vfv, 66, "300", "78.30"); buy(tfsaA, xic, 48, "900", "29.90"); buy(tfsaA, vfv, 20, "120", "118.40")
+        buy(tfsaA, vfv, 66, "300", "78.30"); buy(tfsaA, xic, 48, "900", "29.90"); buy(tfsaA, vfv, 20, "110", "118.40")
         buy(rrspB, xeqt, 68, "1700", "24.60"); buy(rrspB, xef, 54, "900", "29.80"); buy(rrspB, zag, 26, "1100", "13.70")
         buy(tfsaB, xeqt, 64, "1400", "25.30"); buy(tfsaB, xeqt, 18, "700", "31.10")
         buy(joint, td, 62, "600", "72.40", "9.95"); buy(joint, enb, 58, "800", "48.10", "9.95"); buy(joint, cnr, 50, "200", "146.20", "9.95"); buy(joint, vfv, 40, "250", "92.70", "9.95")

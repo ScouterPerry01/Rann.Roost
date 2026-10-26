@@ -77,7 +77,7 @@ Linking an asset to its purchase in your accounts keeps the proof of purchase at
   - **Not tracked** (the default): no value. The asset does not count in net worth.
   - **Estimate entered**: you enter **Estimated value**; it is dated the day you save. Update it now and then, for example from a municipal assessment for a home.
   - **Falls each month from the price**: the value starts at **Price paid** on **Bought on** and falls evenly each month. See [Depreciation](assets#depreciation).
-- **Count in net worth**: shown when the value is tracked. When ticked, the asset's value on each date is added to the household's net worth: on the [Dashboard](dashboard) and in the **Net worth** report under [Reports](reports). Before its purchase date, and from its disposal date, it counts for nothing.
+- **Count in net worth**: shown when the value is tracked. Ticked by default for a new home, cottage, condo, land or building, and unticked for other kinds; you can change it. When ticked, the asset's value on each date is added to the household's net worth: on the [Dashboard](dashboard) and in the **Net worth** report under [Reports](reports). Before its purchase date, and from its disposal date, it counts for nothing.
 
 > Tip: Count the home and the cottage in net worth. Appliances and electronics lose value quickly; following them with depreciation is useful for insurance, but you may prefer to leave them out of net worth.
 

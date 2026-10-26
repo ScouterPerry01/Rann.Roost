@@ -19,7 +19,7 @@ The dialog is titled "Property details:" and the asset's name. You need the **Ed
 - **Areas in**: **Square feet** (the default), **Square metres**, **Acres** or **Hectares**. Every area field shows its unit in its label, for example "Lot area (sq ft)".
 - **Lengths in**: **Feet** (the default) or **Metres**, for every length, width and height.
   Changing a unit converts the numbers already typed, on every tab, and the household remembers your choice for every property and every user. The app keeps the sizes in metric behind the scenes, so nothing is lost by switching back and forth; a size typed in feet comes back in feet exactly.
-- The tabs: **Type and use**, **Address**, **Legal and title**, **Land**, **Building**, **Basement**, **Garage and parking**, **Pool and features**, **Condo or co-op**, **Value and tax**, **Rooms**, **Systems**, **Outbuildings**, **Owners**, **Principal residence** and **Other details**. The row scrolls sideways when they do not all fit. **Condo or co-op** shows only for a condo. Land has no **Building**, **Basement** or **Rooms** tab.
+- The tabs: **Type and use**, **Address**, **Legal and title**, **Land**, **Building**, **Basement**, **Garage and parking**, **Pool and features**, **Condo or co-op**, **Value and tax**, **Rooms**, **Systems**, **Outbuildings**, **Owners**, **Principal residence** and **Other details**. They are listed down the left side; click one to show it. **Condo or co-op** shows only for a condo. Land has no **Building**, **Basement** or **Rooms** tab.
 - **Save**: saves every tab at once and leaves the dialog open. When a value is not right, a message says what is wrong and nothing is saved.
 - **Fact sheet (PDF)…**: see [The fact sheet](property#fact-sheet).
 - **Close**: closes the dialog. Changes not saved with **Save** are lost.
@@ -273,9 +273,9 @@ The owners are a record for the fact sheet and your estate papers. They do not c
 
 @index: principal residence exemption; T2091; capital gain; designation
 
-The years each person designated this property as their principal residence, to help with CRA form T2091 when it is sold. Since {0}, a family unit can designate only one property per year.
+The years each person designated this property as their principal residence, to help with CRA form T2091 when it is sold. Since 1982, a family unit can designate only one property per year.
 
-- A box **Years designated by {0}** for each household member, with the person's name. Type the years as single years and ranges, separated by commas: "2015-2019, 2023". After saving, they come back sorted and grouped as ranges. Leave a box empty for a person who did not designate this property.
+- A box **Years designated by** and the person's name, for each person on the [Owners](property#owners) tab; when that tab is empty, for each adult of the household. A person who already has years here keeps their box. Type the years as single years and ranges, separated by commas: "2015-2019, 2023". After saving, they come back sorted and grouped as ranges. Leave a box empty for a person who did not designate this property.
 
 After you save, the tab warns in red when the household designated another property for the same year: "In 2023, the family also designated: Cottage". From 1982 the check is for the whole family; for earlier years, for each person. Check with the person who prepares your return which property to designate.
 

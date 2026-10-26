@@ -1,5 +1,5 @@
 // File path and name: app/desktop/src/main/kotlin/ca/schippers/hfm/desktop/DemoSeasonal.kt
-// Modified On Timestamp: 2026-10-11 @ 13:05 EDT
+// Modified On Timestamp: 2026-10-26 @ 00:10 EDT
 // Created On Timestamp: 2026-10-06 @ 08:32 EDT
 // File Description: The sample household's pool, yard and cottage with their seasonal tasks, and an
 //   energy upgrade with the rebates of where it lives.
@@ -50,7 +50,7 @@ internal fun addSeasonalDemo(books: Books, group: String, house: Asset, skip: Se
     val cottage = assets.save(
         Asset(
             "", group, AssetKind.COTTAGE, p.cottage, purchaseDate = LocalDate(2019, 8, 15), purchasePrice = cad("265000"),
-            valueMethod = ValueMethod.MANUAL, value = cad("340000"), valueDate = day(-200), location = p.cottageTown,
+            valueMethod = ValueMethod.MANUAL, value = cad("340000"), valueDate = day(-200), inNetWorth = true, location = p.cottageTown,
         ),
     )
     for (a in listOf(pool, yard, cottage)) upkeep.addStarterTasks(a.id, today, ::task)

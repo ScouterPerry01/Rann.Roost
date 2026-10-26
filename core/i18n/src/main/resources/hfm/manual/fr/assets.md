@@ -77,7 +77,7 @@ Lier un bien à son achat dans vos comptes garde la preuve d’achat à portée 
   - **Non suivie** (par défaut) : aucune valeur. Le bien ne compte pas dans la valeur nette.
   - **Estimation saisie** : vous entrez la **Valeur estimée** ; elle est datée du jour où vous enregistrez. Mettez-la à jour de temps en temps, par exemple d’après l’évaluation municipale pour une maison.
   - **Baisse chaque mois à partir du prix** : la valeur part du **Prix payé** à la date **Acheté le** et baisse également chaque mois. Voir [Amortissement](assets#depreciation).
-- **Compter dans la valeur nette** : affiché quand la valeur est suivie. Une fois coché, la valeur du bien à chaque date s’ajoute à la valeur nette du ménage : au [Tableau de bord](dashboard) et dans le rapport **Valeur nette** sous [Rapports](reports). Avant sa date d’achat, et à partir de sa date de disposition, il ne compte pour rien.
+- **Compter dans la valeur nette** : affiché quand la valeur est suivie. Coché par défaut pour une nouvelle maison, un chalet, un condo, un terrain ou un immeuble, et décoché pour les autres types ; vous pouvez le changer. Une fois coché, la valeur du bien à chaque date s’ajoute à la valeur nette du ménage : au [Tableau de bord](dashboard) et dans le rapport **Valeur nette** sous [Rapports](reports). Avant sa date d’achat, et à partir de sa date de disposition, il ne compte pour rien.
 
 > Conseil : Comptez la maison et le chalet dans la valeur nette. Les électroménagers et l’électronique perdent vite de la valeur ; les suivre par amortissement est utile pour l’assurance, mais vous préférerez peut-être les laisser hors de la valeur nette.
 

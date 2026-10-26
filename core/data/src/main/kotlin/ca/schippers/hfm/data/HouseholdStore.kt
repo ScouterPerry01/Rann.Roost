@@ -1,5 +1,5 @@
 // File path and name: core/data/src/main/kotlin/ca/schippers/hfm/data/HouseholdStore.kt
-// Modified On Timestamp: 2026-10-26 @ 03:16 EDT
+// Modified On Timestamp: 2026-10-26 @ 04:13 EDT
 // Created On Timestamp: 2026-10-01 @ 15:53 EDT
 // File Description: Creates and unlocks household folders: header, keys, partitions, password and recovery.
 // Uses: HouseholdHeader/HeaderFile, DeviceFile, core/security, the encrypted driver factory.
@@ -7,6 +7,7 @@
 // Purpose: One place where a household's keys are made, checked and opened (ADR 0002).
 package ca.schippers.hfm.data
 
+import app.cash.sqldelight.db.SqlDriver
 import ca.schippers.hfm.domain.Ids
 import ca.schippers.hfm.domain.Role
 import ca.schippers.hfm.security.Aead
@@ -40,6 +41,11 @@ class HouseholdStore(
      * [kdfParams] when not given. Existing passwords keep the settings stored with them.
      */
     private val newPasswordKdf: (() -> KdfParams)? = null,
+    /**
+     * Called for each database once it is open and its schema is current, before any service uses
+     * it. Sharing between computers installs its change capture here (plan-multi-device 4.1).
+     */
+    private val onDatabaseOpened: (driver: SqlDriver, kind: PartitionKind) -> Unit = { _, _ -> },
 ) {
 
     fun isHousehold(dir: Path): Boolean = HeaderFile.exists(dir)
@@ -163,6 +169,8 @@ class HouseholdStore(
 
     internal fun openDriver(dir: Path, partition: Partition, key: ByteArray) =
         drivers.open(dir.resolve(partition.file), key)
+
+    internal fun opened(driver: SqlDriver, kind: PartitionKind) = onDatabaseOpened(driver, kind)
 
     internal fun now(): Long = clock()
 

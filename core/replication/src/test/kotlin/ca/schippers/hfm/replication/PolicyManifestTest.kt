@@ -1,5 +1,5 @@
 // File path and name: core/replication/src/test/kotlin/ca/schippers/hfm/replication/PolicyManifestTest.kt
-// Modified On Timestamp: 2026-10-26 @ 03:45 EDT
+// Modified On Timestamp: 2026-10-26 @ 04:20 EDT
 // Created On Timestamp: 2026-10-26 @ 03:45 EDT
 // File Description: Checks PolicyManifest against the real core and ledger schemas (plan-multi-device 4.3, 10).
 // Uses: CoreDatabase and LedgerDatabase schemas (core/data), the SQLCipher driver (core/data-jdbc).
@@ -74,11 +74,17 @@ class PolicyManifestTest {
     }
 
     @Test
-    fun `local-only tables are exactly the phone pairing and this computer's settings`() {
-        // plan-multi-device 5.1 and 7. A new local-only table is a decision: add it here on purpose.
+    fun `local-only tables are exactly the phone pairing, this computer's settings and the capture bookkeeping`() {
+        // plan-multi-device 4.1, 5.1 and 7. A new local-only table is a decision: add it here on purpose.
         assertEquals(
-            setOf("sync_device", "sync_item", "repl_local_setting"),
-            PolicyManifest.tables.filter { it.policy == Policy.LOCAL_ONLY }.map { it.table }.toSet(),
+            setOf("CORE.sync_device", "CORE.sync_item", "CORE.repl_local_setting", "CORE.repl_outbox", "CORE.repl_applying", "LEDGER.repl_outbox", "LEDGER.repl_applying"),
+            PolicyManifest.tables.filter { it.policy == Policy.LOCAL_ONLY }.map { "${it.database}.${it.table}" }.toSet(),
         )
+    }
+
+    @Test
+    fun `every bookkeeping table starts with repl_ and is local only`() {
+        // The spike's lesson (ADR 0011): capture is driven by the manifest, never by a name filter.
+        for (p in PolicyManifest.tables.filter { it.table.startsWith("repl_") }) assertEquals(Policy.LOCAL_ONLY, p.policy, p.table)
     }
 }

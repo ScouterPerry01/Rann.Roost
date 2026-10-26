@@ -1,5 +1,5 @@
 // File path and name: core/data-jdbc/src/test/kotlin/ca/schippers/hfm/data/jdbc/MigrationTest.kt
-// Modified On Timestamp: 2026-10-26 @ 03:30 EDT
+// Modified On Timestamp: 2026-10-26 @ 04:29 EDT
 // Created On Timestamp: 2026-10-02 @ 00:43 EDT
 // File Description: Upgrade tests (NFR-11): encrypted databases built from each saved schema snapshot are
 //   filled, upgraded to the current version and checked.
@@ -687,7 +687,7 @@ class MigrationTest {
         }
         factory.open(file, key).use { driver ->
             SchemaManager.prepare(driver, LedgerDatabase.Schema, file)
-            assertEquals(36L, LedgerDatabase.Schema.version)
+            assertEquals(37L, LedgerDatabase.Schema.version)
             assertEquals(LedgerDatabase.Schema.version, SchemaManager.userVersion(driver))
             val db = LedgerDatabase(driver)
             assertEquals("Garage", db.calendarQueries.eventById("e").executeAsOne().title, "events stay")
@@ -776,7 +776,7 @@ class MigrationTest {
         }
         factory.open(file, key).use { driver ->
             SchemaManager.prepare(driver, LedgerDatabase.Schema, file)
-            assertEquals(36L, LedgerDatabase.Schema.version)
+            assertEquals(37L, LedgerDatabase.Schema.version)
             assertEquals(LedgerDatabase.Schema.version, SchemaManager.userVersion(driver))
             val q = LedgerDatabase(driver).medicalQueries
             assertEquals("AFTER_SERVICE", q.planById("m").executeAsOne().claim_rule, "existing plans keep counting from the service")
@@ -821,7 +821,7 @@ class MigrationTest {
         }
         factory.open(file, key).use { driver ->
             SchemaManager.prepare(driver, LedgerDatabase.Schema, file)
-            assertEquals(36L, LedgerDatabase.Schema.version)
+            assertEquals(37L, LedgerDatabase.Schema.version)
             assertEquals(LedgerDatabase.Schema.version, SchemaManager.userVersion(driver))
             val tq = LedgerDatabase(driver).trackersQueries
             assertEquals(0L, tq.chores().executeAsOne().several_a_day, "existing chores are ticked once a day")
@@ -840,7 +840,7 @@ class MigrationTest {
         }
         factory.open(file, key).use { driver ->
             SchemaManager.prepare(driver, LedgerDatabase.Schema, file)
-            assertEquals(36L, LedgerDatabase.Schema.version)
+            assertEquals(37L, LedgerDatabase.Schema.version)
             assertEquals(LedgerDatabase.Schema.version, SchemaManager.userVersion(driver))
             val q = LedgerDatabase(driver).extrasQueries
             val trip = q.tripById("t").executeAsOne()
@@ -876,7 +876,7 @@ class MigrationTest {
         }
         factory.open(file, key).use { driver ->
             SchemaManager.prepare(driver, LedgerDatabase.Schema, file)
-            assertEquals(36L, LedgerDatabase.Schema.version)
+            assertEquals(37L, LedgerDatabase.Schema.version)
             assertEquals(LedgerDatabase.Schema.version, SchemaManager.userVersion(driver))
             val q = LedgerDatabase(driver).ledgerQueries
             val bill = q.billById("b").executeAsOne()
@@ -909,7 +909,7 @@ class MigrationTest {
         }
         factory.open(file, key).use { driver ->
             SchemaManager.prepare(driver, LedgerDatabase.Schema, file)
-            assertEquals(36L, LedgerDatabase.Schema.version)
+            assertEquals(37L, LedgerDatabase.Schema.version)
             assertEquals(LedgerDatabase.Schema.version, SchemaManager.userVersion(driver))
             val q = LedgerDatabase(driver).ledgerQueries
             val payment = q.billPayments("b").executeAsOne()
@@ -926,6 +926,25 @@ class MigrationTest {
             assertEquals(listOf("2026-09-01", "2026-10-03"), q.billPayments("b").executeAsList().map { it.due_date })
             q.deleteBill("b")
             assertEquals(0, q.allBillPayments().executeAsList().size, "deleting the bill removes its payments")
+        }
+    }
+
+    @Test
+    fun `core version 9 and ledger version 36 gain the empty change-capture tables`() {
+        // plan-multi-device 4.1: nothing is captured until sharing is turned on.
+        for ((snapshot, version, schema) in listOf(
+            Triple("core/schemas/9.db", 9, CoreDatabase.Schema),
+            Triple("ledger/schemas/36.db", 36, LedgerDatabase.Schema),
+        )) {
+            val file = temp.resolve("v$version.db")
+            older("../data/src/main/sqldelight/$snapshot", file, version).close()
+            factory.open(file, key).use { driver ->
+                SchemaManager.prepare(driver, schema, file)
+                assertEquals(schema.version, SchemaManager.userVersion(driver))
+                assertEquals(0L, count(driver, "SELECT count(*) FROM repl_outbox"), snapshot)
+                assertEquals(0L, count(driver, "SELECT count(*) FROM repl_applying"), snapshot)
+                assertEquals(0L, count(driver, "SELECT count(*) FROM sqlite_master WHERE type = 'trigger'"), "no capture until sharing is on")
+            }
         }
     }
 }

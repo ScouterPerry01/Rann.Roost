@@ -1,5 +1,5 @@
 // File path and name: core/data/src/main/kotlin/ca/schippers/hfm/data/DeviceIdentity.kt
-// Modified On Timestamp: 2026-10-26 @ 03:16 EDT
+// Modified On Timestamp: 2026-10-26 @ 04:45 EDT
 // Created On Timestamp: 2026-10-26 @ 03:16 EDT
 // File Description: device.json: this computer's own identity for one household (plan-multi-device 5.1).
 // Uses: kotlinx.serialization; Ids; the same atomic write as household.json (HeaderFile).
@@ -26,6 +26,11 @@ data class DeviceIdentity(
     /** The computer's name when the file was made, shown to the other computers. */
     val name: String,
     val createdAt: Long,
+    /**
+     * The last change-set number this computer gave in each partition (plan-multi-device 5.1): the
+     * next one is one more, with no gaps. Kept here, so a restored backup (a new computer) starts again at 1.
+     */
+    val lastSequence: Map<String, Long> = emptyMap(),
 ) {
     companion object {
         const val CURRENT_FORMAT = 1
@@ -55,6 +60,15 @@ internal object DeviceFile {
             Files.move(file, dir.resolve("${DeviceIdentity.FILE_NAME}.bad"), StandardCopyOption.REPLACE_EXISTING)
         }
         return DeviceIdentity(deviceId = Ids.newId(), name = computerName(), createdAt = now).also { write(dir, it) }
+    }
+
+    /** Gives the next change-set number of [partitionId] and saves it before returning, so no number is given twice. */
+    @Synchronized
+    fun nextSequence(dir: Path, partitionId: String, now: Long): Long {
+        val device = readOrCreate(dir, now)
+        val next = (device.lastSequence[partitionId] ?: 0L) + 1
+        write(dir, device.copy(lastSequence = device.lastSequence + (partitionId to next)))
+        return next
     }
 
     private fun write(dir: Path, device: DeviceIdentity) {

@@ -1,5 +1,5 @@
 // File path and name: core/data/src/main/kotlin/ca/schippers/hfm/data/HouseholdSession.kt
-// Modified On Timestamp: 2026-10-26 @ 03:16 EDT
+// Modified On Timestamp: 2026-10-26 @ 04:45 EDT
 // Created On Timestamp: 2026-10-01 @ 15:53 EDT
 // File Description: One signed-in user's view of an unlocked household: its databases, keys, audit and groups.
 // Uses: HouseholdStore, the encrypted databases, core/security.
@@ -57,6 +57,9 @@ class HouseholdSession internal constructor(
         }
 
     val householdId: String get() = header.householdId
+
+    /** The next change-set number this computer gives in [partitionId] (plan-multi-device 5.1). */
+    fun nextChangeSetNumber(partitionId: String): Long = DeviceFile.nextSequence(dir, partitionId, store.now())
 
     val role: Role get() = Role.valueOf(core.coreQueries.userById(userId).executeAsOne().role)
 
@@ -282,6 +285,7 @@ class HouseholdSession internal constructor(
         val driver = store.openDriver(dir, partition, key)
         drivers[partition.id] = driver
         SchemaManager.prepare(driver, schema, dir.resolve(partition.file))
+        store.opened(driver, partition.kind)
         return driver
     }
 

@@ -1,5 +1,5 @@
 // File path and name: app/desktop/build.gradle.kts
-// Modified On Timestamp: 2026-10-25 @ 23:02 EDT
+// Modified On Timestamp: 2026-10-26 @ 04:14 EDT
 // Created On Timestamp: 2026-10-01 @ 15:53 EDT
 // File Description: Build of the desktop app: packages (MSI, MSIX, deb, rpm), the packaged runtime's
 //   JDK modules, the demo, the sample-household sweep and the manual and Store pictures.
@@ -43,6 +43,7 @@ dependencies {
     implementation(libs.fastexcel)
     implementation(libs.openpdf)
     implementation(libs.zxing.core)
+    testImplementation(project(":core:replication"))
     testImplementation(kotlin("test"))
     testImplementation(platform(libs.junit.bom))
     testImplementation(libs.junit.jupiter)
@@ -213,7 +214,7 @@ tasks.register<JavaExec>("runDemo") {
 // The sample households built in every province and territory and both languages (several
 // minutes, so not part of `test`): ./gradlew :app:desktop:sampleHouseholdsTest
 tasks.register<Test>("sampleHouseholdsTest") {
-    description = "Builds the sample households in every province and territory, in English and French"
+    description = "Builds the sample households in every province and territory, in English and French, and checks change capture on the family"
     group = "verification"
     testClassesDirs = sourceSets["test"].output.classesDirs
     classpath = sourceSets["test"].runtimeClasspath

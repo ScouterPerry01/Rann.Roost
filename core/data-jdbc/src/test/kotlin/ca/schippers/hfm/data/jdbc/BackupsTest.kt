@@ -1,3 +1,10 @@
+// File path and name: core/data-jdbc/src/test/kotlin/ca/schippers/hfm/data/jdbc/BackupsTest.kt
+// Modified On Timestamp: 2026-10-26 @ 03:16 EDT
+// Created On Timestamp: 2026-10-01 @ 22:49 EDT
+// File Description: Backups: create, verify, restore, prune; what a backup holds and leaves out.
+// Uses: An encrypted test household; core/data Backups and HouseholdStore.
+// Used By: ./gradlew :core:data-jdbc:test.
+// Purpose: Prove backups restore exactly and never leak plain data (BAK requirements, ADR 0005).
 package ca.schippers.hfm.data.jdbc
 
 import ca.schippers.hfm.data.BackupException
@@ -61,6 +68,22 @@ class BackupsTest {
         store.unlock(restored, "perry", "pw".toCharArray()).use { again ->
             assertEquals(listOf("IGA"), payees(again, shared))
         }
+    }
+
+    @Test
+    fun `this computer's identity is not backed up, so a restored copy is a new computer`() {
+        // plan-multi-device 5.1: change numbers of the original computer are never reused.
+        val session = store.create(home, "Home", "perry", "Perry", "pw".toCharArray()).session
+        val original = session.device.deviceId
+        val backup = Backups.create(session, backups)
+        session.close()
+        ZipFile(backup.file.toFile()).use { zip -> assertTrue(zip.entries().toList().none { it.name.startsWith("device.json") }) }
+        val restored = Backups.restore(backup.file, temp.resolve("Restored.hfm"))
+        store.unlock(restored, "perry", "pw".toCharArray()).use { again ->
+            assertTrue(Ids.isValid(again.device.deviceId))
+            assertTrue(again.device.deviceId != original)
+        }
+        store.unlock(home, "perry", "pw".toCharArray()).use { assertEquals(original, it.device.deviceId) }
     }
 
     @Test

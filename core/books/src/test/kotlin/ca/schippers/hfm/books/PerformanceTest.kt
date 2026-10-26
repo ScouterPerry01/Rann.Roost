@@ -1,13 +1,23 @@
+// File path and name: core/books/src/test/kotlin/ca/schippers/hfm/books/PerformanceTest.kt
+// Modified On Timestamp: 2026-10-26 @ 04:56 EDT
+// Created On Timestamp: 2026-10-02 @ 00:04 EDT
+// File Description: NFR-02: screens and reports timed on 30 years of generated data (250,000 transactions); optionally with change capture on.
+// Uses: core/books services; the SQLCipher driver; core/replication when HFM_PERF_CAPTURE=1.
+// Used By: ./gradlew :core:books:performanceTest (CI performance job).
+// Purpose: Keep every screen under a second and every report under three on a large household.
 package ca.schippers.hfm.books
 
 import ca.schippers.hfm.calc.schedule.Seasons
 import ca.schippers.hfm.data.HouseholdStore
+import ca.schippers.hfm.data.PartitionKind
 import ca.schippers.hfm.data.jdbc.SqlCipherJdbcDriverFactory
 import ca.schippers.hfm.domain.AccountType
 import ca.schippers.hfm.domain.CategoryKind
 import ca.schippers.hfm.domain.Ids
 import ca.schippers.hfm.money.Currency
 import ca.schippers.hfm.money.Money
+import ca.schippers.hfm.replication.CaptureTriggers
+import ca.schippers.hfm.replication.Database
 import ca.schippers.hfm.security.KdfParams
 import kotlinx.datetime.DatePeriod
 import kotlinx.datetime.LocalDate
@@ -47,7 +57,12 @@ class PerformanceTest {
     @BeforeAll
     fun generate() {
         dir = Files.createTempDirectory("hfm-perf")
-        val store = HouseholdStore(SqlCipherJdbcDriverFactory(), KdfParams.TESTING)
+        // HFM_PERF_CAPTURE=1: the same with 2.0.0 change capture on (plan-multi-device 10), to see its cost.
+        val capture = System.getenv("HFM_PERF_CAPTURE") == "1"
+        val store = HouseholdStore(SqlCipherJdbcDriverFactory(), KdfParams.TESTING, onDatabaseOpened = { driver, kind ->
+            if (capture) CaptureTriggers.install(driver, if (kind == PartitionKind.CORE) Database.CORE else Database.LEDGER)
+        })
+        if (capture) println("Change capture is on")
         books = Books(store.create(dir.resolve("Perf.hfm"), "Perf", "perry", "Perry", "pw".toCharArray()).session)
         val group = books.groups().single()
         accounts = listOf(

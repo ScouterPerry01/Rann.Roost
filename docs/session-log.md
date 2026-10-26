@@ -1,6 +1,6 @@
 <!--
 File path and name: docs/session-log.md
-Modified On Timestamp: 2026-10-26 @ 02:30 EDT
+Modified On Timestamp: 2026-10-26 @ 05:15 EDT
 Created On Timestamp: 2026-10-09 @ 08:14 EDT
 File Description: Append-only session history, newest first.
 Uses: N/A (historical record).
@@ -17,6 +17,17 @@ When this file passes ~40 KB, move it to `docs/archive/session-log-through-<date
 Earlier history (before 2026-10-09) is in git log and `docs/development-plan.md`.
 
 ---
+
+## 2026-10-26 02:36 -> 05:15 EDT - PRs #18-#21 merged; 2.0.0 phases 1 and 2
+
+- Merged after green CI: #18 phase R, #19 Store ID + website buttons, #20 shared exchange folder docs,
+  #21 phase 1 (name-based ids, P14, `device.json`, local-only settings, `core/replication` policy manifest and
+  unique resolutions, 32 upserts, CLAUDE.md sync rules). No tags.
+- Phase 2 on `feature/phase2-capture`, **PR #22**: clock, capture triggers (off until sharing), sealing,
+  signed change-set files, change-set numbers; capture-completeness test green.
+- `feature/phase2-capture-perf`: performance test with capture on (2 of 4 over the limit, under study).
+- Owner away 02:50-05:05; Claude's decisions listed in handover 2026-10-26 section 10 and the decisions log.
+- Build: `./gradlew build` after each batch; last 1067 tests, 0 failures, 1 skipped (HeifTest).
 
 ## 2026-10-25 19:50 -> 2026-10-26 02:30 EDT - Phase R finished; PR #18 to main
 

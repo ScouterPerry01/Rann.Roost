@@ -1,5 +1,5 @@
 // File path and name: core/data-jdbc/src/test/kotlin/ca/schippers/hfm/data/jdbc/HouseholdStoreTest.kt
-// Modified On Timestamp: 2026-10-26 @ 03:16 EDT
+// Modified On Timestamp: 2026-10-26 @ 04:45 EDT
 // Created On Timestamp: 2026-10-01 @ 15:53 EDT
 // File Description: Creating, unlocking and locking households; passwords, encryption on disk, the computer identity.
 // Uses: HouseholdStore with the SQLCipher driver.
@@ -9,6 +9,7 @@ package ca.schippers.hfm.data.jdbc
 
 import ca.schippers.hfm.data.AccessDeniedException
 import ca.schippers.hfm.data.HouseholdStore
+import ca.schippers.hfm.data.PartitionKind
 import ca.schippers.hfm.data.WrongKeyException
 import ca.schippers.hfm.data.WrongPasswordException
 import ca.schippers.hfm.domain.Ids
@@ -48,6 +49,21 @@ class HouseholdStoreTest {
         Files.writeString(dir.resolve("device.json"), "{ not json")
         store.unlock(dir, "perry", "admin-pass".toCharArray()).use { assertTrue(it.device.deviceId != id) }
         assertTrue(Files.exists(dir.resolve("device.json.bad")))
+    }
+
+    @Test
+    fun `change-set numbers go up by one per group, with no gaps, from one unlock to the next`() {
+        val (core, ledger) = createHousehold().session.use { s ->
+            val coreId = s.header.corePartition.id
+            val ledgerId = s.header.partitions.first { it.kind == PartitionKind.LEDGER }.id
+            assertEquals(listOf(1L, 2L), listOf(s.nextChangeSetNumber(coreId), s.nextChangeSetNumber(coreId)))
+            assertEquals(1L, s.nextChangeSetNumber(ledgerId))
+            coreId to ledgerId
+        }
+        store.unlock(dir, "perry", "admin-pass".toCharArray()).use { s ->
+            assertEquals(3L, s.nextChangeSetNumber(core))
+            assertEquals(2L, s.nextChangeSetNumber(ledger))
+        }
     }
 
     @Test

@@ -1,5 +1,5 @@
 // File path and name: core/books/src/main/kotlin/ca/schippers/hfm/books/Books.kt
-// Modified On Timestamp: 2026-10-25 @ 17:53 EDT
+// Modified On Timestamp: 2026-10-26 @ 03:30 EDT
 // Created On Timestamp: 2026-10-01 @ 18:08 EDT
 // File Description: The household's books: every bookkeeping service, the open groups and their ledgers,
 //   permission checks, settings and validation errors.
@@ -231,10 +231,28 @@ class Books(val session: HouseholdSession, internal val clock: () -> Long = Syst
     /** Tags for projects and events (CAT-04). */
     fun tags(): List<Tag> = core.tags().executeAsList().map { Tag(it.id, it.name) }
 
-    /** Household-wide settings, such as saved CSV column mappings per institution (REC-01). */
-    fun setting(key: String): String? = core.getSetting(key).executeAsOneOrNull()
+    /**
+     * Household-wide settings, such as saved CSV column mappings per institution (REC-01). The keys
+     * in [LocalSettings.KEYS] belong to this computer only and are kept apart (plan-multi-device 5.1).
+     */
+    fun setting(key: String): String? =
+        if (key in LocalSettings.KEYS) core.getLocalSetting(key).executeAsOneOrNull() else core.getSetting(key).executeAsOneOrNull()
 
-    fun putSetting(key: String, value: String) = core.putSetting(key, value)
+    fun putSetting(key: String, value: String) {
+        if (key in LocalSettings.KEYS) core.putLocalSetting(key, value) else core.putSetting(key, value)
+    }
+}
+
+/** Settings of this computer only, never sent to another computer (plan-multi-device 5.1, LOCAL_ONLY). */
+object LocalSettings {
+    /** The same list as core migration 8.sqm, which moved the values already saved. */
+    val KEYS = setOf(
+        // The phone-pairing identity: a phone is paired with one computer (plan section 7).
+        "sync.desktopId", "sync.privateKey", "sync.transferFolder",
+        // Folders on this computer's disks, and this computer's own backups.
+        "documents.watchFolder", "documents.watchGroup",
+        "backup.dir", "backup.frequency", "backup.keep", "backup.lastSuccess", "backup.lastProblem",
+    )
 }
 
 /**

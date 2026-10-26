@@ -1,5 +1,5 @@
 // File path and name: core/data-jdbc/src/test/kotlin/ca/schippers/hfm/data/jdbc/MigrationTest.kt
-// Modified On Timestamp: 2026-10-25 @ 17:53 EDT
+// Modified On Timestamp: 2026-10-26 @ 03:30 EDT
 // Created On Timestamp: 2026-10-02 @ 00:43 EDT
 // File Description: Upgrade tests (NFR-11): encrypted databases built from each saved schema snapshot are
 //   filled, upgraded to the current version and checked.
@@ -72,6 +72,27 @@ class MigrationTest {
             assertEquals("OPEN", q.rateOnOrBefore("XOF", "2026-10-01").executeAsOne().source)
         }
         assertTrue(Files.list(temp.resolve("backups/pre-upgrade")).use { it.count() } == 1L, "a copy was saved before upgrading")
+    }
+
+    @Test
+    fun `core version 8 moves this computer's settings apart and keeps the household's`() {
+        // plan-multi-device 5.1: per-computer settings must never be sent to another computer.
+        val file = temp.resolve("core.db")
+        older("../data/src/main/sqldelight/core/schemas/8.db", file, 8).use { driver ->
+            for ((k, v) in listOf("sync.desktopId" to "desk-1", "sync.privateKey" to "secret", "backup.dir" to "C:\\Backups", "fx.openSource" to "true")) {
+                driver.execute(null, "INSERT INTO setting(key, value) VALUES ('$k', '${v.replace("'", "''")}')", 0)
+            }
+        }
+        factory.open(file, key).use { driver ->
+            SchemaManager.prepare(driver, CoreDatabase.Schema, file)
+            val q = CoreDatabase(driver).coreQueries
+            assertEquals("desk-1", q.getLocalSetting("sync.desktopId").executeAsOneOrNull())
+            assertEquals("secret", q.getLocalSetting("sync.privateKey").executeAsOneOrNull())
+            assertEquals("C:\\Backups", q.getLocalSetting("backup.dir").executeAsOneOrNull())
+            assertEquals(null, q.getSetting("sync.privateKey").executeAsOneOrNull(), "no longer among the household's settings")
+            assertEquals("true", q.getSetting("fx.openSource").executeAsOneOrNull())
+            assertEquals(null, q.getLocalSetting("fx.openSource").executeAsOneOrNull())
+        }
     }
 
     @Test

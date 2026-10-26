@@ -1,0 +1,24 @@
+-- File path and name: core/data/src/main/sqldelight/core/ca/schippers/hfm/data/core/8.sqm
+-- Modified On Timestamp: 2026-10-26 @ 03:30 EDT
+-- Created On Timestamp: 2026-10-26 @ 03:30 EDT
+-- File Description: Core migration from version 8 to 9: settings of this computer only.
+-- Uses: The setting table.
+-- Used By: SchemaManager when an older core database is opened; MigrationTest.
+-- Purpose: Keep per-computer settings apart before households are shared between computers (plan-multi-device 5.1).
+
+-- Version 8 to 9. A new table; the per-computer settings already saved move into it, so they are
+-- never sent to another computer. The list matches LocalSettings.KEYS (core/books).
+
+CREATE TABLE repl_local_setting (
+    key TEXT NOT NULL PRIMARY KEY,
+    value TEXT NOT NULL
+);
+
+INSERT INTO repl_local_setting(key, value)
+SELECT key, value FROM setting
+WHERE key IN ('sync.desktopId', 'sync.privateKey', 'sync.transferFolder', 'documents.watchFolder', 'documents.watchGroup',
+    'backup.dir', 'backup.frequency', 'backup.keep', 'backup.lastSuccess', 'backup.lastProblem');
+
+DELETE FROM setting
+WHERE key IN ('sync.desktopId', 'sync.privateKey', 'sync.transferFolder', 'documents.watchFolder', 'documents.watchGroup',
+    'backup.dir', 'backup.frequency', 'backup.keep', 'backup.lastSuccess', 'backup.lastProblem');

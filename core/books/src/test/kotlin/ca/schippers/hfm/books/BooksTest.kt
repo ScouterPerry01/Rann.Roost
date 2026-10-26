@@ -1,3 +1,10 @@
+// File path and name: core/books/src/test/kotlin/ca/schippers/hfm/books/BooksTest.kt
+// Modified On Timestamp: 2026-10-26 @ 03:30 EDT
+// Created On Timestamp: 2026-10-01 @ 18:08 EDT
+// File Description: Books end to end: settings, categories, accounts, transactions, transfers, reports.
+// Uses: An encrypted test household and the core/books services.
+// Used By: ./gradlew :core:books:test.
+// Purpose: Guard the bookkeeping rules every screen relies on.
 package ca.schippers.hfm.books
 
 import ca.schippers.hfm.data.AccessDeniedException
@@ -56,6 +63,22 @@ class BooksTest {
         books.accounts.create(AccountDraft(sharedGroup, "Chequing", AccountType.CHEQUING, Currency.CAD, cad(opening), day(1), number = "12345-678-9012345"))
 
     private fun category(key: String) = books.categories.list().first { it.systemKey == key }.id
+
+    // --- Settings ------------------------------------------------------------------------------
+
+    @Test
+    fun `this computer's settings are kept apart from the household's`() {
+        // plan-multi-device 5.1: the phone identity, folders and backups belong to one computer.
+        val desktopId = books.sync.desktopId
+        assertEquals(desktopId, books.core.getLocalSetting("sync.desktopId").executeAsOneOrNull())
+        assertEquals(null, books.core.getSetting("sync.desktopId").executeAsOneOrNull())
+        books.putSetting("backup.dir", "D:\\Roost")
+        assertEquals("D:\\Roost", books.setting("backup.dir"))
+        assertEquals(null, books.core.getSetting("backup.dir").executeAsOneOrNull())
+        books.putSetting("fx.openSource", "true")
+        assertEquals("true", books.core.getSetting("fx.openSource").executeAsOneOrNull())
+        assertEquals(null, books.core.getLocalSetting("fx.openSource").executeAsOneOrNull())
+    }
 
     // --- Categories ------------------------------------------------------------------------------
 

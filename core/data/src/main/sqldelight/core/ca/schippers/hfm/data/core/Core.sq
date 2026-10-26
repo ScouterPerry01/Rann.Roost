@@ -1,5 +1,5 @@
 -- File path and name: core/data/src/main/sqldelight/core/ca/schippers/hfm/data/core/Core.sq
--- Modified On Timestamp: 2026-10-26 @ 03:05 EDT
+-- Modified On Timestamp: 2026-10-26 @ 03:31 EDT
 -- Created On Timestamp: 2026-10-01 @ 15:53 EDT
 -- File Description: Core database tables and queries: household, users, groups, categories, settings, rates, phones.
 -- Uses: SQLDelight; migrations core/<n>.sqm create the same tables.
@@ -216,6 +216,14 @@ CREATE TABLE setting (
     value TEXT NOT NULL
 );
 
+-- Settings of this computer only (plan-multi-device 5.1, LOCAL_ONLY): the phone-pairing identity, the
+-- transfer, watch and backup folders. Never sent to another computer. The keys are listed in
+-- LocalSettings (core/books); Books.setting and putSetting choose the table. Version 9.
+CREATE TABLE repl_local_setting (
+    key TEXT NOT NULL PRIMARY KEY,
+    value TEXT NOT NULL
+);
+
 -- Activity log (HH-13) for household-level changes. Ledger changes are logged in each ledger.
 CREATE TABLE audit_log (
     id TEXT NOT NULL PRIMARY KEY,
@@ -368,6 +376,13 @@ INSERT OR REPLACE INTO setting(key, value) VALUES (?, ?);
 
 getSetting:
 SELECT value FROM setting WHERE key = ?;
+
+-- The key is the primary key and nothing refers to this table, so a replace is safe here.
+putLocalSetting:
+INSERT OR REPLACE INTO repl_local_setting(key, value) VALUES (?, ?);
+
+getLocalSetting:
+SELECT value FROM repl_local_setting WHERE key = ?;
 
 insertAudit:
 INSERT INTO audit_log(id, at, user_id, action, entity, entity_id, details) VALUES (?, ?, ?, ?, ?, ?, ?);

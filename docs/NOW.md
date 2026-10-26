@@ -15,16 +15,16 @@ Purpose: Keep current state out of the always-loaded CLAUDE.md.
 
 **As of:** 2026-10-26 05:15 EDT
 
-**Branches:** `main` has PRs #18-#21 (phase R, Store ID, shared-folder docs, **2.0.0 phase 1**). Released:
-**v1.1.2**, unchanged until 2.0.0. **PR #22** `feature/phase2-capture` (phase 2: clock, capture triggers,
-sealing, signed change-set files; capture off until sharing is on) is open: the owner said merge once CI is green.
-`feature/phase2-capture-perf` (from phase 2): performance test switch `HFM_PERF_CAPTURE=1` plus these notes.
+**Branches:** `main` = `08c3dd05`: PRs #18-#22 merged (phase R, Store ID, shared-folder docs, **2.0.0 phases
+1 and 2**; capture stays off until sharing is turned on). Released: **v1.1.2**, unchanged until 2.0.0.
+`feature/phase2-capture-perf` (`5b4e5c25`+, pushed): performance switch `HFM_PERF_CAPTURE=1` and these notes;
+its PR waits for the owner's yes to merge.
 
 **Open question:** with capture on, reports ran 1.3-3.4 times slower on this laptop than without, reads
 included; likely the outbox doubling the file. Handover 2026-10-26 §9 has the numbers and the lead.
 
 **NEXT:**
-1. Merge PR #22 when green; then a PR for `feature/phase2-capture-perf` (owner approval to merge).
+1. Owner's yes, then merge the PR of `feature/phase2-capture-perf` (notes + performance switch).
 2. Capture performance: confirm the cause (outbox size) and empty sealed changes from the outbox.
 3. Phase 3, apply engine (plan §6.1, §11): clocks per field, tombstones, conflicts, aggregates, fuzz test.
    Open items to settle there: handover 2026-10-26 §11.

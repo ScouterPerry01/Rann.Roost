@@ -1,3 +1,11 @@
+// File path and name: app/desktop/src/main/kotlin/ca/schippers/hfm/desktop/Components.kt
+// Modified On Timestamp: 2026-10-26 @ 00:10 EDT
+// Created On Timestamp: 2026-10-01 @ 18:22 EDT
+// File Description: Shared inputs and dialogs of the desktop app: text and amount inputs, the searchable
+//   drop-down, checkboxes, the form dialog and the wide dialog.
+// Uses: Compose Material 3; Money and MoneyFormat (core/money).
+// Used By: every screen and dialog of the desktop app.
+// Purpose: One look and behaviour for every form in the app.
 package ca.schippers.hfm.desktop
 
 import androidx.compose.foundation.layout.Arrangement
@@ -36,6 +44,7 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import ca.schippers.hfm.money.AmountExpression
 import ca.schippers.hfm.money.Currency
@@ -114,7 +123,8 @@ fun DateInput(label: String, value: String, modifier: Modifier = Modifier, hint:
 
 /**
  * A searchable drop-down. Typing filters the options; [allowFreeText] keeps whatever was typed
- * (used for payees, where a new name creates a new payee).
+ * (used for payees, where a new name creates a new payee). [wrap] lets a long choice run onto a
+ * second line instead of being cut off.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -126,6 +136,7 @@ fun <T> Picker(
     modifier: Modifier = Modifier.fillMaxWidth(),
     indent: (T) -> Int = { 0 },
     enabled: Boolean = true,
+    wrap: Boolean = false,
     onSelect: (T) -> Unit,
 ) {
     var expanded by remember { mutableStateOf(false) }
@@ -141,9 +152,10 @@ fun <T> Picker(
     ExposedDropdownMenuBox(expanded = expanded && enabled, onExpandedChange = { if (enabled) expanded = it }, modifier = modifier) {
         OutlinedTextField(
             value = text,
-            onValueChange = { filter = it; expanded = true },
+            onValueChange = { filter = it.replace("\n", ""); expanded = true },
             label = { Text(label) },
-            singleLine = true,
+            singleLine = !wrap,
+            maxLines = if (wrap) 2 else 1,
             enabled = enabled,
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded) },
             modifier = Modifier.fillMaxWidth().menuAnchor(ExposedDropdownMenuAnchorType.PrimaryEditable),
@@ -277,9 +289,9 @@ private const val MAX_SHOWN = 200
  * results and report drill-downs.
  */
 @Composable
-fun WideDialog(title: String, closeLabel: String, onDismiss: () -> Unit, walkId: String? = null, content: @Composable () -> Unit) {
+fun WideDialog(title: String, closeLabel: String, onDismiss: () -> Unit, walkId: String? = null, maxWidth: Dp = 900.dp, content: @Composable () -> Unit) {
     androidx.compose.ui.window.Dialog(onDismissRequest = onDismiss, properties = androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth = false)) {
-        androidx.compose.material3.Surface(Modifier.widthIn(max = 900.dp).padding(24.dp).then(walkId?.let { Modifier.walkTarget(it) } ?: Modifier), shape = MaterialTheme.shapes.extraLarge, tonalElevation = 6.dp) {
+        androidx.compose.material3.Surface(Modifier.widthIn(max = maxWidth).padding(24.dp).then(walkId?.let { Modifier.walkTarget(it) } ?: Modifier), shape = MaterialTheme.shapes.extraLarge, tonalElevation = 6.dp) {
             Column(Modifier.padding(24.dp)) {
                 Text(title, style = MaterialTheme.typography.headlineSmall, modifier = Modifier.padding(bottom = 16.dp))
                 content()

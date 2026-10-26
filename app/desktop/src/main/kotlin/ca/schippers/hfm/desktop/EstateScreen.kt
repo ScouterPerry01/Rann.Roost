@@ -1,3 +1,11 @@
+// File path and name: app/desktop/src/main/kotlin/ca/schippers/hfm/desktop/EstateScreen.kt
+// Modified On Timestamp: 2026-10-25 @ 21:13 EDT
+// Created On Timestamp: 2026-10-05 @ 02:01 EDT
+// File Description: The Estate screen: the emergency summary (each person's papers and contacts, then
+//   institutions, accounts, properties, policies, health plans, pensions, kept documents) and the papers.
+// Uses: EstateService, the other core/books services, propertyIdentity (PropertyDialog.kt), the print helpers.
+// Used By: MainScreen navigation (Estate section); the health summary print.
+// Purpose: EST-01 and EST-03: what a spouse or an executor needs, in one place.
 package ca.schippers.hfm.desktop
 
 import androidx.compose.foundation.layout.Arrangement
@@ -32,6 +40,7 @@ import androidx.compose.ui.unit.dp
 import ca.schippers.hfm.books.ConditionStatus
 import ca.schippers.hfm.books.ContactRole
 import ca.schippers.hfm.books.EmergencySummary
+import ca.schippers.hfm.books.REAL_PROPERTY_KINDS
 import ca.schippers.hfm.books.EstateContact
 import ca.schippers.hfm.books.EstatePlan
 import ca.schippers.hfm.books.LinkTarget
@@ -128,6 +137,13 @@ fun emergencySections(model: BooksModel, s: EmergencySummary): List<DocSection> 
             a.beneficiaries.takeIf { it.isNotEmpty() }?.let { b -> model.t("estate.beneficiaries", b.joinToString(", ") { x -> x.name + (x.sharePercent?.let { p -> " ${p.stripTrailingZeros().toPlainString()} %" } ?: "") }) },
         ).joinToString(" · ")
     }, note = model.t("estate.balancesOn", model.date(today())))
+    // AST-16: each house, cottage, condo, land or building with its address, roll number and parcel.
+    val properties = DocSection(
+        model.t("estate.properties"),
+        model.books.assets.list().filter { it.kind in REAL_PROPERTY_KINDS }.sortedBy { it.name.lowercase() }.map { a ->
+            a.name to listOfNotNull(model.t("assetKind.${a.kind}"), propertyIdentity(model, a.id)).joinToString(" · ")
+        },
+    )
     val policies = DocSection(model.t("estate.policies"), s.policies.map { p ->
         "${model.t("policyKind.${p.policy.kind}")} · ${p.policy.insurer}" to listOfNotNull(
             p.policy.policyNumber, p.insuredName, p.policy.coverage?.let(model::money), p.policy.broker,
@@ -147,7 +163,7 @@ fun emergencySections(model: BooksModel, s: EmergencySummary): List<DocSection> 
     val kept = DocSection(model.t("estate.keptDocuments"), s.keptDocuments.map { d ->
         (d.title ?: d.merchant ?: d.fileName ?: "?") to listOfNotNull(d.date?.let(model::date), d.notes).joinToString(" · ")
     }, note = model.t("estate.keptNote"))
-    return people + listOf(institutions, accounts, policies, medical, pensions, kept)
+    return people + listOf(institutions, accounts, properties, policies, medical, pensions, kept)
 }
 
 /** HLT-09: one person's health summary for appointments and emergencies. */

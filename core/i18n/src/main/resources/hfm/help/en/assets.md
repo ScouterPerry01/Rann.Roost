@@ -6,6 +6,12 @@ Home and assets keeps track of the home and everything worth keeping track of: w
 
 On the Assets tab, choose Add an asset. Enter the kind, name, make, model, serial number and location. Use Find the purchase to link the purchase from your accounts. Under Value, enter an estimate or let the value fall each month from the price. Tick Count in net worth if it should count. Add warranties with Add a warranty, and photos under Photos and documents.
 
+## Property details
+
+For a home, cottage, condo, land or building, save the asset, then choose Property details… to open them. Its tabs hold the address, the legal description and roll number, the land, the building, the basement, parking, the pool, the condo, the value and tax figures, every room, the systems (furnace, water heater, well, septic), outbuildings, the owners on title, the years it was a principal residence and any other detail. Everything is optional. Choose the units at the top: square feet or metres, feet or metres. Choose Save before you close.
+
+Fact sheet (PDF)… makes a PDF of what is saved, for an insurer, a buyer, an executor or a contractor; untick the legal identifiers or the owners to leave them out. The address, roll number and parcel also appear on the emergency summary and the home inventory. The principal-residence years are an aid for form T2091, not tax advice.
+
 ## Maintenance
 
 Inside an asset, add tasks with Add usual tasks or Add a task. A task repeats after a number of months, hours or kilometres on its meter, or every year in its season, whichever comes first. The Maintenance tab lists what is due on vehicles and everything else, for This month or the Next 12 months.

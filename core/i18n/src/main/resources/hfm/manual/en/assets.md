@@ -36,7 +36,7 @@ When the list is empty: "No assets yet: start with the home, then add appliances
 
 The dialog is titled **Add an asset** or **Asset**.
 
-- **Kind**: **Home**, **Cottage**, **Pool**, **Yard and garden**, **RV**, **Boat**, **Trailer**, **Appliance** (the default), **Heating and cooling**, **Electronics**, **Computer**, **Furniture**, **Jewellery**, **Art**, **Tools**, **Sports equipment**, **Musical instrument** or **Other**. The kind decides which usual maintenance tasks are offered, which category a service payment gets, and whether a home can have projects (Home and Cottage only).
+- **Kind**: **Home**, **Cottage**, **Condo**, **Land**, **Building**, **Pool**, **Yard and garden**, **RV**, **Boat**, **Trailer**, **Appliance** (the default), **Heating and cooling**, **Electronics**, **Computer**, **Furniture**, **Jewellery**, **Art**, **Tools**, **Sports equipment**, **Musical instrument** or **Other**. The kind decides which usual maintenance tasks are offered, which category a service payment gets, and whether it can have projects and [property details](property) (Home, Cottage, Condo, Land and Building only).
 - **Name**: for example "House (Maple Street)" or "Kitchen fridge". Required.
 - **Part of**: another asset this one belongs to, or "(none)". The list shows it underneath, and a policy that covers the parent covers it too (a home policy covers its contents). An asset cannot be part of itself or of one of its own parts. An asset that has parts cannot be deleted until they are moved or deleted.
 - **Make**, **Model** and **Serial number**: from the label or the invoice. They can be searched on the **Is it covered?** tab, and are useful for a warranty or insurance claim.
@@ -54,6 +54,7 @@ The dialog is titled **Add an asset** or **Asset**.
 Buttons:
 
 - **Save**: saves the asset. A new asset must be saved before warranties, documents and maintenance can be added; they then appear below.
+- **Property details…** (once saved, for a home, cottage, condo, land or building): the address, legal description, land, building, rooms, systems, owners and more, and the fact sheet. See [Property details](property).
 - **Delete** (once saved): asks "Delete "name" with its warranties, maintenance tasks, services and meter readings? Transactions linked to it are kept." and, once confirmed, deletes the asset with all of these. It cannot be undone. Marking it sold, given away or discarded keeps its history instead.
 - **Close**: closes the dialog. Changes not saved with **Save** are lost.
 
@@ -76,7 +77,7 @@ Linking an asset to its purchase in your accounts keeps the proof of purchase at
   - **Not tracked** (the default): no value. The asset does not count in net worth.
   - **Estimate entered**: you enter **Estimated value**; it is dated the day you save. Update it now and then, for example from a municipal assessment for a home.
   - **Falls each month from the price**: the value starts at **Price paid** on **Bought on** and falls evenly each month. See [Depreciation](assets#depreciation).
-- **Count in net worth**: shown when the value is tracked. When ticked, the asset's value on each date is added to the household's net worth: on the [Dashboard](dashboard) and in the **Net worth** report under [Reports](reports). Before its purchase date, and from its disposal date, it counts for nothing.
+- **Count in net worth**: shown when the value is tracked. Ticked by default for a new home, cottage, condo, land or building, and unticked for other kinds; you can change it. When ticked, the asset's value on each date is added to the household's net worth: on the [Dashboard](dashboard) and in the **Net worth** report under [Reports](reports). Before its purchase date, and from its disposal date, it counts for nothing.
 
 > Tip: Count the home and the cottage in net worth. Appliances and electronics lose value quickly; following them with depreciation is useful for insurance, but you may prefer to leave them out of net worth.
 
@@ -283,13 +284,13 @@ The seasons start on the astronomical dates: spring on March 20, summer on June 
 
 "Projects done or under way on a home. Capital improvements add to its cost base, which matters if the home is ever sold and is not the principal residence for every year."
 
-At the top, **Add a project**. For each home or cottage that has a price paid or improvements, a line "Home: cost base amount, of which improvements amount", followed by "less amount in rebates and grants" when rebates were received on its capital projects. Then the projects, each with its name, status, home, "Capital improvement" or "Repair", "energy upgrade: kind" for an energy upgrade, the budget, and what was spent, in red when over budget, under the headings **Project**, **Spent** and **Actions**. Click a project to see and add its costs; **Edit** opens its form. "No projects yet." when there are none.
+At the top, **Add a project**. For each home, cottage, condo, land or building that has a price paid or improvements, a line "Home: cost base amount, of which improvements amount", followed by "less amount in rebates and grants" when rebates were received on its capital projects. Then the projects, each with its name, status, home, "Capital improvement" or "Repair", "energy upgrade: kind" for an energy upgrade, the budget, and what was spent, in red when over budget, under the headings **Project**, **Spent** and **Actions**. Click a project to see and add its costs; **Edit** opens its form. "No projects yet." when there are none.
 
 ### Add or edit a project {#project-form}
 
 - **Project**: the name, for example "New roof" or "Finish the basement".
 - **Status**: **Planned** (the default), **Under way** or **Done**. Only projects under way or done count in the cost base.
-- **Home**: the home or cottage it is for, among assets of the kind Home or Cottage; or **Nothing in particular**. The first home is proposed.
+- **Home**: the property it is for, among assets of the kind Home, Cottage, Condo, Land or Building; or **Nothing in particular**. The first home is proposed.
 - **Start** and **End**: the end cannot be before the start.
 - **Budget**: what you plan to spend.
 - **Energy upgrade**: **Not an energy upgrade** (the default), or the kind of upgrade: **Insulation**, **Air sealing**, **Heat pump**, **Windows and doors**, **Water heater**, **Solar panels**, **Smart thermostat** or **Other upgrade**. It names the project as an energy upgrade in the list; rebates and grants can be kept on any project.

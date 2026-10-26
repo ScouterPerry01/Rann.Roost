@@ -1,5 +1,5 @@
 // File path and name: app/desktop/src/screenshots/kotlin/ca/schippers/hfm/desktop/shots/ManualScreenshots.kt
-// Modified On Timestamp: 2026-10-11 @ 13:05 EDT
+// Modified On Timestamp: 2026-10-25 @ 23:02 EDT
 // Created On Timestamp: 2026-10-05 @ 21:54 EDT
 // File Description: Draws the manual's and the Microsoft Store's pictures of the sample household
 //   offscreen, at a fixed size, in light and dark colours and in English and French.
@@ -35,6 +35,7 @@ import ca.schippers.hfm.books.StatementStatus
 import ca.schippers.hfm.books.TemplateLine
 import ca.schippers.hfm.books.TxnTemplate
 import ca.schippers.hfm.books.AlertSettings
+import ca.schippers.hfm.books.AssetKind
 import ca.schippers.hfm.importers.ImportedLine
 import ca.schippers.hfm.importers.ImportedStatement
 import ca.schippers.hfm.money.Currency
@@ -52,6 +53,7 @@ import ca.schippers.hfm.desktop.ManualContent
 import ca.schippers.hfm.desktop.AppState
 import ca.schippers.hfm.desktop.BooksModel
 import ca.schippers.hfm.desktop.DemoHousehold
+import ca.schippers.hfm.desktop.SampleHousehold
 import ca.schippers.hfm.desktop.DesktopAi
 import ca.schippers.hfm.desktop.ReportKind
 import ca.schippers.hfm.desktop.Screen
@@ -118,9 +120,19 @@ private class ShotScope(val app: AppState, val model: BooksModel, val test: Desk
     fun press(label: String) {
         settle(test)
         val node = test.onAllNodes((hasText(label) or hasContentDescription(label)) and hasClickAction())[0]
-        // Outside a scrolling list there is nothing to scroll.
+        // Outside a scrolling list there is nothing to scroll. Scrolling waits for frames, which the paused clock would never give.
+        test.mainClock.autoAdvance = true
         runCatching { node.performScrollTo() }
+        test.mainClock.autoAdvance = false
         node.performClick()
+    }
+
+    /** Scrolls a plain (not lazy) scrolling column until the text showing [label] is in view. */
+    fun reveal(label: String) {
+        settle(test)
+        test.mainClock.autoAdvance = true
+        test.onAllNodes(hasText(label))[0].performScrollTo()
+        test.mainClock.autoAdvance = false
     }
 
     /** Types [text] into the [index]th field labelled [label], replacing what it shows. */
@@ -395,6 +407,51 @@ private val WEB_SHOTS: List<StoreShot> = listOf(
     StoreShot("desktop-en-reports", "desktop-fr-rapports") { model.reportState.kind = ReportKind.INCOME_EXPENSE; section(Section.REPORTS) },
 )
 
+/**
+ * AST-06 to AST-17: the Property details dialog of the family sample's house and cottage, for checking
+ * by eye before the manual shows it: `manualScreenshots -Plang=en -Pset=property` writes them into
+ * app/desktop/build/property-images/<lang>, never into the manual's folder.
+ */
+private val PROPERTY_SHOTS: List<Shot> = buildList {
+    fun ShotScope.open(kind: AssetKind, tab: String?) = openProperty(kind, tab)
+    add(Shot("house-identification") { open(AssetKind.HOME, null) })
+    add(Shot("house-address") { open(AssetKind.HOME, t("property.section.ADDRESS")) })
+    add(Shot("house-legal") { open(AssetKind.HOME, t("property.section.LEGAL")) })
+    add(Shot("house-building") { open(AssetKind.HOME, t("property.section.BUILDING")) })
+    add(Shot("house-value") { open(AssetKind.HOME, t("property.section.VALUE")) })
+    add(Shot("house-rooms") { open(AssetKind.HOME, t("property.tab.ROOMS")) })
+    add(Shot("house-systems") { open(AssetKind.HOME, t("property.tab.SYSTEMS")) })
+    add(Shot("house-owners") { open(AssetKind.HOME, t("property.tab.OWNERS")) })
+    add(Shot("house-residence") { open(AssetKind.HOME, t("property.tab.RESIDENCE")) })
+    add(Shot("house-custom") { open(AssetKind.HOME, t("property.tab.CUSTOM")) })
+    add(Shot("cottage-land") { open(AssetKind.COTTAGE, t("property.section.LAND")) })
+    add(Shot("cottage-systems") { open(AssetKind.COTTAGE, t("property.tab.SYSTEMS")) })
+    add(Shot("cottage-structures") { open(AssetKind.COTTAGE, t("property.tab.STRUCTURES")) })
+    // AST-16: the estate summary lists each property with its address, roll number and parcel.
+    add(Shot("estate-properties") { section(Section.ESTATE); reveal(t("estate.medicalPlans")) })
+}
+
+/** Opens the Property details of the family sample's first asset of [kind], on [tab] (null: the first). */
+private fun ShotScope.openProperty(kind: AssetKind, tab: String?) {
+    section(Section.ASSETS)
+    click(model.books.assets.list().first { it.kind == kind }.name)
+    // Below the fold of the asset dialog.
+    press(t("assets.propertyDetails"))
+    // Most tabs start off the right edge of the row; a click there would land outside the dialog and close it.
+    tab?.let { press(it) }
+}
+
+/**
+ * The Property details chapter's pictures, of the family sample's house: `manualScreenshots -Plang=en
+ * -Pset=property-manual` (then fr, and each with -Ptheme=dark) writes them into the manual's folder.
+ */
+private val MANUAL_PROPERTY_SHOTS: List<Shot> = listOf(
+    Shot("property") { openProperty(AssetKind.HOME, null) },
+    Shot("property-rooms") { openProperty(AssetKind.HOME, t("property.tab.ROOMS")) },
+    Shot("property-systems") { openProperty(AssetKind.HOME, t("property.tab.SYSTEMS")) },
+    Shot("property-fact-sheet") { openProperty(AssetKind.HOME, null); press(t("property.factSheet")) },
+)
+
 /** Lets the screen read its data and draw: a few frames, with time for background reads. */
 private fun settle(test: DesktopComposeUiTest) {
     repeat(4) {
@@ -427,6 +484,10 @@ fun main() {
     val store = set == "store" || set == "web"
     val shots = if (store) {
         (if (set == "web") WEB_SHOTS else STORE_SHOTS).map { Shot(if (language == Language.FRENCH) it.fr else it.en, it.prepare) }
+    } else if (set == "property") {
+        PROPERTY_SHOTS
+    } else if (set == "property-manual") {
+        MANUAL_PROPERTY_SHOTS
     } else {
         SHOTS
     }
@@ -435,7 +496,10 @@ fun main() {
     val dark = System.getProperty("hfm.shots.theme") == "dark"
     val app = AppState(prefs = MemoryPreferences())
     app.switchLanguage(language, remember = false)
-    val model = BooksModel(DemoHousehold.create(app.store, language), app)
+    // The property pictures show the family sample, whose house and cottage have every detail filled in.
+    val family = set == "property" || set == "property-manual"
+    val session = if (family) SampleHousehold.FAMILY.create(app.store, language) else DemoHousehold.create(app.store, language)
+    val model = BooksModel(session, app)
     app.screen = Screen.Main(model)
     var taken = 0
     runDesktopComposeUiTest(width = WIDTH, height = HEIGHT) {

@@ -457,7 +457,7 @@ Once two incomes are entered, a line per spouse says how much would count for th
 The household's assets as of today, in the base currency. This report has no filters.
 
 - **Items**, **Paid** (purchase prices added up) and **Worth today** (estimated values added up).
-- **Home inventory with photos (PDF)…**: asks where to save, then makes a PDF for an insurer after a loss: a summary line, then each item sorted by location and name, with its kind, make, model, serial number, location or the item it is part of, purchase date, price, value today, and the photos attached to it.
+- **Home inventory with photos (PDF)…**: asks where to save, then makes a PDF for an insurer after a loss: a summary line, then each item sorted by location and name, with its kind, make, model, serial number, for a property its address, roll number and parcel (from its [property details](property)), location or the item it is part of, purchase date, price, value today, and the photos attached to it.
 - The table lists each asset with **Name**, **Kind**, **Part of**, **Location (room, garage, cottage)**, **Bought on**, **Price paid**, **Estimated value** and **Covered until** (the latest date an active warranty or protection plan covers it).
 - Warranties ending within 90 days, or "None."
 - Not covered by any policy: assets and vehicles that no active insurance policy covers, directly or as part of something insured, in red.

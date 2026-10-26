@@ -1,3 +1,11 @@
+// File path and name: core/books/src/main/kotlin/ca/schippers/hfm/books/AssetMaintenanceService.kt
+// Modified On Timestamp: 2026-10-25 @ 17:52 EDT
+// Created On Timestamp: 2026-10-02 @ 22:27 EDT
+// File Description: Maintenance of assets other than vehicles (MNT-03, MNT-10 to MNT-14, SEA-01): tasks,
+//   readings, service log and the starter tasks for each kind of asset.
+// Uses: The ledger's AssetMaintenance.sq queries; core/calc maintenance schedules and lead times.
+// Used By: The desktop upkeep screens, reminders, calendar, phone agenda and demo households.
+// Purpose: Remind the household of what each home, cottage and other asset needs, and when.
 package ca.schippers.hfm.books
 
 import ca.schippers.hfm.calc.rules.LeadTimes
@@ -346,8 +354,11 @@ class AssetMaintenanceService internal constructor(private val books: Books) {
     )
 
     companion object {
-        private val HOME = setOf(AssetKind.HOME, AssetKind.COTTAGE)
-        private val HVAC = setOf(AssetKind.HOME, AssetKind.COTTAGE, AssetKind.HEATING_COOLING)
+        private val HOME = setOf(AssetKind.HOME, AssetKind.COTTAGE, AssetKind.BUILDING)
+        private val HVAC = setOf(AssetKind.HOME, AssetKind.COTTAGE, AssetKind.BUILDING, AssetKind.CONDO, AssetKind.HEATING_COOLING)
+
+        /** Indoor upkeep that a condo unit shares with a house (AST-06); the outside is the corporation's. */
+        private val INDOOR = HOME + AssetKind.CONDO
         private val LEISURE = setOf(AssetKind.COTTAGE, AssetKind.RV, AssetKind.BOAT, AssetKind.TRAILER)
         private val POOL = setOf(AssetKind.POOL)
         private val YARD = setOf(AssetKind.YARD)
@@ -363,8 +374,8 @@ class AssetMaintenanceService internal constructor(private val books: Books) {
             Template("furnace_filter", HVAC, 3),
             Template("hvac_service", HVAC, 12, season = 9 to 15),
             Template("gutters", HOME, 12, season = 10 to 30),
-            Template("smoke_co_detectors", HOME, 6),
-            Template("water_heater_flush", HOME, 12),
+            Template("smoke_co_detectors", INDOOR, 6),
+            Template("water_heater_flush", INDOOR, 12),
             Template("chimney", HOME, 12, season = 9 to 1),
             Template("sump_pump", HOME, 12, season = 3 to 15),
             Template("septic", setOf(AssetKind.COTTAGE), 36),
@@ -379,7 +390,7 @@ class AssetMaintenanceService internal constructor(private val books: Books) {
             Template("ac_cover_on", HOME, 12, season = 10 to 20),
             Template("window_screens", HOME, 12, season = 5 to 1),
             Template("storm_windows", HOME, 12, season = 10 to 25),
-            Template("dryer_vent", HOME, 12, season = 9 to 30),
+            Template("dryer_vent", INDOOR, 12, season = 9 to 30),
             Template("humidifier_pad", HVAC, 12, season = 10 to 1),
             Template("dock_in", setOf(AssetKind.COTTAGE), 12, season = 5 to 15),
             Template("dock_out", setOf(AssetKind.COTTAGE), 12, season = 10 to 1),

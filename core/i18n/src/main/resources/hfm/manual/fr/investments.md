@@ -59,6 +59,9 @@ L’en-tête montre le nom du compte et son type. Pour un régime enregistré, i
 
 Si des titres n’ont pas encore de cours, une ligne en rouge les nomme : ils comptent à leur valeur comptable jusqu’à ce que vous saisissiez un cours avec **Mettre à jour les cours**.
 
+@index: encaisse négative; encaisse sous zéro
+Dans un régime enregistré (CELI, REER, FERR, CELIAPP, REEE, CRI, FRV ou régime de retraite), une ligne en rouge s’affiche aussi quand l’encaisse est sous zéro. Un régime enregistré ne peut pas emprunter : il manque donc souvent une cotisation ou un transfert entrant, ou un achat a été saisi trop grand. L’application ne change rien : les chiffres restent tels que saisis jusqu’à ce que vous les corrigiez.
+
 Les montants sont dans la devise du compte. Un compte en dollars américains affiche des dollars américains ; un titre coté dans une autre devise que son compte est converti au taux de change du jour (voir [Taux et cours](rates)).
 
 ### Boutons du compte {#account-buttons}
@@ -139,6 +142,8 @@ Sous le type, une courte phrase rappelle ce que fait le type choisi.
 - **Supprimer** : affiché quand vous modifiez une opération existante. Voir [Supprimer une opération](investments#delete-transaction).
 
 > Important : L’application refuse une opération qui laisserait, à une date donnée, moins d’unités que ce qui est vendu ou transféré en sortie. Si ce message s’affiche, cherchez un achat manquant ou une date mal tapée.
+
+Dans un régime enregistré, une ligne en rouge sous les champs avertit quand l’opération laisserait l’encaisse du régime sous zéro (à la plus tardive des deux dates : aujourd’hui ou la date de l’opération). Ce n’est qu’un avertissement : vous pouvez tout de même enregistrer.
 
 ### Ce qu’une opération inscrit au registre {#register-lines}
 

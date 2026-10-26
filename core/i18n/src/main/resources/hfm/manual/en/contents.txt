@@ -42,6 +42,7 @@ pets
 vehicles
 trips
 assets
+property
 utilities
 volunteer
 = settings Settings

@@ -16,7 +16,7 @@ Choisissez Ajouter une personne pour inscrire les gens à appeler, comme le liqu
 
 ## Sommaire d’urgence
 
-L’onglet Sommaire d’urgence rassemble le tout : les papiers et les contacts de chacun, puis les institutions, les comptes avec leurs soldes et bénéficiaires, les polices d’assurance, les régimes de santé et dentaires, les régimes de retraite et les documents conservés.
+L’onglet Sommaire d’urgence rassemble le tout : les papiers et les contacts de chacun, puis les institutions, les comptes avec leurs soldes et bénéficiaires, les propriétés immobilières avec leur adresse, leur numéro de rôle et leur parcelle, les polices d’assurance, les régimes de santé et dentaires, les régimes de retraite et les documents conservés.
 
 ## Le remettre
 

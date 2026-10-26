@@ -1,3 +1,10 @@
+// File path and name: core/books/src/main/kotlin/ca/schippers/hfm/books/AssetService.kt
+// Modified On Timestamp: 2026-10-25 @ 17:52 EDT
+// Created On Timestamp: 2026-10-02 @ 21:53 EDT
+// File Description: Assets (AST-01 to AST-06) with their kinds, value and disposal, and their warranties and claims.
+// Uses: The ledger's Assets.sq queries; core/calc depreciation and thresholds; AssetMaintenanceService.
+// Used By: The desktop Assets screens and reports, RealPropertyService, net worth, insurance, demo households.
+// Purpose: Keep track of what the household owns and what still covers it.
 package ca.schippers.hfm.books
 
 import ca.schippers.hfm.calc.assets.Depreciation
@@ -14,8 +21,8 @@ import java.math.BigDecimal
 import ca.schippers.hfm.data.ledger.Asset as AssetRow
 import ca.schippers.hfm.data.ledger.Warranty as WarrantyRow
 
-/** AST-01: kinds of asset; vehicles have their own section. */
-enum class AssetKind { HOME, COTTAGE, POOL, YARD, RV, BOAT, TRAILER, APPLIANCE, HEATING_COOLING, ELECTRONICS, COMPUTER, FURNITURE, JEWELLERY, ART, TOOLS, SPORTS, MUSICAL, OTHER }
+/** AST-01: kinds of asset; vehicles have their own section. CONDO, LAND and BUILDING are real property too (AST-06). */
+enum class AssetKind { HOME, COTTAGE, CONDO, LAND, BUILDING, POOL, YARD, RV, BOAT, TRAILER, APPLIANCE, HEATING_COOLING, ELECTRONICS, COMPUTER, FURNITURE, JEWELLERY, ART, TOOLS, SPORTS, MUSICAL, OTHER }
 
 enum class ValueMethod { NONE, MANUAL, DEPRECIATION }
 

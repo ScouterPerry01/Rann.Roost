@@ -180,7 +180,7 @@ Le fonctionnement :
 
 Chaque immeuble a sa carte, par ordre de nom, avec :
 
-- son nom, son adresse et « étiquette : » avec le nom de son étiquette ;
+- son nom, son adresse (celle de la propriété liée quand sa [fiche de la propriété](property) en a une) et « étiquette : » avec le nom de son étiquette ;
 - **Modifier** : ouvre la boîte de l’immeuble ;
 - **Revenus** : le total des opérations portant son étiquette dans les catégories de revenus, pour l’année ;
 - une ligne par catégorie de dépenses, avec le total dépensé, puis **Dépenses** : le total de toutes les catégories de dépenses ;
@@ -192,6 +192,7 @@ Les chiffres suivent vos catégories : une opération ventilée entre plusieurs 
 ### Boîte Ajouter un immeuble {#rental-dialog}
 
 - **Nom** : le nom de l’immeuble, par exemple « Duplex rue Cartier ». Obligatoire. À l’ajout d’un immeuble, une étiquette de ce nom est créée pour ses opérations ; si une étiquette de ce nom existe déjà, c’est elle qui est utilisée. Renommer l’immeuble plus tard renomme aussi son étiquette (« L’étiquette de l’immeuble est renommée avec lui. »), et les opérations étiquetées continuent de compter. Si une autre étiquette porte déjà le nouveau nom, l’application dit « Une autre étiquette s’appelle déjà « nom ». Choisissez un autre nom. » et rien n’est enregistré.
+- **La propriété (parmi les biens)** : la maison, le condo ou l’immeuble de l’écran [Maison et biens](assets) qui correspond à cette location, ou « (aucun) ». Affiché quand le groupe de l’immeuble compte au moins une maison, un chalet, un condo, un terrain ou un immeuble. Quand **Adresse** est encore vide, choisir une propriété la remplit avec l’adresse de sa [fiche de la propriété](property).
 - **Adresse** : l’adresse de l’immeuble, affichée sur sa carte.
 - **La part du ménage (%)** : la part de l’immeuble que possède le ménage, de 0,01 à 100. 100 par défaut. Pour un immeuble détenu à moitié avec quelqu’un d’autre, saisissez 50 : la carte montre alors la part du ménage dans le net.
 - **Notes** : ce qu’il faut retenir sur l’immeuble.

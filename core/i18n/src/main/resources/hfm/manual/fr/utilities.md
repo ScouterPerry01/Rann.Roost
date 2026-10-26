@@ -42,7 +42,7 @@ Le coût unitaire est le total de la facture du compteur sur les 12 derniers moi
 
 - **Nom** : obligatoire ; par exemple « Électricité de la maison ».
 - **Mesure** : **Électricité** (kWh), **Gaz naturel** (m³) ou **Eau** (m³). Il fixe l’unité affichée.
-- **Maison ou chalet** : la maison ou le chalet parmi vos [biens](assets) (maisons et chalets seulement), ou **Ménage** s’il n’appartient à aucun.
+- **Maison ou chalet** : la maison ou le chalet parmi vos [biens](assets) (maisons, chalets, condos et immeubles seulement), ou **Ménage** s’il n’appartient à aucun.
 - **Relevés selon l’heure** : pour l’électricité seulement. Cochez-le quand le compteur garde des totaux en période de pointe, intermédiaire et creuse, comme en Ontario ; chaque relevé peut alors donner les trois registres.
 - **Facture pour le coût unitaire** : une de vos [factures](bills), comme celle d’électricité, ou **Aucune**. Sans facture, aucun coût n’est montré. C’est le même lien que le champ **Compteur** du formulaire de facture (voir [Compteur (Services publics)](bills#meter)) : un compteur a une seule facture, et les états de compte inscrits pour cette facture ajoutent leurs relevés datés à ce compteur.
 - **Notes** : ce qu’il faut retenir, comme l’endroit où se trouve le compteur.

@@ -1,3 +1,10 @@
+// File path and name: app/desktop/src/main/kotlin/ca/schippers/hfm/desktop/UtilitiesScreen.kt
+// Modified On Timestamp: 2026-10-25 @ 17:53 EDT
+// Created On Timestamp: 2026-10-06 @ 09:07 EDT
+// File Description: The Utilities screen (UTL-01 and following): meters and readings, fuel tanks and deliveries.
+// Uses: BooksModel, the core/books utility and asset services, the shared desktop controls.
+// Used By: The desktop app's Utilities section and the manual's screenshots.
+// Purpose: Follow the household's energy and water use per home, cottage, condo or building.
 package ca.schippers.hfm.desktop
 
 import androidx.compose.foundation.layout.Arrangement
@@ -33,6 +40,7 @@ import ca.schippers.hfm.books.Bill
 import ca.schippers.hfm.books.FuelKind
 import ca.schippers.hfm.books.FuelTank
 import ca.schippers.hfm.books.MeterKind
+import ca.schippers.hfm.books.REAL_PROPERTY_KINDS
 import ca.schippers.hfm.books.TankDelivery
 import ca.schippers.hfm.books.UnitCost
 import ca.schippers.hfm.books.UtilityMeter
@@ -48,8 +56,8 @@ import java.math.RoundingMode
 
 private enum class UtilitiesTab { METERS, TANKS }
 
-/** The homes and cottages meters and tanks can belong to. */
-private fun BooksModel.homes(): List<Asset> = runCatching { books.assets.list() }.getOrDefault(emptyList()).filter { it.kind == AssetKind.HOME || it.kind == AssetKind.COTTAGE }
+/** The homes, cottages, condos and buildings meters and tanks can belong to (land has none). */
+private fun BooksModel.homes(): List<Asset> = runCatching { books.assets.list() }.getOrDefault(emptyList()).filter { it.kind in REAL_PROPERTY_KINDS && it.kind != AssetKind.LAND }
 
 private fun BooksModel.placeName(assetId: String?): String =
     assetId?.let { id -> runCatching { books.assets.get(id).name }.getOrNull() } ?: t("utilities.household")

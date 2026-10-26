@@ -42,7 +42,7 @@ The cost per unit is what the meter's bill came to over the last 12 months (the 
 
 - **Name**: required; for example "House electricity".
 - **Measures**: **Electricity** (kWh), **Natural gas** (m³) or **Water** (m³). It sets the unit shown.
-- **Home or cottage**: the home or cottage among your [assets](assets) (houses and cottages only), or **Household** when it belongs to none.
+- **Home or cottage**: the home or cottage among your [assets](assets) (homes, cottages, condos and buildings only), or **Household** when it belongs to none.
 - **Time-of-use readings**: for electricity only. Tick it when the meter keeps on-peak, mid-peak and off-peak totals, as in Ontario; each reading can then give the three registers.
 - **Bill for the cost per unit**: one of your [bills](bills), such as the electricity bill, or **None**. Without a bill, no cost is shown. It is the same link as the **Meter** field of the bill form (see [Meter (Utilities)](bills#meter)): a meter has one bill, and the statements recorded for that bill add their dated readings to this meter.
 - **Notes**: anything to remember, such as where the meter is.

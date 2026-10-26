@@ -1,3 +1,11 @@
+// File path and name: app/desktop/src/main/kotlin/ca/schippers/hfm/desktop/AssetsReport.kt
+// Modified On Timestamp: 2026-10-25 @ 21:13 EDT
+// Created On Timestamp: 2026-10-02 @ 21:53 EDT
+// File Description: The Assets report: totals, the home inventory PDF (with each property's address, roll
+//   number and parcel), the assets table, coverage running out and what is uninsured.
+// Uses: AssetService, InsuranceService, PdfPages.inventory, propertyIdentity (PropertyDialog.kt).
+// Used By: The Reports screen (ReportKind.ASSETS).
+// Purpose: What the household owns and what it is worth, and the AST-04 inventory for insurers.
 package ca.schippers.hfm.desktop
 
 import androidx.compose.foundation.layout.Arrangement
@@ -12,6 +20,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import ca.schippers.hfm.books.AssetService
+import ca.schippers.hfm.books.REAL_PROPERTY_KINDS
 import ca.schippers.hfm.calc.rules.LeadTimes
 import ca.schippers.hfm.money.Money
 import ca.schippers.hfm.ocr.desktop.PdfPages
@@ -55,6 +64,8 @@ internal fun AssetsReport(model: BooksModel) {
                 listOf(
                     a.name,
                     listOfNotNull(model.t("assetKind.${a.kind}"), a.make, a.model, a.serialNumber?.let { model.t("assetsReport.serial", it) }).joinToString(" · "),
+                    // AST-16: a property's address, roll number and parcel.
+                    a.takeIf { it.kind in REAL_PROPERTY_KINDS }?.let { propertyIdentity(model, it.id) }.orEmpty(),
                     listOfNotNull(a.location, a.parentId?.let(names::get)?.let { model.t("assetsReport.in", it) }).joinToString(" · "),
                     listOfNotNull(
                         a.purchaseDate?.let { model.t("assetsReport.bought", model.date(it)) },

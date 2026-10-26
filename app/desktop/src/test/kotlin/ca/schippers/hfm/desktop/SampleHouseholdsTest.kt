@@ -1,5 +1,5 @@
 // File path and name: app/desktop/src/test/kotlin/ca/schippers/hfm/desktop/SampleHouseholdsTest.kt
-// Modified On Timestamp: 2026-10-11 @ 13:05 EDT
+// Modified On Timestamp: 2026-10-26 @ 02:00 EDT
 // Created On Timestamp: 2026-10-11 @ 12:47 EDT
 // File Description: Tests that the family and single-person sample households build, in a few
 //   provinces in the normal build and in every province and territory with sampleHouseholdsTest,
@@ -36,6 +36,17 @@ class SampleHouseholdsTest {
     fun `the single person builds in Ontario in English and in Nunavut in French`() {
         single(Province.ON, Language.ENGLISH)
         single(Province.NU, Language.FRENCH)
+    }
+
+    /** A registered plan cannot borrow: the Investments screen warns in red when one is below zero. */
+    @Test
+    fun `no sample household has a registered plan below zero`() {
+        for ((kind, language) in listOf(SampleHousehold.COUPLE to Language.ENGLISH, SampleHousehold.FAMILY to Language.FRENCH, SampleHousehold.SINGLE to Language.ENGLISH)) {
+            build(kind, DemoPlace.defaultFor(language), language) { books ->
+                val below = books.accounts.list().filter { it.account.type.isRegistered && it.balance.isNegative }
+                assertTrue(below.isEmpty(), "$kind: " + below.joinToString { "${it.account.name} ${it.balance}" })
+            }
+        }
     }
 
     /** Each province or territory once for each household, the languages taking turns (several minutes). */

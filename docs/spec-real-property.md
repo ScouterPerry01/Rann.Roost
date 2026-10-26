@@ -298,15 +298,26 @@ depth: 45 m", "Hydro pole number"), in the user's own words.
 
 ## 4. Data and sync notes
 
-- Tables: `real_property` (key `asset_id`, ON DELETE CASCADE), `real_property_room`, `real_property_system`,
-  `real_property_structure`, `real_property_feature`, `real_property_custom`, `real_property_owner`,
-  `real_property_residence_year`. All are ledger tables in the asset's group, created by one migration in
-  the 2.0 schema batch. Save with `INSERT … ON CONFLICT … DO UPDATE` (never `INSERT OR REPLACE`).
+- **As built (2026-10-25), ledger version 36 (migration `35.sqm`):**
+  - The single-value fields of §2.1–2.5 and §2.8–2.12, including the pool and feature list of §2.10, are
+    rows of `real_property_field (asset_id, field, value)`. They are defined in code by
+    `RealPropertyCatalogue` (key, section, type, choice list), not as one column per field, so a new field
+    needs no migration.
+  - Rooms, systems, outbuildings, owners, residence years and custom fields have their own tables:
+    `real_property_room`, `real_property_system`, `real_property_structure`, `real_property_owner`,
+    `real_property_residence_year`, `real_property_custom`.
+  - Every table references `asset(id)` with ON DELETE CASCADE. Child assets use ON DELETE SET NULL. Saves use
+    `INSERT … ON CONFLICT … DO UPDATE` (never `INSERT OR REPLACE`).
+  - Links to a bill, an account or a contact (`property_tax_bill`, `mortgage_account`, `property_manager`)
+    are stored as ids without a database link. A deleted bill simply shows as not linked.
+  - Areas and lengths are stored in m² and m. The unit the user typed is not kept; the screen shows the
+    user's preferred unit.
 - Choice values are stored as stable keys (`DETACHED`, `HEAT_PUMP_AIR`), never as display text. Multi-choice
-  values are stored as a sorted comma-separated list of keys.
-- Sync policies (plan section 4.3): `real_property` FIELD_LWW (two people can fill in different fields
-  offline); the room, system, structure, feature, custom and owner tables FIELD_LWW per row;
-  `real_property_residence_year` APPEND_ONLY with tombstones.
+  values are stored as keys in the list's order, joined by commas. The words of an Other choice go in the
+  field `<key>.other` and are dropped when Other is no longer chosen.
+- Sync policies (plan section 4.3): `real_property_field` FIELD_LWW per row (each field merges on its own,
+  so two people can fill in different fields offline); the room, system, structure, custom and owner tables
+  FIELD_LWW per row; `real_property_residence_year` APPEND_ONLY with tombstones.
 - Moving an asset to another group moves its property rows with it, as for its other child rows.
 - The phone gets nothing new (asset details are not sent to the phone today).
 

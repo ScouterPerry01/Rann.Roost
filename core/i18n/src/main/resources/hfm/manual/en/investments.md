@@ -59,6 +59,9 @@ The heading shows the account name and its type. For a registered plan it adds "
 
 If some securities have no price yet, a red line names them: they are counted at book cost until you enter a price with **Update prices**.
 
+@index: negative cash; cash below zero
+In a registered plan (a TFSA, RRSP, RRIF, FHSA, RESP, LIRA, LIF or pension), a red line also appears when the cash is below zero. A registered plan cannot borrow, so this usually means a contribution or transfer in was not entered, or a purchase was entered too large. The app does not change anything: the figures stay as entered until you correct them.
+
 Amounts are in the account's currency. A U.S. dollar account shows U.S. dollars; a security priced in another currency than its account is converted at the exchange rate of the day (see [Rates and prices](rates)).
 
 ### Account buttons {#account-buttons}
@@ -139,6 +142,8 @@ Under the type, a short sentence repeats what the chosen type does.
 - **Delete**: shown when you edit an existing transaction. See [Delete a transaction](investments#delete-transaction).
 
 > Important: The app refuses a transaction that would leave fewer units than are sold or moved out at some date. If you get that message, look for a missing purchase or a date typed wrong.
+
+In a registered plan, a red line under the fields warns when the transaction would leave the plan's cash below zero (on the later of today and the transaction's date). It is only a warning: you can still save.
 
 ### What a transaction writes in the register {#register-lines}
 

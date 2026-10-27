@@ -1,3 +1,10 @@
+// File path and name: core/books/build.gradle.kts
+// Modified On Timestamp: 2026-10-26 @ 04:56 EDT
+// Created On Timestamp: 2026-10-01 @ 15:53 EDT
+// File Description: Build of core/books: the bookkeeping services, their tests and the NFR-02 performance test.
+// Uses: core/data, core/money, core/i18n, core/importers, core/calc, core/ocr, core/sync; core/data-jdbc and core/replication in tests.
+// Used By: app/desktop.
+// Purpose: Bookkeeping rules on top of the encrypted storage.
 // Bookkeeping rules on top of the encrypted storage: categories, payees, institutions,
 // members, accounts and transactions, with validation, permissions and change history.
 plugins {
@@ -15,6 +22,7 @@ dependencies {
     api(project(":core:sync"))
     implementation(libs.kotlinx.serialization.json)
     testImplementation(project(":core:data-jdbc"))
+    testImplementation(project(":core:replication"))
     testImplementation(kotlin("test"))
     testImplementation(platform(libs.junit.bom))
     testImplementation(libs.junit.jupiter)
